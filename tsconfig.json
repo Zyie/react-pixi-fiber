@@ -21,17 +21,19 @@
     "allowImportingTsExtensions": true,
     "paths": {
       "~/*": ["./src/*"],
-      // Tests, examples and docs import the library by its package name.
+      // Scenes, examples, the playground and docs import the library by its package name.
       "react-pixi-fiber": ["./src/index.tsx"],
       // r3f's alias for its types folder, used throughout the vendored source.
       "#types": ["./src/r3f/types/index.ts"],
       "#types/*": ["./src/r3f/types/*"],
       // pixi-3d isn't on npm; we build against its source in .repos (npm run sync:repos).
       "@pixi/3d": ["./.repos/pixi-3d/src/index.ts"],
-      "@pixi/3d/extras": ["./.repos/pixi-3d/src/extras/index.ts"]
+      "@pixi/3d/extras": ["./.repos/pixi-3d/src/extras/index.ts"],
+      "@test-scene": ["./tests/harness/scene.ts"],
+      "@test-utils": ["./tests/harness/test-utils.tsx"]
     }
   },
-  "include": ["src", "tests", "scripts", "*.config.ts"],
+  "include": ["src", "tests", "examples", "playground", "scripts", "*.config.ts"],
   // src/r3f is type-checked through what src imports from it. Its own entries (index, legacy, webgpu)
   // each declare three's JSX elements, which would clash with ours.
   "exclude": ["node_modules", "dist", "src/r3f/**", ".repos/**/*.worker.ts"]

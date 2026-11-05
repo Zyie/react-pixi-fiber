@@ -1,0 +1,344 @@
+:root {
+  --bg: #0d0f14;
+  --panel: #141820;
+  --raised: #1b2029;
+  --line: #262c38;
+  --text: #d7dce5;
+  --muted: #7d8696;
+  --accent: #e7426a;
+  --webgl: #e7426a;
+  --webgpu: #f0a83a;
+  --three: #4aa3ff;
+  --diff: #9b8cff;
+  color-scheme: dark;
+  font:
+    13px/1.45 ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 248px 1fr;
+  height: 100%;
+}
+
+/* Sidebar */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 12px;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  min-height: 0;
+}
+
+.brand {
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  padding: 2px 4px 6px;
+}
+
+.brand span {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+
+.segmented button {
+  flex: 1;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.segmented button[aria-pressed='true'] {
+  background: var(--raised);
+  color: var(--text);
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.tabs {
+  display: flex;
+}
+
+.count {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  margin-left: 2px;
+}
+
+.search {
+  width: 100%;
+  padding: 6px 9px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  outline: none;
+}
+
+.search:focus {
+  border-color: var(--muted);
+}
+
+.tree {
+  overflow-y: auto;
+  min-height: 0;
+  margin: 0 -4px;
+}
+
+.folder {
+  margin-bottom: 8px;
+}
+
+.folder-name {
+  padding: 4px 8px;
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.leaf {
+  display: block;
+  width: 100%;
+  padding: 4px 8px 4px 16px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.leaf:hover {
+  background: var(--raised);
+}
+
+.leaf[aria-current='true'] {
+  background: var(--raised);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+/* Main */
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: auto;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-right: auto;
+  min-width: 0;
+}
+
+.title h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.kind {
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.key {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.pair {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.pair select {
+  padding: 5px 8px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.panes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 400px));
+  gap: 20px;
+  padding: 20px;
+  align-items: start;
+}
+
+.pane {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pane figcaption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 550;
+}
+
+.pane figcaption a {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.pane figcaption a:hover {
+  color: var(--text);
+}
+
+.measure {
+  margin-left: auto;
+  color: var(--muted);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dot.webgl {
+  background: var(--webgl);
+}
+
+.dot.webgpu {
+  background: var(--webgpu);
+}
+
+.dot.three {
+  background: var(--three);
+}
+
+.dot.diff {
+  background: var(--diff);
+}
+
+.canvas {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  background: #000;
+}
+
+.canvas canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.placeholder {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+
+.error {
+  margin: 0;
+  padding: 10px;
+  color: #ff8a8a;
+  font-size: 11px;
+  white-space: pre-wrap;
+  overflow: auto;
+  max-height: 300px;
+}
+
+.note {
+  max-width: 400px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.empty {
+  max-width: 520px;
+  margin: 18vh auto 0;
+  padding: 0 20px;
+}
+
+.empty h1 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.empty p {
+  color: var(--muted);
+}
+
+/* A frame that builds one capture; it has to be on the page for its canvas to be drawn, but never seen. */
+.capture-frame {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 800px;
+  height: 600px;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+}

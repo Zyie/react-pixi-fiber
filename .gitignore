@@ -12,3 +12,10 @@ dist
 
 # Vitest browser-mode screenshots and attachments
 .vitest
+
+# Test wrappers the vitest plugin writes beside each scene and for each example (scripts/test/generate-test-wrappers.mts)
+tests/scenes/**/*.scene.test.ts
+tests/docs
+
+# Pictures of failing visual tests
+.pr_uploads

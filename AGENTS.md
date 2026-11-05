@@ -6,6 +6,8 @@
 
 - **Never edit `src/r3f`.** It is r3f's `packages/fiber`, vendored byte for byte. Adapt r3f in our own layer (`src/support`, `src/compat`, `src/catalog`, `src/renderer`); `npm run vendor:r3f` resyncs the copy after `npm run sync:repos`.
 - **three is not a dependency.** Nothing reachable from `src/index.tsx` imports `three`; it is a devDependency only so the vendored r3f entries can render the same scenes through three for parity.
+- **Test with pictures first.** A visual scene is the default test: it draws the result on pixi-3d's WebGPU and WebGL renderers and on three.js, and compares each with a reference image. Write a unit test only where there is no picture to compare.
+- **Look at what you rendered.** Open every image you produce and check it shows what you meant. A passing comparison only says the image didn't change, and a new reference image is correct only once you have looked at it.
 
 ## Read before you start
 
@@ -16,6 +18,7 @@
   - `.repos/react-three-fiber`: r3f, `v10` branch. The port source. Start at its `AGENTS.md`; the fiber package is `packages/fiber/src`.
   - `.repos/pixi-3d`: `@pixi/3d`, `main` branch. The target renderer. Start at its `AGENTS.md` and `docs/architecture.md`.
   - `.repos/pixijs`: pixi.js, `dev` branch. The 2D engine pixi-3d extends.
+- **`tests/README.md`**, how the visual scenes, examples, three.js parity, the unit tests and the playground work. Read it before you write a test or an example, update a reference image, or read a parity composite.
 
 ## How `@pixi/3d` resolves
 
@@ -25,9 +28,10 @@
 
 - `npm run lint` fixes lint and formatting with oxlint and oxfmt; `npm run test:lint` is the read-only check, and also fails when `src/r3f` differs from `.repos/react-three-fiber`.
 - `npm run test:types` type-checks with `tsc` (TypeScript 7).
-- `npm run test:unit` runs vitest in headless Chromium. Rendering tests need a real browser, so tests live in the browser runner.
+- `npm run test:visual` runs every scene and example on three.js, then on pixi-3d's WebGPU and WebGL renderers, and prints how far each is from three.js. `npm run test:unit` runs the unit and harness tests. Everything runs in headless Chromium.
+- `npm start` serves the playground on port 5181: every scene and example on pixi WebGL, pixi WebGPU and three.js side by side, or as a diff.
 - `npm run build` builds with tsdown. Declarations come from Oxc, so exported functions and values need explicit types. `npm run test:bundle` then fails if `dist` imports three.
-- `npm test` runs all of the above except the build.
+- `npm test` runs lint, types and every vitest project, but not the build.
 
 ## Commits
 
