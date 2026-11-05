@@ -29,6 +29,7 @@ export default defineConfig({
       'three',
       'three/addons/controls/OrbitControls.js',
       'three/addons/loaders/GLTFLoader.js',
+      'three/addons/controls/MapControls.js',
       'react',
       'react/jsx-runtime',
       'react/jsx-dev-runtime',
