@@ -1,7 +1,7 @@
 import { Vector3 as PixiVector3 } from '@pixi/3d';
 import type { Camera3D, Matrix4, PointData3D } from '@pixi/3d';
 
-import { updateCameraMatrices } from './cameraMatrices';
+import { cameraProjection, cameraProjectionInverse, cameraWorld, cameraWorldInverse } from './cameraMatrices';
 
 /**
  * pixi-3d's `Vector3` with the three.js members r3f and typical `useFrame` code call
@@ -106,8 +106,7 @@ export class Vector3 extends PixiVector3 {
    * @returns This vector
    */
   public project(camera: Camera3D): this {
-    const { projection, worldInverse } = updateCameraMatrices(camera);
-    return this.applyMatrix4(worldInverse).applyMatrix4(projection);
+    return this.applyMatrix4(cameraWorldInverse(camera)).applyMatrix4(cameraProjection(camera));
   }
 
   /**
@@ -116,8 +115,7 @@ export class Vector3 extends PixiVector3 {
    * @returns This vector
    */
   public unproject(camera: Camera3D): this {
-    const { projectionInverse, world } = updateCameraMatrices(camera);
-    return this.applyMatrix4(projectionInverse).applyMatrix4(world);
+    return this.applyMatrix4(cameraProjectionInverse(camera)).applyMatrix4(cameraWorld(camera));
   }
 
   /** A new vector with the same components */

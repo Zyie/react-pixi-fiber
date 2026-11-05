@@ -1,7 +1,7 @@
 import { BaseMaterial3D, Camera3D, Container3D, Geometry3D, Matrix4, Mesh3D } from '@pixi/3d';
 import type { PointData3D, Vector3 } from '@pixi/3d';
 
-import { updateCameraMatrices } from './cameraMatrices';
+import { cameraProjection, cameraProjectionInverse, cameraWorldInverse } from './cameraMatrices';
 import { placeholderGeometry, placeholderMaterial } from './placeholders';
 import { raycastMesh } from './Raycaster';
 import type { Intersection, Raycaster } from './Raycaster';
@@ -215,17 +215,17 @@ const camera: Members<CameraMembers & Camera3D & { left?: number; right?: number
   },
   projectionMatrix: {
     get(this: Camera3D) {
-      return updateCameraMatrices(this).projection;
+      return cameraProjection(this);
     },
   },
   projectionMatrixInverse: {
     get(this: Camera3D) {
-      return updateCameraMatrices(this).projectionInverse;
+      return cameraProjectionInverse(this);
     },
   },
   matrixWorldInverse: {
     get(this: Camera3D) {
-      return updateCameraMatrices(this).worldInverse;
+      return cameraWorldInverse(this);
     },
   },
   updateProjectionMatrix: {

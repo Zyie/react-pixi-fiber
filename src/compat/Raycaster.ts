@@ -2,7 +2,7 @@ import { Matrix4, Ray, Vector3 as PixiVector3, createHitResult3D, intersectRayGe
 import type { Camera3D, Container3D, Mesh3D, PointData3D } from '@pixi/3d';
 import type { PointData } from 'pixi.js';
 
-import { updateCameraMatrices } from './cameraMatrices';
+import { cameraProjectionInverse, cameraWorld } from './cameraMatrices';
 import { Vector2 } from './Vector2';
 import { Vector3 } from './Vector3';
 
@@ -137,7 +137,8 @@ export class Raycaster {
    * @param camera - The camera to cast from
    */
   public setFromCamera(coords: PointData, camera: Camera3D): void {
-    const { projectionInverse, world } = updateCameraMatrices(camera);
+    const projectionInverse = cameraProjectionInverse(camera);
+    const world = cameraWorld(camera);
     const { origin, direction } = this.ray;
     this.camera = camera;
     if (camera.mode === 'orthographic') {

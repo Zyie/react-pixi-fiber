@@ -2,21 +2,35 @@ import { Matrix4 } from '@pixi/3d';
 import type { Camera3D } from '@pixi/3d';
 
 /**
- * three's camera matrices, worked out from a pixi-3d camera's settings and transform
- * @internal
+ * three's camera matrices for one camera, reused and overwritten on every read
+ *
+ * pixi-3d fills `camera.projection` and `camera.view` while it draws, so outside a render they are a
+ * frame old, and identity before the first one. r3f reads the matrices between frames (frustum
+ * checks, picking, `unproject`), so each function below works its matrix out when called, from
+ * `computeProjection` and the camera's global transform.
  */
-export interface CameraMatrices {
-  /** Camera space to clip space, `camera.projectionMatrix` in three */
+interface CameraMatrices {
   readonly projection: Matrix4;
-  /** Clip space to camera space, `camera.projectionMatrixInverse` in three */
   readonly projectionInverse: Matrix4;
-  /** Camera space to world space, `camera.matrixWorld` in three */
   readonly world: Matrix4;
-  /** World space to camera space, `camera.matrixWorldInverse` in three */
   readonly worldInverse: Matrix4;
 }
 
 const cache = new WeakMap<Camera3D, CameraMatrices>();
+
+const matricesOf = (camera: Camera3D): CameraMatrices => {
+  let matrices = cache.get(camera);
+  if (!matrices) {
+    matrices = {
+      projection: new Matrix4(),
+      projectionInverse: new Matrix4(),
+      world: new Matrix4(),
+      worldInverse: new Matrix4(),
+    };
+    cache.set(camera, matrices);
+  }
+  return matrices;
+};
 
 /**
  * The aspect a camera projects with: three's `aspect` field when r3f keeps one on the camera, else
@@ -32,29 +46,37 @@ export function cameraAspect(camera: Camera3D): number {
 }
 
 /**
- * Builds a camera's projection and world matrices now, from its settings and transform
- *
- * pixi-3d fills `camera.projection` and `camera.view` while it draws, so outside a render they are a
- * frame old, and identity before the first one. r3f reads the matrices between frames (frustum
- * checks, picking, `unproject`), so they are worked out here from `computeProjection` and the
- * camera's global transform instead. The matrices are reused per camera and overwritten on every call.
+ * Camera space to clip space, three's `camera.projectionMatrix`, worked out now
  * @param camera - The camera to read
  * @internal
  */
-export function updateCameraMatrices(camera: Camera3D): CameraMatrices {
-  let matrices = cache.get(camera);
-  if (!matrices) {
-    matrices = {
-      projection: new Matrix4(),
-      projectionInverse: new Matrix4(),
-      world: new Matrix4(),
-      worldInverse: new Matrix4(),
-    };
-    cache.set(camera, matrices);
-  }
-  camera.computeProjection(cameraAspect(camera), matrices.projection);
-  matrices.projectionInverse.getInverse(matrices.projection);
-  camera.getGlobalTransform(matrices.world);
-  matrices.worldInverse.getInverse(matrices.world);
-  return matrices;
+export function cameraProjection(camera: Camera3D): Matrix4 {
+  return camera.computeProjection(cameraAspect(camera), matricesOf(camera).projection);
+}
+
+/**
+ * Clip space to camera space, three's `camera.projectionMatrixInverse`, worked out now
+ * @param camera - The camera to read
+ * @internal
+ */
+export function cameraProjectionInverse(camera: Camera3D): Matrix4 {
+  return matricesOf(camera).projectionInverse.getInverse(cameraProjection(camera));
+}
+
+/**
+ * Camera space to world space, three's `camera.matrixWorld`, worked out now
+ * @param camera - The camera to read
+ * @internal
+ */
+export function cameraWorld(camera: Camera3D): Matrix4 {
+  return camera.getGlobalTransform(matricesOf(camera).world);
+}
+
+/**
+ * World space to camera space, three's `camera.matrixWorldInverse`, worked out now
+ * @param camera - The camera to read
+ * @internal
+ */
+export function cameraWorldInverse(camera: Camera3D): Matrix4 {
+  return matricesOf(camera).worldInverse.getInverse(cameraWorld(camera));
 }
