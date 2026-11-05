@@ -91,9 +91,11 @@ const isDescendant = (node: Container3D, root: Container3D): boolean => {
  * {@link PixiRenderer#viewMaxIdleFrames | viewMaxIdleFrames} frames undrawn, and is made again if
  * the scene is drawn after that.
  *
- * three's renderer settings are forwarded to each view as it draws: `toneMapping` and
- * `toneMappingExposure` become the view's tone mapping and exposure, and `shadowMap.type` its shadow
- * filter. `shadowMap.enabled` gates which lights cast shadows. A scene whose `background` is a colour,
+ * three's renderer settings are forwarded to each view as it draws: `toneMapping`,
+ * `toneMappingExposure` and `outputColorSpace` become three's own tone curve, exposure and output
+ * transform at the end of every material, and `shadowMap.type` the view's shadow filter.
+ * `shadowMap.enabled` gates which lights cast shadows. The scene's lights, `fog` and a texture
+ * `background` are read as three reads them. A scene whose `background` is a colour,
  * a three `Color` or a pixi `ColorSource`, clears the canvas to it before it draws, as three's does,
  * untouched by tone mapping; any other background, such as a pixi-3d `CubeTexture`, becomes its view's.
  * The canvas is transparent unless `alpha` is `false`, as in three.
