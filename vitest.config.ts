@@ -11,11 +11,14 @@ export default defineConfig({
     include: ['pixi.js > eventemitter3', 'parse-svg-path', '@xmldom/xmldom'],
   },
   resolve: {
-    alias: {
-      '~': path.resolve(import.meta.dirname, './src'),
-      '@pixi/3d/extras': path.join(pixi3d, 'extras/index.ts'),
-      '@pixi/3d': path.join(pixi3d, 'index.ts'),
-    },
+    alias: [
+      { find: /^~\//, replacement: `${path.resolve(import.meta.dirname, 'src')}/` },
+      // Tests, examples and docs import the library by its package name.
+      { find: /^react-pixi-fiber$/, replacement: path.resolve(import.meta.dirname, 'src/index.tsx') },
+      { find: /^#types$/, replacement: path.resolve(import.meta.dirname, 'src/r3f/types/index.ts') },
+      { find: /^@pixi\/3d\/extras$/, replacement: path.join(pixi3d, 'extras/index.ts') },
+      { find: /^@pixi\/3d$/, replacement: path.join(pixi3d, 'index.ts') },
+    ],
   },
   test: {
     exclude: [...configDefaults.exclude, '.repos/**'],
