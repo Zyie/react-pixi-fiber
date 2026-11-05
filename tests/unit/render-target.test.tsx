@@ -2,7 +2,14 @@ import { act, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { createRoot, useRenderTarget } from 'react-pixi-fiber';
 import type { ReconcilerRoot, RootState } from 'react-pixi-fiber';
-import { Color, OrthographicCamera, Scene, WebGLCubeRenderTarget, WebGLRenderTarget } from 'react-pixi-fiber/three';
+import {
+  Color,
+  MeshBasicMaterial,
+  OrthographicCamera,
+  Scene,
+  WebGLCubeRenderTarget,
+  WebGLRenderTarget,
+} from 'react-pixi-fiber/three';
 import { afterEach, beforeAll, expect, it } from 'vitest';
 
 let root: ReconcilerRoot<HTMLCanvasElement> | undefined;
@@ -145,4 +152,44 @@ it('frees the environment cubes, the backgrounds and the cube face texture when 
 
   state.renderer.dispose();
   state.renderer.dispose();
+});
+
+/** The twin textures a renderer draws WebGPU targets into, by target */
+const twinsOf = (renderer: RootState['renderer']): Map<WebGLRenderTarget, { texture: { destroyed: boolean } }> =>
+  (renderer as unknown as { _twins: { _twins: Map<WebGLRenderTarget, { texture: { destroyed: boolean } }> } | null })
+    ._twins?._twins ?? new Map();
+
+// On WebGPU a target a material samples is drawn through a twin texture; no picture shows it freed.
+it('frees the twin a WebGPU target is drawn through when the target is disposed, and with the renderer', async () => {
+  const state = await mount(null, 'webgpu');
+  const scene = new Scene();
+  const camera = new OrthographicCamera();
+  const draw = (target: WebGLRenderTarget): void => {
+    state.renderer.setRenderTarget(target);
+    state.renderer.render(scene, camera);
+    state.renderer.setRenderTarget(null);
+  };
+  const shown = new WebGLRenderTarget(8, 8);
+  const unseen = new WebGLRenderTarget(8, 8);
+  const disposed = new WebGLRenderTarget(8, 8);
+  const material = new MeshBasicMaterial({ map: shown.texture });
+  material.map = disposed.texture;
+  material.map = shown.texture;
+
+  draw(shown);
+  draw(unseen);
+  draw(disposed);
+  const twins = twinsOf(state.renderer);
+  expect([...twins.keys()]).toEqual([shown, disposed]);
+  const [shownTwin, disposedTwin] = [twins.get(shown)!, twins.get(disposed)!];
+
+  disposed.dispose();
+  expect(disposedTwin.texture.destroyed).toBe(true);
+  expect(twins.has(disposed)).toBe(false);
+
+  state.renderer.dispose();
+  expect(shownTwin.texture.destroyed).toBe(true);
+  material.dispose();
+  shown.dispose();
+  unseen.dispose();
 });

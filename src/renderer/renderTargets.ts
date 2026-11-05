@@ -1,6 +1,7 @@
 import { Container, CubeTexture, Graphics, Mesh, MeshGeometry, RenderTexture, Shader, Texture } from 'pixi.js';
-import type { CLEAR, ColorSource, Renderer, TextureSource } from 'pixi.js';
+import type { CLEAR, ColorSource, Renderer, TextureSource, WebGPURenderer } from 'pixi.js';
 
+import { isMaterialTexture } from '../catalog/textures/textureTransform';
 import { program } from '../environment/environmentShaders';
 import type { Vector4 } from '../math/Vector4';
 
@@ -40,6 +41,112 @@ export interface DrawableTarget {
   readonly texture: Texture | CubeTexture;
   readonly disposed: boolean;
   _renderCount: number;
+  addEventListener(type: 'dispose', listener: () => void): void;
+  removeEventListener(type: 'dispose', listener: () => void): void;
+}
+
+const copyFrom = { texture: null as unknown as GPUTexture, mipLevel: 0 };
+const copyTo = { texture: null as unknown as GPUTexture, mipLevel: 0 };
+const copySize = { width: 1, height: 1 };
+const copyCommands: GPUCommandBuffer[] = [];
+
+/**
+ * Copies one mip of a texture into another of its format and size on WebGPU, after what the renderer
+ * has submitted
+ */
+function copyTexture(pixi: WebGPURenderer, from: Texture, to: Texture, mipLevel: number): void {
+  const { device } = pixi.gpu;
+  const encoder = device.createCommandEncoder();
+  copyFrom.texture = pixi.texture.getGpuSource(from.source);
+  copyTo.texture = pixi.texture.getGpuSource(to.source);
+  copyFrom.mipLevel = copyTo.mipLevel = mipLevel;
+  copySize.width = Math.max(1, from.source.pixelWidth >> mipLevel);
+  copySize.height = Math.max(1, from.source.pixelHeight >> mipLevel);
+  encoder.copyTextureToTexture(copyFrom, copyTo, copySize);
+  copyCommands[0] = encoder.finish();
+  device.queue.submit(copyCommands);
+  copyFrom.texture = copyTo.texture = null as unknown as GPUTexture;
+}
+
+/**
+ * On WebGPU, the textures 2D targets are drawn into in their place once a material samples them.
+ * pixi-3d binds the textures of every material a view draws with into the pass, hidden meshes'
+ * included, and WebGPU drops a pass that samples its own attachment, so a scene that shows a target
+ * couldn't be drawn into it. A target's twin is drawn into, then copied into the target's texture.
+ * It is made with the target's picture and kept until the target is disposed, so a render that
+ * doesn't clear draws over the last picture.
+ * @internal
+ */
+export class TargetTwins {
+  private readonly _twins = new Map<
+    DrawableTarget,
+    { readonly texture: RenderTexture; readonly release: () => void }
+  >();
+
+  /**
+   * The texture to draw a 2D target into: its twin once a material has sampled the target, or its own
+   * @param pixi - The WebGPU renderer
+   * @param target - The target
+   */
+  public surfaceFor(pixi: WebGPURenderer, target: DrawableTarget): Texture {
+    const own = target.texture as Texture;
+    const twin = this._twins.get(target);
+    if (twin) {
+      if (
+        twin.texture.source.pixelWidth !== own.source.pixelWidth ||
+        twin.texture.source.pixelHeight !== own.source.pixelHeight
+      ) {
+        twin.texture.resize(own.source.width, own.source.height, own.source.resolution);
+        copyTexture(pixi, own, twin.texture, 0);
+      }
+      return twin.texture;
+    }
+    if (!isMaterialTexture(own.source)) return own;
+
+    const { width, height, resolution, format, antialias, mipLevelCount } = own.source;
+    const texture = RenderTexture.create({
+      width,
+      height,
+      resolution,
+      format,
+      antialias,
+      mipLevelCount,
+      label: 'RenderTargetTwin',
+    });
+    const release = (): void => this._release(target);
+    copyTexture(pixi, own, texture, 0);
+    target.addEventListener('dispose', release);
+    this._twins.set(target, { texture, release });
+    return texture;
+  }
+
+  /**
+   * Copies what was drawn into a twin into its target's texture, and builds the target's mipmaps when
+   * it keeps them
+   * @param pixi - The WebGPU renderer
+   * @param target - The target
+   * @param mipLevel - The mip level drawn into
+   */
+  public copyBack(pixi: WebGPURenderer, target: DrawableTarget, mipLevel: number): void {
+    const twin = this._twins.get(target);
+    if (!twin) return;
+    const own = target.texture as Texture;
+    copyTexture(pixi, twin.texture, own, mipLevel);
+    if (own.source.autoGenerateMipmaps) own.source.updateMipmaps();
+  }
+
+  /** Frees every twin. Idempotent. */
+  public destroy(): void {
+    for (const target of this._twins.keys()) this._release(target);
+  }
+
+  private _release(target: DrawableTarget): void {
+    const twin = this._twins.get(target);
+    if (!twin) return;
+    this._twins.delete(target);
+    target.removeEventListener('dispose', twin.release);
+    twin.texture.destroy(true);
+  }
 }
 
 /**

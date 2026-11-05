@@ -42,9 +42,4 @@ function PortalScene() {
 export const scene: TestScene = {
   frames: 2,
   render: () => <PortalScene />,
-  // pixi-3d binds the textures of every material a view draws with into the pass, hidden meshes'
-  // included, so on WebGPU the target is bound for sampling and as the attachment in one pass, which
-  // WebGPU rejects ("includes writable usage and another usage in the same synchronization scope"):
-  // the pass is dropped and the plane shows an empty target. WebGL draws it as three does.
-  fails: { webgpu: 'differ from three.js' },
 };

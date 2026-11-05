@@ -9,7 +9,7 @@ import { Color as ThreeColor, toPixiColor } from '../math/Color';
 import { Vector4 } from '../math/Vector4';
 import { releaseBackdrop, updateBackdrop } from './backdrop';
 import { ProxyCamera } from './ProxyCamera';
-import { ClearRect, CubeFaceWriter, coversSurface, fromBottomLeft, surfaceOf } from './renderTargets';
+import { ClearRect, CubeFaceWriter, TargetTwins, coversSurface, fromBottomLeft, surfaceOf } from './renderTargets';
 import type { DrawableTarget, PixelRect } from './renderTargets';
 import { applyFog } from './sceneFog';
 import { finishLights, prepareLights } from './sceneLights';
@@ -224,6 +224,7 @@ export class PixiRenderer {
   private _renderTarget: DrawableTarget | null = null;
   private _environments: EnvironmentMaps | null = null;
   private _cubeFaces: CubeFaceWriter | null = null;
+  private _twins: TargetTwins | null = null;
   private _activeCubeFace = 0;
   private _activeMipmapLevel = 0;
   private readonly _viewport = new Vector4(0, 0, 300, 150);
@@ -634,6 +635,8 @@ export class PixiRenderer {
     this._environments = null;
     this._cubeFaces?.destroy();
     this._cubeFaces = null;
+    this._twins?.destroy();
+    this._twins = null;
     this._empty.destroy({ children: true });
     this.pixi?.destroy();
     this.pixi = null;
@@ -718,13 +721,17 @@ export class PixiRenderer {
       this._cubeFaces.write(pixi, stage, target, this._activeCubeFace, this._activeMipmapLevel, fullClear, clearRGBA);
       target._renderCount++;
     } else if (target) {
+      const own = surfaceOf(target);
+      const surface =
+        pixi.name === 'webgpu' ? (this._twins ??= new TargetTwins()).surfaceFor(pixi as WebGPURenderer, target) : own;
       pixi.render({
         container: stage,
-        target: surfaceOf(target),
+        target: surface,
         clear: fullClear,
         clearColor: clearRGBA,
         mipLevel: this._activeMipmapLevel,
       });
+      if (surface !== own) this._twins!.copyBack(pixi as WebGPURenderer, target, this._activeMipmapLevel);
       target._renderCount++;
     } else {
       pixi.render({ container: stage, clear: fullClear });

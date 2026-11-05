@@ -70,7 +70,7 @@ export function App() {
 
 `renderer.setRenderTarget(fbo)` points the next `render` at the target, and `setRenderTarget(null)` points it back at the canvas, exactly as in three.
 
-r3f's shortest sample draws the root's own `scene` into the target and shows it on a plane in that same scene. On WebGL that works as in three, with the plane hidden while the target draws so it never samples the texture it draws into. On WebGPU it doesn't yet: pixi-3d binds the textures of every material a view draws with, hidden meshes' included, so the pass would read and write the target at once, and WebGPU drops it. Keep the scene you draw into a target apart from the mesh that shows it, as above.
+r3f's shortest sample draws the root's own `scene` into the target and shows it on a plane in that same scene. That works as in three; hide the plane while the target draws, as three needs, so it doesn't sample the texture it draws into. On WebGPU, pixi-3d binds the textures of every material in the view, hidden ones' included, so a target a material samples is drawn into a twin texture of the same size and copied into its own.
 
 ## Argument forms
 
