@@ -163,7 +163,7 @@ function setPaused(pause: boolean): void {
 function serveAssets(message: RunMessage): void {
   const files = new Map(message.assets.map(({ alias, file }) => [alias, new URL(file, document.baseURI).href]));
 
-  DefaultLoadingManager.setURLModifier((url) => files.get(url.split('?')[0].replace(/^\//, '')) ?? url);
+  DefaultLoadingManager.setURLModifier((url) => files.get(url.replace(/[?#].*$/, '').replace(/^\//, '')) ?? url);
 }
 
 /**

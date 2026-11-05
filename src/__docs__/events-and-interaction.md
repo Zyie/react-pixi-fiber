@@ -68,4 +68,4 @@ The hit comes from a pixi-3d ray cast against the geometry of each mesh with a h
 
 ## Next steps
 
-Pictures and models make a scene: [load them](loading-models-and-textures.md).
+Pictures and models make a scene: load [models](loading-models.md) and [textures](loading-textures.md).

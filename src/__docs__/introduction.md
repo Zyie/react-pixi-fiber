@@ -68,4 +68,4 @@ Where it isn't the same yet, [Differences from react-three-fiber](differences.md
 
 - [Installation](installation.md) sets it up, beside React and PixiJS.
 - [Your first scene](your-first-scene.md) builds a lit cube and explains `<Canvas>`, elements, `args` and props.
-- [Basic animations](basic-animations.md), [Events and interaction](events-and-interaction.md) and [Loading models and textures](loading-models-and-textures.md) follow r3f's tutorials.
+- [Basic animations](basic-animations.md), [Events and interaction](events-and-interaction.md), [Loading models](loading-models.md) and [Loading textures](loading-textures.md) follow r3f's tutorials.

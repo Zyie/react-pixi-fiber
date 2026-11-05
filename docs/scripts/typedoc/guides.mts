@@ -50,13 +50,10 @@ export const GUIDES: readonly Guide[] = [
     file: 'src/__docs__/events-and-interaction.md',
     section: 'tutorials',
   },
-  {
-    id: 'loading-models-and-textures',
-    title: 'Loading models and textures',
-    file: 'src/__docs__/loading-models-and-textures.md',
-    section: 'tutorials',
-  },
+  { id: 'loading-models', title: 'Loading models', file: 'src/__docs__/loading-models.md', section: 'tutorials' },
+  { id: 'loading-textures', title: 'Loading textures', file: 'src/__docs__/loading-textures.md', section: 'tutorials' },
   { id: 'three-entry', title: 'The three entry', file: 'src/__docs__/three-entry.md', section: 'reference' },
+  { id: 'loading-hooks', title: 'Loading hooks', file: 'src/__docs__/loading-hooks.md', section: 'reference' },
   {
     id: DIFFERENCES_ID,
     title: 'Differences from react-three-fiber',
