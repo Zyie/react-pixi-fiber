@@ -1,37 +1,41 @@
 import { FlatMaterial } from '@pixi/3d';
-import type { ShaderBit } from '@pixi/3d';
-import { Texture } from 'pixi.js';
+import type { ShaderBit, ShaderDescriptor, View3D } from '@pixi/3d';
+import type { Texture } from 'pixi.js';
 
 import { Color, toPixiColor } from '../../math/Color';
 import type { ColorRepresentation } from '../../math/Color';
+import { readSlot, writeSlot } from './textureSlots';
+import { initThreeMaterial, threeDescriptor } from './threeMaterial';
+import type { MaterialParameters } from './threeMaterial';
 
 /**
- * three's `MeshBasicMaterial` parameters that map onto pixi-3d's `FlatMaterial`
+ * three's `MeshBasicMaterial` parameters
  * @category catalog
  * @standard
  */
-export interface MeshBasicMaterialParameters {
-  /** Colour, pixi-3d's `baseColor` */
+export interface MeshBasicMaterialParameters extends MaterialParameters {
+  /** Colour */
   color?: ColorRepresentation;
-  /** Colour texture, multiplied by `color`; pixi-3d's `baseColorTexture` */
+  /** Colour texture, multiplied by `color` */
   map?: Texture | null;
-  /** 0 for clear, 1 for solid; pixi-3d's `alpha` */
-  opacity?: number;
-  /** Blend with what is behind, using `opacity`; pixi-3d's `alphaMode: 'blend'` */
-  transparent?: boolean;
+  /** Opacity in the green channel, multiplying `opacity` */
+  alphaMap?: Texture | null;
 }
 
 /**
  * Decodes the base colour texture from sRGB to linear with pixi-3d's 2.2 gamma, as its lit materials
- * do, so a textured basic material goes through tone mapping as three's does. `FlatMaterial`'s own bit
- * shows the texture as authored; this follows it and scales `albedo` by `decode(t) / t` per channel.
+ * do, so a textured basic material goes through tone mapping as three's does, and multiplies alpha by
+ * the alpha map's green channel. `FlatMaterial`'s own bit shows the texture as authored; this follows
+ * it and scales `albedo` by `decode(t) / t` per channel.
  */
-const srgbBaseColorTextureBit: ShaderBit = {
-  name: 'meshBasicSrgbTexture',
+const basicMapsBit: ShaderBit = {
+  name: 'meshBasicMaps',
+  textures: ['alphaMap'],
   gpu: {
     fragment: {
       material: /* wgsl */ `
   albedo *= pow(baseTex.rgb, vec3<f32>(2.2)) / max(baseTex.rgb, vec3<f32>(1e-4));
+  alpha *= sampleAlphaMap(input.vUV).g;
 `,
     },
   },
@@ -39,6 +43,7 @@ const srgbBaseColorTextureBit: ShaderBit = {
     fragment: {
       material: /* glsl */ `
   albedo *= pow(baseTex.rgb, vec3(2.2)) / max(baseTex.rgb, vec3(1e-4));
+  alpha *= sampleAlphaMap(vUV).g;
 `,
     },
   },
@@ -48,7 +53,9 @@ const srgbBaseColorTextureBit: ShaderBit = {
  * three's `MeshBasicMaterial`, an unlit colour, over pixi-3d's `FlatMaterial`
  *
  * `color` is a three `Color`, in the working colour space as in three, so
- * `material.color.set('hotpink')`, `color="hotpink"` and `color-r={1}` all work.
+ * `material.color.set('hotpink')`, `color="hotpink"` and `color-r={1}` all work. Unlike pixi-3d's
+ * `FlatMaterial`, it goes through the renderer's tone mapping unless `toneMapped` is off, as three's
+ * does. Its `aoMap`, `lightMap`, `specularMap` and `envMap` aren't taken.
  * @example
  * ```tsx
  * <meshBasicMaterial color="red" />
@@ -59,25 +66,19 @@ const srgbBaseColorTextureBit: ShaderBit = {
 export class MeshBasicMaterial extends FlatMaterial {
   /** Always `true`, as on three's `MeshBasicMaterial` */
   public readonly isMeshBasicMaterial = true;
-  /**
-   * `true`, as in three: the view's tone mapping, which also encodes the output to sRGB, applies.
-   * pixi-3d's `FlatMaterial` turns it off. Read when a mesh builds its shader.
-   */
-  public override toneMapped = true;
+  /** three's class name */
+  public type = 'MeshBasicMaterial';
   private readonly _color: Color;
 
   /** @param parameters - three's material parameters */
-  constructor({ color = 0xffffff, map, opacity, transparent }: MeshBasicMaterialParameters = {}) {
-    super({
-      baseColorTexture: map ?? undefined,
-      alpha: opacity,
-      alphaMode: transparent ? 'blend' : undefined,
-      extraBits: [srgbBaseColorTextureBit],
-    });
-    this._color = new Color(color)._onChange(() => {
+  constructor(parameters: MeshBasicMaterialParameters = {}) {
+    super({ extraBits: [basicMapsBit] });
+    this.toneMapped = true;
+    this._color = new Color(0xffffff)._onChange(() => {
       this.baseColor = toPixiColor(this._color);
     });
     this._color._onChangeCallback();
+    initThreeMaterial(this, parameters);
   }
 
   /** Colour, in the working colour space; pixi-3d's `baseColor` follows it */
@@ -91,30 +92,28 @@ export class MeshBasicMaterial extends FlatMaterial {
 
   /** Colour texture, multiplied by `color`, or `null` for none; pixi-3d's `textures.baseColor` */
   public get map(): Texture | null {
-    const texture = this.textures.baseColor;
-
-    return !texture || texture === Texture.WHITE ? null : texture;
+    return readSlot(this, 'baseColor');
   }
 
   public set map(value: Texture | null) {
-    this.textures.baseColor = value ?? Texture.WHITE;
+    writeSlot(this, 'baseColor', value);
   }
 
-  /** 0 for clear, 1 for solid; pixi-3d's `alpha` */
-  public get opacity(): number {
-    return this.alpha;
+  /** Opacity in the green channel, multiplying `opacity`, or `null` */
+  public get alphaMap(): Texture | null {
+    return readSlot(this, 'alphaMap');
   }
 
-  public set opacity(value: number) {
-    this.alpha = value;
+  public set alphaMap(value: Texture | null) {
+    writeSlot(this, 'alphaMap', value);
   }
 
-  /** Whether it blends with what is behind; pixi-3d's `alphaMode: 'blend'` */
-  public get transparent(): boolean {
-    return this.alphaMode === 'blend';
-  }
-
-  public set transparent(value: boolean) {
-    this.alphaMode = value ? 'blend' : 'opaque';
+  /**
+   * pixi-3d's flat shader, with three's back-side handling
+   * @param view - The view about to draw the material
+   * @advanced
+   */
+  public override getPrimaryDescriptor(view: View3D): ShaderDescriptor {
+    return threeDescriptor(this, super.getPrimaryDescriptor(view));
   }
 }

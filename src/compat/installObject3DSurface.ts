@@ -22,6 +22,7 @@ import { QUATERNION_MEMBERS, Quaternion, setQuaternionFromEuler } from '../math/
 import type { EulerLike } from '../math/Quaternion';
 import { VECTOR3_MEMBERS, Vector3 } from '../math/Vector3';
 import { cameraProjection, cameraProjectionInverse, cameraWorldInverse } from './cameraMatrices';
+import { installMaterialSurface } from './materialSurface';
 import { placeholderGeometry, placeholderMaterial } from './placeholders';
 import { installRaycasting } from './Raycaster';
 import type { Intersection, Raycaster } from './Raycaster';
@@ -842,6 +843,7 @@ export function installObject3DSurface(): void {
   Object.defineProperty(PixiMatrix4.prototype, 'isMatrix4', flag(true));
 
   installRaycasting();
+  installMaterialSurface();
 
   Mesh3D.defaultOptions.geometry ??= placeholderGeometry();
   Mesh3D.defaultOptions.material ??= placeholderMaterial();
