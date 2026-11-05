@@ -52,6 +52,7 @@ export class SpotLight extends PixiSpotLight implements RenderedLight {
    * `position` once it is added to the scene or its `updateMatrixWorld()` is called, or any node in the scene
    */
   public target: Container3D = new LightTarget();
+  private readonly _defaultTarget = this.target;
   /** Kept for three's shape: pixi-3d's spots fall off with the square of the distance, three's default @default 2 */
   public decay: number = 2;
   /** Kept for three's shape: pixi-3d's spots project no texture */
@@ -178,13 +179,14 @@ export class SpotLight extends PixiSpotLight implements RenderedLight {
   }
 
   /**
-   * Frees the light, its shadow camera and its pixi-3d shadow state
+   * Frees the light, its shadow camera, its default target unless that was added to a scene, and its pixi-3d shadow state
    * @param options - pixi-3d's destroy options
    */
   public override destroy(options?: Destroy3DOptions): void {
     if (this.destroyed) return;
     this._finishRender();
     this.shadow.dispose();
+    if (!this._defaultTarget.parent) this._defaultTarget.destroy();
     super.destroy(options);
   }
 

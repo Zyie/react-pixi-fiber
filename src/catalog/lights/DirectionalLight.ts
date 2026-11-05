@@ -37,6 +37,7 @@ export class DirectionalLight extends PixiDirectionalLight implements RenderedLi
    * `position` once it is added to the scene or its `updateMatrixWorld()` is called, or any node in the scene
    */
   public target: Container3D = new LightTarget();
+  private readonly _defaultTarget = this.target;
   /** The shadow's settings, three's `DirectionalLightShadow`, with pixi-3d's shadow options beside them */
   declare public shadow: DirectionalLightShadow;
   private readonly _threeColor: LightColor;
@@ -90,13 +91,14 @@ export class DirectionalLight extends PixiDirectionalLight implements RenderedLi
   }
 
   /**
-   * Frees the light, its shadow camera and its pixi-3d shadow state
+   * Frees the light, its shadow camera, its default target unless that was added to a scene, and its pixi-3d shadow state
    * @param options - pixi-3d's destroy options
    */
   public override destroy(options?: Destroy3DOptions): void {
     if (this.destroyed) return;
     this._finishRender();
     this.shadow.dispose();
+    if (!this._defaultTarget.parent) this._defaultTarget.destroy();
     super.destroy(options);
   }
 
