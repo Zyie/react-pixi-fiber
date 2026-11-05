@@ -116,6 +116,7 @@ export { createRoot } from './root/createRoot';
 export { aliases, catalog, type AliasCatalog, type PixiCatalog } from './catalog/catalog';
 export type { CameraMembers, Object3DMembers } from './compat/installObject3DSurface';
 export type { ThreeMatrix4Members, ThreeQuaternionMembers, ThreeVector3Members } from './compat/threeMembers';
+export type { MaterialMembers } from './compat/materialSurface';
 export { PixiRenderer, type PixiRendererParameters, type PixiShadowMap } from './renderer/PixiRenderer';
 export { pixiSupport, type PixiSupport } from './support/pixiSupport';
 export type * from './types/canvas';
