@@ -80,6 +80,7 @@ export default defineConfig({
       '@xmldom/xmldom',
       'three',
       'three/addons/controls/OrbitControls.js',
+      'three/addons/controls/MapControls.js',
       'three/addons/loaders/GLTFLoader.js',
       'react',
       'react/jsx-dev-runtime',

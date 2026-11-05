@@ -109,6 +109,18 @@ const LINEAR_OUTPUT = {
   gpu: 'fn threeOutput(color: vec3<f32>) -> vec3<f32> { return color; }',
 };
 
+const GAMMA_OUTPUT = {
+  gl: 'vec3 threeOutput(vec3 color) { return pow(max(color, vec3(0.0)), vec3(1.0 / 2.2)); }',
+  gpu: 'fn threeOutput(color: vec3<f32>) -> vec3<f32> { return pow(max(color, vec3<f32>(0.0)), vec3<f32>(1.0 / 2.2)); }',
+};
+
+/**
+ * The output a render target is drawn with: pixi-3d's 2.2 gamma, which a material decodes when it
+ * samples the target's texture as a colour map, so the linear colour three stores comes back out
+ * @internal
+ */
+export const TARGET_OUTPUT = 'pixi-gamma';
+
 const NO_CURVE = {
   gl: 'vec3 threeToneMap(vec3 color) { return color; }',
   gpu: 'fn threeToneMap(color: vec3<f32>) -> vec3<f32> { return color; }',
@@ -127,22 +139,25 @@ const bits = new Map<string, ShaderBit>();
 
 /**
  * The shader bit that ends a material's shader as three's renderer does: three's tone curve, then
- * the sRGB transfer function, or nothing for a linear output, then the fog slot
+ * the sRGB transfer function, or nothing for a linear output, or pixi-3d's 2.2 gamma for a render
+ * target, then the fog slot
  *
  * pixi-3d ends with its own curves and a 2.2 power, which draws tones under about 1% of full
  * brightness up to twice as bright as three's sRGB curve does, and has no AgX or Neutral curve.
  * @param toneMapping - three's tone mapping constant
- * @param outputColorSpace - three's output colour space; `'srgb-linear'` leaves the result linear
+ * @param outputColorSpace - three's output colour space; `'srgb-linear'` leaves the result linear, and
+ * {@link TARGET_OUTPUT} encodes it for a render target
  */
 function toneMappingBit(toneMapping: number, outputColorSpace: string): ShaderBit {
   const curve: Curve = CURVES[toneMapping] ?? 'aces';
-  const encode = outputColorSpace !== 'srgb-linear';
-  const name = `threeToneMapping:${curve}:${encode ? 'srgb' : 'linear'}`;
+  const encoding =
+    outputColorSpace === TARGET_OUTPUT ? 'gamma' : outputColorSpace === 'srgb-linear' ? 'linear' : 'srgb';
+  const name = `threeToneMapping:${curve}:${encoding}`;
   let bit = bits.get(name);
   if (bit) return bit;
 
   const code = curve === 'none' ? NO_CURVE : CURVE_CODE[curve];
-  const output = encode ? SRGB_OUTPUT : LINEAR_OUTPUT;
+  const output = encoding === 'gamma' ? GAMMA_OUTPUT : encoding === 'linear' ? LINEAR_OUTPUT : SRGB_OUTPUT;
   const end = 'finalColor = threeOutput(threeToneMap(finalColor));';
   const gpuSlot = `fragment${FOG_SLOT[0].toUpperCase()}${FOG_SLOT.slice(1)}`;
 
@@ -165,7 +180,7 @@ function toneMappingBit(toneMapping: number, outputColorSpace: string): ShaderBi
  * @param view - The view about to draw
  * @param toneMapping - three's tone mapping constant
  * @param exposure - three's `toneMappingExposure`
- * @param outputColorSpace - three's output colour space
+ * @param outputColorSpace - three's output colour space, or {@link TARGET_OUTPUT} for a render target
  * @internal
  */
 export function applyToneMapping(view: View3D, toneMapping: number, exposure: number, outputColorSpace: string): void {

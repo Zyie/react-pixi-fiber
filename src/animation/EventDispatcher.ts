@@ -4,9 +4,9 @@
  * @category catalog
  * @advanced
  */
-export interface DispatchedEvent {
+export interface DispatchedEvent<TType extends string = string> {
   /** The event's name, such as `'finished'` or `'dispose'` */
-  type: string;
+  type: TType;
   /** The dispatcher, while the event's listeners run */
   target?: unknown;
   /** Anything else the sender puts on the event, such as a mixer's `action` */
@@ -21,7 +21,8 @@ export interface DispatchedEvent {
 export type EventListener<E extends DispatchedEvent = DispatchedEvent> = (event: E) => void;
 
 /**
- * three's `EventDispatcher`: named events with listeners, the base of `AnimationMixer`
+ * three's `EventDispatcher`: named events with listeners, the base of `AnimationMixer`, the render
+ * targets and the controls
  *
  * It is three's own class, not pixi's `EventEmitter`: listeners are added with
  * `addEventListener(type, listener)` and get the event object, whose `target` is the dispatcher.

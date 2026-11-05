@@ -23,8 +23,10 @@ import type Reconciler from 'react-reconciler';
 import type { PixiCatalog } from './catalog/catalog';
 import type { OrthographicCamera } from './catalog/scene/OrthographicCamera';
 import type { Texture as ThreeTexture } from './catalog/textures/Texture';
+import type { PresetsType } from './environment/hooks/useEnvironment';
 import { createPointerEvents as createPointerEventLayer } from './events/pointerEvents';
 import type { Frustum } from './math/Frustum';
+import { presetsObj as corePresetsObj } from './r3f/src/core/components/Environment/environment-assets';
 import {
   createEvents as coreCreateEvents,
   removeInteractivity as coreRemoveInteractivity,
@@ -115,10 +117,32 @@ export { Canvas } from './root/Canvas';
 export { createRoot } from './root/createRoot';
 
 export { aliases, catalog, type AliasCatalog, type PixiCatalog } from './catalog/catalog';
+export {
+  Environment,
+  EnvironmentCube,
+  EnvironmentMap,
+  EnvironmentPortal,
+  type EnvironmentProps,
+} from './environment/components/Environment';
+export {
+  useEnvironment,
+  type EnvironmentLoader,
+  type EnvironmentLoaderProps,
+  type PresetsType,
+  type UseEnvironment,
+} from './environment/hooks/useEnvironment';
+export { useRenderTarget, type UseRenderTarget } from './environment/hooks/useRenderTarget';
+export type { RenderTargetOptions } from './environment/RenderTarget';
+export type { R3FRenderTarget } from './types/environment';
 export type { CameraMembers, Object3DMembers } from './compat/installObject3DSurface';
 export type { ThreeMatrix4Members, ThreeQuaternionMembers, ThreeVector3Members } from './compat/threeMembers';
 export type { MaterialMembers } from './compat/materialSurface';
-export { PixiRenderer, type PixiRendererParameters, type PixiShadowMap } from './renderer/PixiRenderer';
+export {
+  PixiRenderer,
+  type PixiRenderTarget,
+  type PixiRendererParameters,
+  type PixiShadowMap,
+} from './renderer/PixiRenderer';
 export { pixiSupport, type PixiSupport } from './support/pixiSupport';
 export {
   useTextures,
@@ -1171,6 +1195,13 @@ export type OnceValue<A extends unknown[]> = A extends [] ? true : A extends [in
 export const isOnce: (value: unknown) => value is { [ONCE]: unknown[] | true } = coreIsOnce as unknown as (
   value: unknown,
 ) => value is { [ONCE]: unknown[] | true };
+
+/**
+ * The file of each environment preset, r3f's `presetsObj`: Poly Haven `.hdr` files on pmndrs' asset host
+ * @category core
+ * @advanced
+ */
+export const presetsObj: Readonly<Record<PresetsType, string>> = corePresetsObj;
 
 export type { ReactThreeFiber };
 
