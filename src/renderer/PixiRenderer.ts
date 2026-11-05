@@ -584,7 +584,10 @@ export class PixiRenderer {
     const gpu = pixi as WebGPURenderer;
     const { device } = gpu.gpu;
     const rowBytes = Math.ceil((width * 4) / 256) * 256;
-    const readback = device.createBuffer({ size: rowBytes * height, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+    const readback = device.createBuffer({
+      size: rowBytes * height,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+    });
     const encoder = device.createCommandEncoder();
     encoder.copyTextureToBuffer(
       { texture: gpu.texture.getGpuSource(target.texture.source), origin: { x, y: target.height - y - height } },
