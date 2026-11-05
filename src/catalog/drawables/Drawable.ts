@@ -28,9 +28,12 @@ export class Drawable extends Mesh3D {
     this._drawMode = drawMode;
   }
 
-  /** The vertices; a {@link BufferGeometry} given to it is drawn in its mode */
-  public override get geometry(): Geometry3D {
-    return super.geometry;
+  /**
+   * The vertices, typed as three's `BufferGeometry` for three code; a {@link BufferGeometry} given to
+   * it is drawn in its mode, and a pixi-3d geometry as it is
+   */
+  public override get geometry(): BufferGeometry {
+    return super.geometry as BufferGeometry;
   }
 
   public override set geometry(value: Geometry3D) {

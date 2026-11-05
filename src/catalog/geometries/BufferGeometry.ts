@@ -194,6 +194,7 @@ export class BufferGeometry extends Geometry3D implements BufferAttributeOwner {
   private readonly _pixiData = new Map<BufferAttribute, Float32Array>();
   private _index: BufferAttribute | null = null;
 
+  /** An empty geometry, which draws nothing until it has a `position` */
   constructor() {
     super({ positions: EMPTY_POSITIONS, quantizeNormals: false });
     const internals = this as unknown as Geometry3DInternals;
@@ -616,6 +617,10 @@ export class BufferGeometry extends Geometry3D implements BufferAttributeOwner {
     this.destroy(true);
   }
 
+  /**
+   * Frees the geometry, once, and lets go of its attributes, which stay usable
+   * @param destroyBuffers - Whether to destroy the buffers it made as well
+   */
   public override destroy(destroyBuffers?: boolean): void {
     for (const name in this._threeAttributes) this._threeAttributes[name]._owners.delete(this);
     this._index?._owners.delete(this);
