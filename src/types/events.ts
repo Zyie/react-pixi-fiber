@@ -190,11 +190,17 @@ export interface EventHandlers {
   onPointerMove?: (event: ThreeEvent<PointerEvent>) => void;
   /** Fires on a click that misses the object */
   onPointerMissed?: (event: MouseEvent) => void;
-  /** Fires when the browser cancels a pointer over the object */
+  /**
+   * Typed as in r3f, which never calls it: a pointer the browser cancels ends with `onPointerOut` and
+   * `onPointerLeave` on what it hovered
+   */
   onPointerCancel?: (event: ThreeEvent<PointerEvent>) => void;
   /** Fires on a wheel turn over the object */
   onWheel?: (event: ThreeEvent<WheelEvent>) => void;
-  /** Fires when the object loses a pointer it captured */
+  /**
+   * Typed as in r3f, which never calls it: when the canvas loses a capture, r3f drops every capture of
+   * that pointer on the next frame and ends its hovers with `onPointerOut` and `onPointerLeave`
+   */
   onLostPointerCapture?: (event: ThreeEvent<PointerEvent>) => void;
   /** Fires when the object enters or leaves the camera's frustum */
   onFramed?: (inView: boolean) => void;
