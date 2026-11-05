@@ -14,6 +14,9 @@
  * - `skinned.glb`: a column named `Column` skinned to the bones `Root`, `Middle` and `Top` under an
  *   `Armature` node, with the clip `Bend`.
  * - `morph.glb`: a box named `Blob` with the morph targets `Tall` and `Wide` and the clip `Morph`.
+ * - `extensions.glb`: a grey slab named `Floor` lit by a `KHR_lights_punctual` spot light named
+ *   `Spot`, under which stand a red box named `Coated` whose material has `KHR_materials_clearcoat`
+ *   factors, and a dark blue box named `Velvet` whose material has `KHR_materials_sheen` factors.
  *
  * Textures (`tests/assets/textures`):
  * - `checker.png`: 64 by 64, eight by eight cells, with a red cell at its top left so its turn and
@@ -434,6 +437,61 @@ function writeMorph(file: string): void {
   gltf.write(file);
 }
 
+function writeExtensions(file: string): void {
+  const gltf = new GlbBuilder();
+  const grey = gltf.material('Floor', [0.5, 0.5, 0.5, 1]);
+  const coated = gltf.material('Coated', [0.7, 0.05, 0.05, 1], { roughnessFactor: 0.6 });
+  const velvet = gltf.material('Velvet', [0.05, 0.05, 0.3, 1], { roughnessFactor: 0.8 });
+  const materials = gltf.json.materials as Record<string, unknown>[];
+
+  materials[coated]!.extensions = { KHR_materials_clearcoat: { clearcoatFactor: 1, clearcoatRoughnessFactor: 0.1 } };
+  materials[velvet]!.extensions = {
+    KHR_materials_sheen: { sheenColorFactor: [1, 0.6, 0.8], sheenRoughnessFactor: 0.4 },
+  };
+  gltf.json.extensionsUsed = ['KHR_lights_punctual', 'KHR_materials_clearcoat', 'KHR_materials_sheen'];
+  gltf.json.extensions = {
+    KHR_lights_punctual: {
+      lights: [
+        {
+          name: 'Spot',
+          type: 'spot',
+          color: [1, 0.9, 0.75],
+          intensity: 40,
+          spot: { innerConeAngle: 0.3, outerConeAngle: 0.6 },
+        },
+      ],
+    },
+  } as never;
+
+  const floor = gltf.node({
+    name: 'Floor',
+    mesh: gltf.mesh('Floor', box([5, 0.2, 5]), grey),
+    translation: [0, -0.1, 0],
+  });
+  const coatedNode = gltf.node({
+    name: 'Coated',
+    mesh: gltf.mesh('Coated', box([1, 1, 1]), coated),
+    translation: [-0.8, 0.5, 0],
+    rotation: quat([0, 1, 0], 0.6),
+  });
+  const velvetNode = gltf.node({
+    name: 'Velvet',
+    mesh: gltf.mesh('Velvet', box([1, 1, 1]), velvet),
+    translation: [0.8, 0.5, 0],
+    rotation: quat([0, 1, 0], -0.4),
+  });
+  const spot = gltf.node({
+    name: 'Spot',
+    translation: [0, 3, 0.5],
+    rotation: quat([1, 0, 0], -Math.PI / 2 + 0.15),
+    extensions: { KHR_lights_punctual: { light: 0 } },
+  });
+
+  gltf.json.scenes.push({ name: 'Scene', nodes: [floor, coatedNode, velvetNode, spot] });
+  gltf.json.scene = 0;
+  gltf.write(file);
+}
+
 function writePng(file: string, size: number, pixel: (x: number, y: number) => [number, number, number]): void {
   const png = new PNG({ width: size, height: size });
 
@@ -481,3 +539,4 @@ writeTexturedBox(path.join(ROOT, 'models/textured-box.glb'));
 writeAnimated(path.join(ROOT, 'models/animated.glb'));
 writeSkinned(path.join(ROOT, 'models/skinned.glb'));
 writeMorph(path.join(ROOT, 'models/morph.glb'));
+writeExtensions(path.join(ROOT, 'models/extensions.glb'));
