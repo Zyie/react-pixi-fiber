@@ -12,7 +12,9 @@ export const scene: TestScene = {
       </mesh>
     </>
   ),
-  // The half-metal box's lit face is lighter on pixi-3d: with no environment map, three.js's metal
-  // reflects nothing there, while pixi-3d's PBR still lights it.
+  // Metalness 0.5 sets pixi-3d apart from three.js (metalness 0 matches). pixi-3d's directly lit metal
+  // faces are darker and less saturated than three's, and its weakly lit face is lighter: its PBR has
+  // neither three's multi-scatter energy compensation on direct specular nor its energy-conserving cut
+  // of ambient diffuse on metal (pixi-3d's pbrLightingBit).
   fails: { webgl: 'differ from three.js', webgpu: 'differ from three.js' },
 };

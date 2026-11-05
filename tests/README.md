@@ -169,7 +169,7 @@ What the docs site can rely on:
 
 ## Parity with three.js
 
-The `three` project renders every scene and example through r3f's own `legacy.tsx` on three.js and records `tests/snapshots/<key>.three.png`, held to its reference like any other picture. It runs before the `scenes` project, so the pixi-3d tests of the same run measure against fresh pictures.
+The `three` project renders every scene and example through r3f's own `legacy.tsx` on three.js and holds the picture to `tests/snapshots/<key>.three.png` like any other reference, writing it when it's missing and rewriting it under `--update`. The pixi-3d tests measure against that reference on disk, not against the capture. The `three` project runs before the `scenes` project, so in a full run the reference has just been checked against what three.js draws now. When three's picture moves by more than `pixelMatch`, its test fails, and pixi-3d is measured against the old reference until you update it.
 
 On each pixi-3d renderer, a scene's capture is measured against its three.js picture:
 
@@ -190,16 +190,16 @@ docs/your-first-scene/first-scene  0.0%   0.0%    2.0%     within maxDiff
 
 ### Reading a parity composite
 
-Each scene that ran on pixi-3d gets `.temp/parity/<key>.png`, four panels from this run, left to right:
+Each scene that ran on pixi-3d gets `.temp/parity/<key>.png`, four panels, left to right:
 
 1. **pixi webgl**: this library's capture on pixi-3d's WebGL renderer.
 2. **pixi webgpu**: the same on WebGPU.
-3. **three**: three.js's picture, `tests/snapshots/<key>.three.png`.
+3. **three**: the three.js reference on disk, `tests/snapshots/<key>.three.png`, which the `three` project checked earlier in a full run.
 4. **diff**: pixi WebGL against three.js (pixi WebGPU when WebGL didn't run), with the share in its title. Red pixels differ, yellow ones are anti-aliasing, and the rest are a faded grey of the pixi picture.
 
 Read it in that order. A red patch where both pictures draw the same shape is shading or colour: lighting calibration, tone mapping, colour management. A red outline or a red shape that is in one picture only is geometry, a transform, or something not drawn at all: a missing alias, prop or feature.
 
-A scene whose pixi pictures can't match three.js yet because of a known gap marks its pixi renderers `fails`, with the gap in a comment, as `tests/scenes/core/alias-catalog.scene.tsx` does for metalness with no environment map. The day the gap closes, its reference comparison fails, and the references are updated and the mark removed. A scene that comes close but can't match exactly sets its own `maxDiff`, as `tests/scenes/assets/use-texture.scene.tsx` does for texture filtering.
+A scene whose pixi pictures can't match three.js yet because of a known gap marks its pixi renderers `fails`, with the gap in a comment, as `tests/scenes/core/alias-catalog.scene.tsx` does for metalness, which pixi-3d's PBR shades without three's energy compensation. The day the gap closes, its reference comparison fails, and the references are updated and the mark removed. A scene that comes close but can't match exactly sets its own `maxDiff`, as `tests/scenes/assets/use-texture.scene.tsx` does for texture filtering.
 
 ## Running tests
 

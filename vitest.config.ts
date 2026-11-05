@@ -68,8 +68,9 @@ export default defineConfig({
   },
   test: {
     projects: [
-      // Every scene through r3f's own entry on three.js, which records the pictures parity is measured
-      // against. It runs first, so the pixi-3d projects measure against this run's pictures.
+      // Every scene through r3f's own entry on three.js, held to its three.js reference, which is what
+      // parity is measured against. It runs first, so in a full run the pixi-3d projects measure against
+      // a reference this run has just checked (or rewritten, with --update).
       {
         extends: true,
         resolve: { alias: [fiberAlias('three')] },
