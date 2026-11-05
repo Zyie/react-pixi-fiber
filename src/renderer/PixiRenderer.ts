@@ -1,11 +1,12 @@
 import { Camera3D, Matrix4, Quaternion, Vector3, View3D } from '@pixi/3d';
-import type { Container3D, ShadowFilter, ToneMapping } from '@pixi/3d';
+import type { Container3D, ShadowFilter } from '@pixi/3d';
 import { Color, Container, autoDetectRenderer } from 'pixi.js';
 import type { ColorSource, Renderer } from 'pixi.js';
 
-import { DirectionalLight } from '../catalog/lights/DirectionalLight';
 import { Color as ThreeColor, toPixiColor } from '../math/Color';
+import { finishLights, prepareLights } from './sceneLights';
 import { setShadowsEnabled } from './shadowViews';
+import { applyToneMapping } from './toneMapping';
 
 /**
  * What the renderer is built with; r3f passes `canvas` and `antialias`, and the `renderer` (or
@@ -51,16 +52,6 @@ interface SceneView {
   drawnAt: number;
 }
 
-const TONE_MAPPINGS: readonly ToneMapping[] = [
-  'none',
-  'none',
-  'reinhard',
-  'uncharted2',
-  'aces',
-  'custom',
-  'aces',
-  'aces',
-];
 const SHADOW_FILTERS: readonly ShadowFilter[] = ['hard', 'pcf', 'pcf-high', 'pcf-high'];
 
 const sceneWorld = new Matrix4();
@@ -135,7 +126,7 @@ export class PixiRenderer {
   public toneMapping = 0;
   /** Brightness before tone mapping, pixi-3d's `exposure` @default 1 */
   public toneMappingExposure = 1;
-  /** Kept for three's shape; pixi-3d always writes sRGB @default 'srgb' */
+  /** three's output colour space: `'srgb'` encodes what the materials draw with the sRGB curve, `'srgb-linear'` leaves it linear @default 'srgb' */
   public outputColorSpace = 'srgb';
   /** three's shadow map settings */
   public readonly shadowMap: PixiShadowMap = { enabled: false, type: 1, autoUpdate: true, needsUpdate: false };
@@ -321,7 +312,12 @@ export class PixiRenderer {
     const background = (scene as Container3D & { background?: SceneBackground }).background;
     const clearToBackground = this._applyBackground(pixi, background);
     this._applySettings(entry, background);
-    pixi.render({ container: entry.stage, clear: this.autoClear || clearToBackground });
+    prepareLights(view, scene);
+    try {
+      pixi.render({ container: entry.stage, clear: this.autoClear || clearToBackground });
+    } finally {
+      finishLights(view);
+    }
   }
 
   /** Clears the canvas to the clear colour */
@@ -427,9 +423,7 @@ export class PixiRenderer {
 
   private _applySettings(entry: SceneView, background: SceneBackground): void {
     const { view } = entry;
-    const toneMapping = TONE_MAPPINGS[this.toneMapping] ?? 'aces';
-    if (view.toneMapping !== toneMapping) view.toneMapping = toneMapping;
-    view.exposure = this.toneMappingExposure;
+    applyToneMapping(view, this.toneMapping, this.toneMappingExposure, this.outputColorSpace);
     const shadowFilter = SHADOW_FILTERS[this.shadowMap.type] ?? 'pcf';
     if (view.shadowFilter !== shadowFilter) view.shadowFilter = shadowFilter;
     setShadowsEnabled(view, this.shadowMap.enabled);
@@ -441,7 +435,5 @@ export class PixiRenderer {
         view.background = viewBackground;
       }
     }
-
-    for (const light of view.lights) if (light instanceof DirectionalLight) light.aimAtTarget();
   }
 }
