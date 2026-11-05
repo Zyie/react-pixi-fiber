@@ -30,7 +30,7 @@ const instanceHits: Intersection[] = [];
  * times in one draw, each instance placed by its own matrix and tinted by its own colour
  *
  * It takes three's arguments, `(geometry, material, count)`, and the r3f idiom
- * `<instancedMesh args={[undefined, undefined, count]}>` with the geometry and material as children.
+ * `<instancedMesh args={[null, null, count]}>` with the geometry and material as children.
  * Each instance is a slot of the batch. `setMatrixAt`, `getMatrixAt`, `setColorAt`, `getColorAt`,
  * `instanceMatrix`, `instanceColor`, `count`, `computeBoundingBox`, `computeBoundingSphere` and
  * picking with `instanceId` work as in three.
@@ -62,7 +62,7 @@ const instanceHits: Intersection[] = [];
  *   }, [count]);
  *
  *   return (
- *     <instancedMesh ref={mesh} args={[undefined, undefined, count]}>
+ *     <instancedMesh ref={mesh} args={[null, null, count]}>
  *       <boxGeometry />
  *       <meshStandardMaterial />
  *     </instancedMesh>
@@ -96,18 +96,16 @@ export class InstancedMesh extends BatchedMesh3D {
   private _receiveShadow = false;
 
   /**
-   * @param geometry - The shape every instance draws; a zero-size one until a child geometry attaches
-   * @param material - How every instance is shaded; white and unlit until a child material attaches
+   * @param geometry - The shape every instance draws; with `null` or none, a zero-size one until a child geometry attaches
+   * @param material - How every instance is shaded; with `null` or none, white and unlit until a child material attaches
    * @param count - How many instances
    */
-  constructor(
-    geometry: Geometry3D = placeholderGeometry(),
-    material: BaseMaterial3D = placeholderMaterial(),
-    count = 1,
-  ) {
+  constructor(geometry?: Geometry3D | null, material?: BaseMaterial3D | null, count = 1) {
     const slots = Math.max(1, count);
 
     super({ size: slots, instanceData: { [INSTANCE_COLOR_FIELD]: { value: [1, 1, 1, 1], type: 'vec4<f32>' } } });
+    geometry ??= placeholderGeometry();
+    material ??= placeholderMaterial();
     this.label = 'InstancedMesh';
     this._geometry = geometry;
     this._material = material;

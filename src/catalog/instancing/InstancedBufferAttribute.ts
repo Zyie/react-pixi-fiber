@@ -17,7 +17,7 @@ import type { BufferAttributeArray } from '../geometries/BufferAttribute';
  * ```tsx
  * const colors = new Float32Array(count * 3).fill(1);
  *
- * <instancedMesh args={[undefined, undefined, count]}>
+ * <instancedMesh args={[null, null, count]}>
  *   <instancedBufferAttribute attach="instanceColor" args={[colors, 3]} />
  *   <boxGeometry />
  *   <meshBasicMaterial />

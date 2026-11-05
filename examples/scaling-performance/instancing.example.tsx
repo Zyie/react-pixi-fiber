@@ -25,7 +25,7 @@ function Instances({ count = 2000, temp = new Object3D() }) {
   }, [count, temp]);
 
   return (
-    <instancedMesh ref={instancedMeshRef} args={[undefined, undefined, count]}>
+    <instancedMesh ref={instancedMeshRef} args={[null, null, count]}>
       <boxGeometry args={[0.15, 0.15, 0.15]} />
       <meshStandardMaterial />
     </instancedMesh>
