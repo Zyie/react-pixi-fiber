@@ -91,7 +91,7 @@ A scene imports the harness as `@test-scene` (`tests/harness/scene.ts`), which i
 
 ### Interaction scenes
 
-`act` gets the scene's input and its root state:
+`act` gets the scene's input and its root state. The state is how a scene reaches what input can't: `state.setEvents`, `state.events.connect` and `update`, or a DragEvent or `pointercancel` dispatched on `state.events.connected`:
 
 ```tsx
 export const scene: TestScene = {
@@ -104,11 +104,11 @@ export const scene: TestScene = {
 };
 ```
 
-- `mouse.move`, `down`, `up`, `click(x, y)` and `wheel(dx, dy)`. In the tests the input is real: Playwright moves the mouse over the canvas, and each call resolves once the page has handled the event. r3f raycasts a pointer event as it arrives when the frameloop is `never`, so a handler has run by the time the call resolves; its state change shows on the next frame.
-- `frames(count, step)` advances the root. The clock only moves here.
+- `mouse.move`, `down`, `up`, `click(x, y)`, `wheel(dx, dy)`, `contextMenu(x, y)` (a right-button press and release) and `doubleClick(x, y)`. A move to a point off the canvas, such as `move(450, 150)`, takes the mouse off it, so the canvas gets a `pointerleave`. In the tests the input is real: Playwright moves the mouse over the canvas, and each call resolves once the page has handled the event. r3f raycasts a pointer event as it arrives when the frameloop is `never`, so a handler has run by the time the call resolves; its state change shows on the next frame.
+- `frames(count, step)` advances the root. The clock only moves here. Before each frame it lets React commit what is pending, so a state change `act` sets off outside a DOM event, such as a hover from `state.events.update()`, shows on that frame.
 - `update(children)` renders new JSX into the root, which is how a scene shows a prop change or a child inserted before a sibling.
 
-The playground can't reach Playwright, so it drives `act` with DOM events dispatched on the canvas. `tests/harness/__tests__/synthetic-input.test.tsx` holds every scene with an `act`, driven that way, to the reference the Playwright-driven test wrote, so the two can't drift apart. A `click` is dispatched as a PointerEvent, as Chrome sends it, because r3f matches a click to its pointerdown by `pointerId`.
+The playground can't reach Playwright, so it drives `act` with DOM events dispatched on the canvas. `tests/harness/__tests__/synthetic-input.test.tsx` holds every scene with an `act`, driven that way, to the reference the Playwright-driven test wrote, so the two can't drift apart. A `click` and a `contextmenu` are dispatched as PointerEvents, as Chrome sends them, because r3f matches a click to its pointerdown by `pointerId`, and a `dblclick` as a plain MouseEvent, as Chrome sends it. A release over the canvas clicks wherever the press was, as in Chrome. Off the canvas, moves reach it only while the button is down, as a drag that captured the pointer would.
 
 Test files share a page and Playwright's mouse stays where the last scene left it. Before and after every scene the harness releases a button that is still down and moves the mouse off the page.
 
