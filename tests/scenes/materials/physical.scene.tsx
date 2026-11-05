@@ -4,8 +4,22 @@ import type { ReactNode } from 'react';
 const MATERIALS: ReactNode[] = [
   <meshPhysicalMaterial key="base" color="#c0392b" roughness={0.6} />,
   <meshPhysicalMaterial key="clearcoat" color="#c0392b" roughness={0.6} clearcoat={1} clearcoatRoughness={0.05} />,
-  <meshPhysicalMaterial key="sheen" color="#2c3e50" roughness={0.8} sheen={1} sheenColor="#ff9ff3" sheenRoughness={0.4} />,
-  <meshPhysicalMaterial key="specular" color="#7f8c8d" roughness={0.3} specularIntensity={1} specularColor="#ffd32a" ior={2} />,
+  <meshPhysicalMaterial
+    key="sheen"
+    color="#2c3e50"
+    roughness={0.8}
+    sheen={1}
+    sheenColor="#ff9ff3"
+    sheenRoughness={0.4}
+  />,
+  <meshPhysicalMaterial
+    key="specular"
+    color="#7f8c8d"
+    roughness={0.3}
+    specularIntensity={1}
+    specularColor="#ffd32a"
+    ior={2}
+  />,
   <meshPhysicalMaterial key="iridescence" color="#ecf0f1" roughness={0.25} iridescence={1} iridescenceIOR={1.6} />,
   <meshPhysicalMaterial key="anisotropy" color="#bdc3c7" metalness={1} roughness={0.4} anisotropy={0.8} />,
 ];

@@ -12,6 +12,7 @@ import {
   uvTransformBit,
 } from '@pixi/3d';
 import type { ShaderBit } from '@pixi/3d';
+import { warn } from 'pixi.js';
 import type { Texture } from 'pixi.js';
 
 import { invalidateMaterial } from '../../compat/materialSurface';
@@ -167,7 +168,9 @@ export class MeshPhysicalMaterial extends MeshStandardMaterial {
         configurable: true,
         enumerable: true,
         get: () => this._values[feature],
-        set: (value: number) => this._set(feature, feature, value, value > 0),
+        set: (value: number) => {
+          this._set(feature, feature, value, value > 0);
+        },
       });
     }
     initThreeMaterial(this, parameters);
@@ -330,7 +333,12 @@ export class MeshPhysicalMaterial extends MeshStandardMaterial {
       (data.clearcoatParams as Float32Array).set([v.clearcoat, v.clearcoatRoughness, 1], 0);
     } else if (feature === 'sheen') {
       const color = this._sheenColor;
-      (data.sheenParams as Float32Array).set([color.r * v.sheen, color.g * v.sheen, color.b * v.sheen, v.sheenRoughness]);
+      (data.sheenParams as Float32Array).set([
+        color.r * v.sheen,
+        color.g * v.sheen,
+        color.b * v.sheen,
+        v.sheenRoughness,
+      ]);
     } else if (feature === 'specular') {
       const color = this._specularColor;
       (data.specularParams as Float32Array).set([color.r, color.g, color.b, v.specularIntensity]);
@@ -352,8 +360,8 @@ export class MeshPhysicalMaterial extends MeshStandardMaterial {
     if (internals._uploadQueue) {
       if (!warned) {
         warned = true;
-        console.warn(
-          `[react-pixi-fiber] MeshPhysicalMaterial: ${feature} can only be turned on before the material is first drawn; set it from the first render.`,
+        warn(
+          `MeshPhysicalMaterial: ${feature} can only be turned on before the material is first drawn; set it from the first render.`,
         );
       }
       return;
