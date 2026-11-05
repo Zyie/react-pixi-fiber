@@ -1,7 +1,7 @@
 import { Matrix4, Quaternion, Vector3, View3D } from '@pixi/3d';
 import type { Camera3D, Container3D, ShadowFilter, ToneMapping } from '@pixi/3d';
 import { CLEAR, Color, Container, CubeTexture, Texture, autoDetectRenderer } from 'pixi.js';
-import type { ColorSource, Renderer } from 'pixi.js';
+import type { ColorSource, Renderer, WebGPURenderer } from 'pixi.js';
 
 import { DirectionalLight } from '../catalog/lights/DirectionalLight';
 import { EnvironmentMaps } from '../environment/EnvironmentMaps';
@@ -79,6 +79,28 @@ const SHADOW_FILTERS: readonly ShadowFilter[] = ['hard', 'pcf', 'pcf-high', 'pcf
 
 /** The linear byte for each display byte pixi-3d stores, which encodes with a 2.2 gamma */
 const DISPLAY_TO_LINEAR = Uint8Array.from({ length: 256 }, (_, i) => Math.round((i / 255) ** 2.2 * 255));
+
+/**
+ * Copies rows of pixels, top down in `pixels`, into `buffer` from the bottom row up, as three reads
+ * them, decoding the colour to linear
+ */
+function copyRows(
+  pixels: Uint8Array | Uint8ClampedArray,
+  rowBytes: number,
+  top: number,
+  x: number,
+  width: number,
+  height: number,
+  buffer: Uint8Array | Uint8ClampedArray,
+): void {
+  for (let row = 0; row < height; row++) {
+    const from = (top + height - 1 - row) * rowBytes + x * 4;
+    const to = row * width * 4;
+    for (let i = 0; i < width * 4; i++) {
+      buffer[to + i] = (i & 3) === 3 ? pixels[from + i] : DISPLAY_TO_LINEAR[pixels[from + i]];
+    }
+  }
+}
 
 const sceneWorld = new Matrix4();
 const cameraWorld = new Matrix4();
@@ -295,12 +317,12 @@ export class PixiRenderer {
   }
 
   /**
-   * Sets what the canvas clears to
-   * @param color - The clear colour
+   * Sets what the canvas and targets clear to
+   * @param color - The clear colour: a three `Color`, read in the working colour space, or any pixi `ColorSource`
    * @param alpha - Its opacity, 0 to 1
    */
-  public setClearColor(color: ColorSource, alpha = 1): void {
-    this._clearColor.setValue(color);
+  public setClearColor(color: ColorSource | ThreeColor, alpha = 1): void {
+    this._clearColor.setValue(color instanceof ThreeColor ? toPixiColor(color) : color);
     this._clearAlpha = alpha;
     this._backgroundKey = null;
     if (this.pixi) {
@@ -510,7 +532,10 @@ export class PixiRenderer {
    * Reads a rect of a target's pixels into `buffer`, three's `readRenderTargetPixels`
    *
    * As in three, rows go from the bottom of the rect up, and the values are linear: pixi-3d stores
-   * the picture encoded for display, and this decodes it. Only 8-bit 2D targets can be read.
+   * the picture encoded for display, and this decodes it. Only 8-bit 2D targets can be read. On
+   * WebGPU, as with three's WebGPU renderer, read with
+   * {@link PixiRenderer#readRenderTargetPixelsAsync | readRenderTargetPixelsAsync}; this leaves
+   * `buffer` alone there.
    * @param target - The target to read
    * @param x - Left edge in the target's pixels
    * @param y - Bottom edge in the target's pixels, from its bottom
@@ -527,27 +552,20 @@ export class PixiRenderer {
     buffer: Uint8Array | Uint8ClampedArray,
   ): void {
     const pixi = this.pixi;
-    if (!pixi || target.disposed || target.texture instanceof CubeTexture) return;
+    if (!pixi || pixi.name === 'webgpu' || target.disposed || target.texture instanceof CubeTexture) return;
     const { pixels, width: rowWidth } = pixi.extract.pixels(target.texture);
-    const top = target.height - y - height;
-    for (let row = 0; row < height; row++) {
-      const from = ((top + height - 1 - row) * rowWidth + x) * 4;
-      const to = row * width * 4;
-      for (let i = 0; i < width * 4; i++) {
-        buffer[to + i] = (i & 3) === 3 ? pixels[from + i] : DISPLAY_TO_LINEAR[pixels[from + i]];
-      }
-    }
+    copyRows(pixels, rowWidth * 4, target.height - y - height, x, width, height, buffer);
   }
 
   /**
-   * {@link PixiRenderer#readRenderTargetPixels | readRenderTargetPixels} as three's WebGPU renderer
-   * has it, resolving with the pixels
+   * Reads a rect of a target's pixels, three's `readRenderTargetPixelsAsync`; on WebGPU it copies the
+   * texture into a buffer the GPU maps back
    * @param target - The target to read
    * @param x - Left edge in the target's pixels
    * @param y - Bottom edge in the target's pixels, from its bottom
    * @param width - Width in pixels
    * @param height - Height in pixels
-   * @returns The pixels, 4 bytes each, rows from the bottom up
+   * @returns The pixels, 4 linear bytes each, rows from the bottom up
    */
   public async readRenderTargetPixelsAsync(
     target: PixiRenderTarget,
@@ -557,7 +575,26 @@ export class PixiRenderer {
     height: number,
   ): Promise<Uint8Array> {
     const buffer = new Uint8Array(width * height * 4);
-    this.readRenderTargetPixels(target, x, y, width, height, buffer);
+    const pixi = this.pixi;
+    if (!pixi || target.disposed || target.texture instanceof CubeTexture) return buffer;
+    if (pixi.name !== 'webgpu') {
+      this.readRenderTargetPixels(target, x, y, width, height, buffer);
+      return buffer;
+    }
+    const gpu = pixi as WebGPURenderer;
+    const { device } = gpu.gpu;
+    const rowBytes = Math.ceil((width * 4) / 256) * 256;
+    const readback = device.createBuffer({ size: rowBytes * height, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+    const encoder = device.createCommandEncoder();
+    encoder.copyTextureToBuffer(
+      { texture: gpu.texture.getGpuSource(target.texture.source), origin: { x, y: target.height - y - height } },
+      { buffer: readback, bytesPerRow: rowBytes },
+      { width, height },
+    );
+    device.queue.submit([encoder.finish()]);
+    await readback.mapAsync(GPUMapMode.READ);
+    copyRows(new Uint8Array(readback.getMappedRange()), rowBytes, 0, 0, width, height, buffer);
+    readback.destroy();
     return buffer;
   }
 
