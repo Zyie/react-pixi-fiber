@@ -22,9 +22,16 @@
       "~/*": ["./src/*"],
       // pixi-3d isn't on npm; we build against its source in .repos (npm run sync:repos).
       "@pixi/3d": ["./.repos/pixi-3d/src/index.ts"],
-      "@pixi/3d/extras": ["./.repos/pixi-3d/src/extras/index.ts"]
+      "@pixi/3d/extras": ["./.repos/pixi-3d/src/extras/index.ts"],
+      // Scenes, examples and the playground import the library by its package name. Until the entry in src
+      // has its own types, they type-check against r3f's API (tests/harness/react-pixi-fiber.d.ts).
+      "react-pixi-fiber": ["./tests/harness/react-pixi-fiber.d.ts"],
+      "#types": ["./spike/r3f/types/index.ts"],
+      "#types/*": ["./spike/r3f/types/*"],
+      "@test-scene": ["./tests/harness/scene.ts"],
+      "@test-utils": ["./tests/harness/test-utils.tsx"]
     }
   },
-  "include": ["src", "tests", "scripts", "*.config.ts"],
+  "include": ["src", "tests", "examples", "playground", "scripts", "*.config.ts"],
   "exclude": ["node_modules", "dist", ".repos/**/*.worker.ts"]
 }
