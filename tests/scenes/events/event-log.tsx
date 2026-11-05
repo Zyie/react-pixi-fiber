@@ -17,6 +17,7 @@ export const WHAT_COLORS: Record<string, string> = {
   up: '#911eb4',
   move: '#ffe119',
   missed: '#ffffff',
+  drop: '#f032e6',
 };
 
 /**
