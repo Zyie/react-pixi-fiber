@@ -76,7 +76,7 @@ export class SpotLight extends PixiSpotLight implements RenderedLight {
     color: ColorRepresentation = 0xffffff,
     intensity = 1,
     distance = 0,
-    angle = Math.PI / 3,
+    angle: number = Math.PI / 3,
     penumbra = 0,
     decay = 2,
   ) {
