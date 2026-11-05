@@ -1,10 +1,13 @@
-import { Camera3D, Matrix4, Quaternion, Vector3, View3D } from '@pixi/3d';
-import type { Container3D, ShadowFilter, ToneMapping } from '@pixi/3d';
-import { Color, Container, autoDetectRenderer } from 'pixi.js';
+import { Matrix4, Quaternion, Vector3, View3D } from '@pixi/3d';
+import type { Camera3D, Container3D, ShadowFilter, ToneMapping } from '@pixi/3d';
+import { CLEAR, Color, Container, CubeTexture, autoDetectRenderer } from 'pixi.js';
 import type { ColorSource, Renderer } from 'pixi.js';
 
 import { DirectionalLight } from '../catalog/lights/DirectionalLight';
 import { Color as ThreeColor, toPixiColor } from '../math/Color';
+import { Vector4 } from '../math/Vector4';
+import { ClearRect, ProxyCamera, coversSurface, fromBottomLeft, surfaceOf } from './renderTargets';
+import type { DrawableTarget, PixelRect } from './renderTargets';
 import { setShadowsEnabled } from './shadowViews';
 
 /**
@@ -45,11 +48,20 @@ export interface PixiShadowMap {
 interface SceneView {
   readonly view: View3D;
   readonly stage: Container;
+  readonly clearRect: ClearRect;
   readonly release: () => void;
-  proxy: Camera3D | null;
+  proxy: ProxyCamera | null;
   background: unknown;
   drawnAt: number;
 }
+
+/**
+ * A target `setRenderTarget` takes: a {@link RenderTarget}, a {@link WebGLCubeRenderTarget}, or `null`
+ * for the canvas
+ * @category renderer
+ * @advanced
+ */
+export type PixiRenderTarget = DrawableTarget;
 
 const TONE_MAPPINGS: readonly ToneMapping[] = [
   'none',
@@ -63,11 +75,17 @@ const TONE_MAPPINGS: readonly ToneMapping[] = [
 ];
 const SHADOW_FILTERS: readonly ShadowFilter[] = ['hard', 'pcf', 'pcf-high', 'pcf-high'];
 
+/** The linear byte for each display byte pixi-3d stores, which encodes with a 2.2 gamma */
+const DISPLAY_TO_LINEAR = Uint8Array.from({ length: 256 }, (_, i) => Math.round((i / 255) ** 2.2 * 255));
+
 const sceneWorld = new Matrix4();
 const cameraWorld = new Matrix4();
 const proxyPosition = new Vector3();
 const proxyQuaternion = new Quaternion();
 const proxyScale = new Vector3();
+const viewRect: PixelRect = { x: 0, y: 0, width: 0, height: 0 };
+const scissorRect: PixelRect = { x: 0, y: 0, width: 0, height: 0 };
+const clearRGBA: [number, number, number, number] = [0, 0, 0, 0];
 
 type SceneBackground = ThreeColor | ColorSource | View3D['background'] | null | undefined;
 
@@ -83,6 +101,12 @@ const isColorBackground = (background: SceneBackground): background is ThreeColo
 const isDescendant = (node: Container3D, root: Container3D): boolean => {
   for (let parent = node.parent; parent; parent = parent.parent) if (parent === root) return true;
   return false;
+};
+
+/** three's `aspect` of a camera, which its projection uses whatever rect it fills, or `null` when it has none */
+const aspectOf = (camera: Camera3D): number | null => {
+  const { aspect } = camera as Camera3D & { aspect?: number };
+  return typeof aspect === 'number' && Number.isFinite(aspect) && aspect > 0 ? aspect : null;
 };
 
 /**
@@ -103,6 +127,14 @@ const isDescendant = (node: Container3D, root: Container3D): boolean => {
  * a three `Color` or a pixi `ColorSource`, clears the canvas to it before it draws, as three's does,
  * untouched by tone mapping; any other background, such as a pixi-3d `CubeTexture`, becomes its view's.
  * The canvas is transparent unless `alpha` is `false`, as in three.
+ *
+ * `setRenderTarget(target)` points the next renders at a {@link RenderTarget} (or a face of a
+ * {@link WebGLCubeRenderTarget}) instead of the canvas, and `setViewport`, `setScissor` and
+ * `setScissorTest` take three's rects, in CSS pixels from the canvas's bottom-left corner (a target's
+ * own `viewport` and `scissor` apply while it is set). A scene fills the viewport; the scissor limits
+ * clears. Each scene's view starts its draw with fresh depth, so `clearDepth` between two scenes
+ * changes nothing, and a camera's `aspect` decides its projection, as in three, even where it
+ * differs from the viewport's.
  * @example
  * ```tsx
  * import { Canvas, useThree } from 'react-pixi-fiber';
@@ -149,7 +181,8 @@ export class PixiRenderer {
   private readonly _antialias: boolean;
   private readonly _powerPreference: PixiRendererParameters['powerPreference'];
   private readonly _views = new Map<Container3D, SceneView>();
-  private readonly _empty = new Container();
+  private readonly _emptyClearRect = new ClearRect();
+  private readonly _empty = new Container({ children: [this._emptyClearRect] });
   private readonly _clearColor = new Color(0x000000);
   private _clearAlpha: number;
   /** The scene background pixi.js's background holds, or `null` while it holds the clear colour */
@@ -159,6 +192,12 @@ export class PixiRenderer {
   private _height = 150;
   private _pixelRatio = 1;
   private _frame = 0;
+  private _renderTarget: DrawableTarget | null = null;
+  private _activeCubeFace = 0;
+  private _activeMipmapLevel = 0;
+  private readonly _viewport = new Vector4(0, 0, 300, 150);
+  private readonly _scissor = new Vector4(0, 0, 300, 150);
+  private _scissorTest = false;
   private readonly _releaseIfIdle = (entry: SceneView, scene: Container3D): void => {
     if (this._frame - entry.drawnAt > this.viewMaxIdleFrames) this.releaseView(scene);
   };
@@ -228,6 +267,7 @@ export class PixiRenderer {
   public setSize(width: number, height: number, updateStyle = true): void {
     this._width = width;
     this._height = height;
+    this._viewport.set(0, 0, width, height);
     this.pixi?.resize(width, height, this._pixelRatio);
     if (updateStyle && 'style' in this.domElement) {
       this.domElement.style.width = `${width}px`;
@@ -293,13 +333,15 @@ export class PixiRenderer {
   }
 
   /**
-   * Draws a scene from a camera, three's `renderer.render`
+   * Draws a scene from a camera, three's `renderer.render`, into the canvas or the target
+   * `setRenderTarget` set, over its viewport
    * @param scene - The scene's root
    * @param camera - The camera to draw from; it doesn't need to be in the scene
    */
   public render(scene: Container3D, camera: Camera3D): void {
     const pixi = this.pixi;
-    if (!pixi) return;
+    const target = this._renderTarget;
+    if (!pixi || target?.disposed) return;
 
     let entry = this._views.get(scene);
     if (entry?.drawnAt === this._frame) {
@@ -310,25 +352,205 @@ export class PixiRenderer {
     entry.drawnAt = this._frame;
     const { view } = entry;
 
-    if (camera.view3d === view) {
+    this._placeView(view, target);
+    const aspect = aspectOf(camera);
+    if (camera.view3d === view && (aspect === null || Math.abs(aspect - view.width / view.height) < 1e-6)) {
       view.camera = camera;
     } else {
-      entry.proxy ??= new Camera3D();
+      entry.proxy ??= new ProxyCamera();
       this._syncProxy(entry.proxy, camera, scene);
+      entry.proxy.aspect = aspect;
       view.camera = entry.proxy;
     }
 
     const background = (scene as Container3D & { background?: SceneBackground }).background;
-    const clearToBackground = this._applyBackground(pixi, background);
+    const clearToBackground = target ? isColorBackground(background) : this._applyBackground(pixi, background);
     this._applySettings(entry, background);
-    pixi.render({ container: entry.stage, clear: this.autoClear || clearToBackground });
+    this._draw(
+      entry.stage,
+      entry.clearRect,
+      this.autoClear || clearToBackground,
+      clearToBackground ? background : null,
+    );
   }
 
-  /** Clears the canvas to the clear colour */
-  public clear(): void {
-    if (!this.pixi) return;
-    this._applyBackground(this.pixi, null);
-    this.pixi.render({ container: this._empty, clear: true });
+  /**
+   * Points the next renders at a target, or back at the canvas; three's `setRenderTarget`
+   * @param target - A {@link RenderTarget} or {@link WebGLCubeRenderTarget}, or `null` for the canvas
+   * @param activeCubeFace - The face of a cube target to draw into, 0 to 5: +X, -X, +Y, -Y, +Z, -Z
+   * @param activeMipmapLevel - The mip level to draw into
+   */
+  public setRenderTarget(target: PixiRenderTarget | null, activeCubeFace = 0, activeMipmapLevel = 0): void {
+    this._renderTarget = target;
+    this._activeCubeFace = activeCubeFace;
+    this._activeMipmapLevel = activeMipmapLevel;
+  }
+
+  /** The target renders go to, or `null` for the canvas */
+  public getRenderTarget(): PixiRenderTarget | null {
+    return this._renderTarget;
+  }
+
+  /** The face of a cube target renders go to */
+  public getActiveCubeFace(): number {
+    return this._activeCubeFace;
+  }
+
+  /** The mip level renders go to */
+  public getActiveMipmapLevel(): number {
+    return this._activeMipmapLevel;
+  }
+
+  /**
+   * Sets the rect scenes fill on the canvas, three's `setViewport`
+   * @param x - Left edge in CSS pixels, or a vector of all four
+   * @param y - Bottom edge in CSS pixels, from the canvas's bottom
+   * @param width - Width in CSS pixels
+   * @param height - Height in CSS pixels
+   */
+  public setViewport(x: number | Vector4, y = 0, width = 0, height = 0): void {
+    if (typeof x === 'number') this._viewport.set(x, y, width, height);
+    else this._viewport.copy(x);
+  }
+
+  /**
+   * Writes the canvas's viewport into `target`
+   * @param target - Receives `(x, y, width, height)` in CSS pixels from the bottom-left corner
+   * @returns `target`
+   */
+  public getViewport<T extends Vector4>(target: T): T {
+    return target.copy(this._viewport);
+  }
+
+  /**
+   * Writes the viewport of the current target, or of the canvas in device pixels, into `target`
+   * @param target - Receives `(x, y, width, height)` from the bottom-left corner
+   * @returns `target`
+   */
+  public getCurrentViewport<T extends Vector4>(target: T): T {
+    if (this._renderTarget) return target.copy(this._renderTarget.viewport);
+    return target.copy(this._viewport).multiplyScalar(this._pixelRatio);
+  }
+
+  /**
+   * Sets the rect `setScissorTest` limits clears to on the canvas, three's `setScissor`
+   * @param x - Left edge in CSS pixels, or a vector of all four
+   * @param y - Bottom edge in CSS pixels, from the canvas's bottom
+   * @param width - Width in CSS pixels
+   * @param height - Height in CSS pixels
+   */
+  public setScissor(x: number | Vector4, y = 0, width = 0, height = 0): void {
+    if (typeof x === 'number') this._scissor.set(x, y, width, height);
+    else this._scissor.copy(x);
+  }
+
+  /**
+   * Writes the canvas's scissor rect into `target`
+   * @param target - Receives `(x, y, width, height)` in CSS pixels from the bottom-left corner
+   * @returns `target`
+   */
+  public getScissor<T extends Vector4>(target: T): T {
+    return target.copy(this._scissor);
+  }
+
+  /**
+   * Limits clears on the canvas to the scissor rect, three's `setScissorTest`; pixi-3d already keeps
+   * each scene's draw inside its viewport
+   * @param enabled - Whether to limit them
+   */
+  public setScissorTest(enabled: boolean): void {
+    this._scissorTest = enabled;
+  }
+
+  /** Whether clears on the canvas are limited to the scissor rect */
+  public getScissorTest(): boolean {
+    return this._scissorTest;
+  }
+
+  /**
+   * Clears the canvas or the current target, three's `clear`. The colour clears to the clear colour,
+   * inside the scissor rect while the scissor test is on. Depth and stencil clear too, though each
+   * scene's view clears its own depth before it draws.
+   * @param color - Clear the colour
+   * @param depth - Clear depth
+   * @param stencil - Clear stencil
+   */
+  public clear(color = true, depth = true, stencil = true): void {
+    const pixi = this.pixi;
+    if (!pixi || this._renderTarget?.disposed) return;
+    if (!this._renderTarget) this._applyBackground(pixi, null);
+    const flags = (color ? CLEAR.COLOR : 0) | (depth ? CLEAR.DEPTH : 0) | (stencil ? CLEAR.STENCIL : 0);
+    if (flags !== CLEAR.NONE) this._draw(this._empty, this._emptyClearRect, flags, null);
+  }
+
+  /** Clears the colour of the canvas or the current target, three's `clearColor` */
+  public clearColor(): void {
+    this.clear(true, false, false);
+  }
+
+  /** Clears depth, three's `clearDepth`; each scene's view clears its own depth anyway */
+  public clearDepth(): void {
+    this.clear(false, true, false);
+  }
+
+  /** Clears stencil, three's `clearStencil` */
+  public clearStencil(): void {
+    this.clear(false, false, true);
+  }
+
+  /**
+   * Reads a rect of a target's pixels into `buffer`, three's `readRenderTargetPixels`
+   *
+   * As in three, rows go from the bottom of the rect up, and the values are linear: pixi-3d stores
+   * the picture encoded for display, and this decodes it. Only 8-bit 2D targets can be read.
+   * @param target - The target to read
+   * @param x - Left edge in the target's pixels
+   * @param y - Bottom edge in the target's pixels, from its bottom
+   * @param width - Width in pixels
+   * @param height - Height in pixels
+   * @param buffer - Receives 4 bytes per pixel, RGBA
+   */
+  public readRenderTargetPixels(
+    target: PixiRenderTarget,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    buffer: Uint8Array | Uint8ClampedArray,
+  ): void {
+    const pixi = this.pixi;
+    if (!pixi || target.disposed || target.texture instanceof CubeTexture) return;
+    const { pixels, width: rowWidth } = pixi.extract.pixels(target.texture);
+    const top = target.height - y - height;
+    for (let row = 0; row < height; row++) {
+      const from = ((top + height - 1 - row) * rowWidth + x) * 4;
+      const to = row * width * 4;
+      for (let i = 0; i < width * 4; i++) {
+        buffer[to + i] = (i & 3) === 3 ? pixels[from + i] : DISPLAY_TO_LINEAR[pixels[from + i]];
+      }
+    }
+  }
+
+  /**
+   * {@link PixiRenderer#readRenderTargetPixels | readRenderTargetPixels} as three's WebGPU renderer
+   * has it, resolving with the pixels
+   * @param target - The target to read
+   * @param x - Left edge in the target's pixels
+   * @param y - Bottom edge in the target's pixels, from its bottom
+   * @param width - Width in pixels
+   * @param height - Height in pixels
+   * @returns The pixels, 4 bytes each, rows from the bottom up
+   */
+  public async readRenderTargetPixelsAsync(
+    target: PixiRenderTarget,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ): Promise<Uint8Array> {
+    const buffer = new Uint8Array(width * height * 4);
+    this.readRenderTargetPixels(target, x, y, width, height, buffer);
+    return buffer;
   }
 
   /**
@@ -351,20 +573,22 @@ export class PixiRenderer {
   /** Frees every view and the pixi.js renderer; scenes keep their children */
   public dispose(): void {
     for (const scene of this._views.keys()) this.releaseView(scene);
-    this._empty.destroy();
+    this._empty.destroy({ children: true });
     this.pixi?.destroy();
     this.pixi = null;
   }
 
   private _createView(scene: Container3D, camera: Camera3D): SceneView {
     const inScene = isDescendant(camera, scene);
-    const proxy = inScene ? null : new Camera3D();
-    const view = new View3D({ root: scene, camera: proxy ?? camera, autoResize: true });
+    const proxy = inScene ? null : new ProxyCamera();
+    const view = new View3D({ root: scene, camera: proxy ?? camera, autoResize: false });
     const stage = new Container();
-    stage.addChild(view);
+    const clearRect = new ClearRect();
+    stage.addChild(clearRect, view);
     const entry: SceneView = {
       view,
       stage,
+      clearRect,
       proxy,
       background: undefined,
       drawnAt: this._frame,
@@ -375,7 +599,7 @@ export class PixiRenderer {
     return entry;
   }
 
-  private _syncProxy(proxy: Camera3D, camera: Camera3D, scene: Container3D): void {
+  private _syncProxy(proxy: ProxyCamera, camera: Camera3D, scene: Container3D): void {
     proxy.mode = camera.mode;
     proxy.fov = camera.fov;
     proxy.zoom = camera.zoom;
@@ -387,6 +611,79 @@ export class PixiRenderer {
     proxy.position.copyFrom(proxyPosition);
     proxy.quaternion = proxyQuaternion;
     proxy.scale.copyFrom(proxyScale);
+  }
+
+  /**
+   * Places a view over the viewport of the canvas or of the current target
+   * @param view - The view
+   * @param target - The current target, or `null` for the canvas
+   */
+  private _placeView(view: View3D, target: DrawableTarget | null): void {
+    if (target) fromBottomLeft(target.viewport, target.height, viewRect);
+    else fromBottomLeft(this._viewport, this._height, viewRect);
+    view.position.set(viewRect.x, viewRect.y);
+    view.setSize(Math.max(1, viewRect.width), Math.max(1, viewRect.height));
+  }
+
+  /**
+   * Renders a stage into the canvas or the current target, clearing it first as asked: all of it, or
+   * only the scissor rect while the scissor test is on, as three's clears go
+   * @param stage - What to render
+   * @param clearRect - The stage's rects for a scissored clear
+   * @param clear - What to clear
+   * @param background - A colour background to clear to in place of the clear colour
+   */
+  private _draw(stage: Container, clearRect: ClearRect, clear: boolean | CLEAR, background: SceneBackground): void {
+    const pixi = this.pixi!;
+    const target = this._renderTarget;
+    const surfaceWidth = target ? target.width : this._width;
+    const surfaceHeight = target ? target.height : this._height;
+    const scissorTest = target ? target.scissorTest : this._scissorTest;
+    const clearsColor = clear === true || (typeof clear === 'number' && (clear & CLEAR.COLOR) !== 0);
+    this._clearColorOf(background);
+
+    let fullClear = clear;
+    if (clearsColor && scissorTest) {
+      fromBottomLeft(target ? target.scissor : this._scissor, surfaceHeight, scissorRect);
+      if (!coversSurface(scissorRect, surfaceWidth, surfaceHeight)) {
+        clearRect.show(scissorRect, clearRGBA, clearRGBA[3]);
+        fullClear = CLEAR.NONE;
+      }
+    }
+
+    if (target) {
+      const cube = target.texture instanceof CubeTexture;
+      pixi.render({
+        container: stage,
+        target: surfaceOf(target),
+        clear: fullClear,
+        clearColor: clearRGBA,
+        layer: cube ? this._activeCubeFace : 0,
+        mipLevel: this._activeMipmapLevel,
+        flipY: cube,
+      });
+      target._renderCount++;
+    } else {
+      pixi.render({ container: stage, clear: fullClear });
+    }
+    clearRect.visible = false;
+  }
+
+  /** Writes the colour a clear goes to, a colour background or the clear colour, into `clearRGBA` */
+  private _clearColorOf(background: SceneBackground): void {
+    if (background instanceof ThreeColor) {
+      const [r, g, b] = toPixiColor(background);
+      clearRGBA[0] = r;
+      clearRGBA[1] = g;
+      clearRGBA[2] = b;
+      clearRGBA[3] = 1;
+    } else if (background !== null && background !== undefined && isColorBackground(background)) {
+      Color.shared.setValue(background).toArray(clearRGBA);
+      clearRGBA[3] = 1;
+    } else {
+      this._clearColor.toArray(clearRGBA);
+      clearRGBA[3] = this._clearAlpha;
+    }
   }
 
   /**
@@ -425,11 +722,18 @@ export class PixiRenderer {
     return false;
   }
 
+  /**
+   * Copies three's renderer settings onto a scene's view before it draws. Into a target, tone mapping
+   * is off and exposure 1, as three draws into a target in linear light.
+   * @param entry - The scene's view
+   * @param background - The scene's background
+   */
   private _applySettings(entry: SceneView, background: SceneBackground): void {
     const { view } = entry;
-    const toneMapping = TONE_MAPPINGS[this.toneMapping] ?? 'aces';
+    const toTarget = this._renderTarget !== null;
+    const toneMapping = toTarget ? 'none' : (TONE_MAPPINGS[this.toneMapping] ?? 'aces');
     if (view.toneMapping !== toneMapping) view.toneMapping = toneMapping;
-    view.exposure = this.toneMappingExposure;
+    view.exposure = toTarget ? 1 : this.toneMappingExposure;
     const shadowFilter = SHADOW_FILTERS[this.shadowMap.type] ?? 'pcf';
     if (view.shadowFilter !== shadowFilter) view.shadowFilter = shadowFilter;
     setShadowsEnabled(view, this.shadowMap.enabled);

@@ -114,9 +114,19 @@ export { Canvas } from './root/Canvas';
 export { createRoot } from './root/createRoot';
 
 export { aliases, catalog, type AliasCatalog, type PixiCatalog } from './catalog/catalog';
+// #region environment
+export { useRenderTarget, type UseRenderTarget } from './environment/hooks/useRenderTarget';
+export type { RenderTargetOptions } from './environment/RenderTarget';
+export type { R3FRenderTarget } from './types/environment';
+// #endregion environment
 export type { CameraMembers, Object3DMembers } from './compat/installObject3DSurface';
 export type { ThreeMatrix4Members, ThreeQuaternionMembers, ThreeVector3Members } from './compat/threeMembers';
-export { PixiRenderer, type PixiRendererParameters, type PixiShadowMap } from './renderer/PixiRenderer';
+export {
+  PixiRenderer,
+  type PixiRenderTarget,
+  type PixiRendererParameters,
+  type PixiShadowMap,
+} from './renderer/PixiRenderer';
 export { pixiSupport, type PixiSupport } from './support/pixiSupport';
 export type * from './types/canvas';
 export type * from './types/elements';
