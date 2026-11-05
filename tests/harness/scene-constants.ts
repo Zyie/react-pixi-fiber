@@ -10,7 +10,7 @@ export const SCENE_WIDTH = 400;
 export const SCENE_HEIGHT = 300;
 
 /**
- * What shows behind a scene's canvas. three.js clears to transparent and pixi-3d to opaque black, so the
+ * What shows behind a scene's canvas. Both three.js and this library clear to transparent, so the
  * page behind both is black and an empty canvas looks the same on every renderer.
  */
 export const SCENE_BACKGROUND = '#000000';

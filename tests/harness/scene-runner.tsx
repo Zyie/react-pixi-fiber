@@ -1,7 +1,7 @@
 import { Component, Suspense, useLayoutEffect } from 'react';
 import type { ReactNode } from 'react';
 import { createRoot, events } from 'react-pixi-fiber';
-import type { ReconcilerRoot, RenderProps, RootState, RootStore } from 'react-pixi-fiber';
+import type { PixiRenderer, ReconcilerRoot, RenderProps, RootState, RootStore } from 'react-pixi-fiber';
 
 import { FRAME_STEP, SCENE_BACKGROUND, SCENE_HEIGHT, SCENE_WIDTH } from './scene-constants';
 import { createSceneClock, nextTask, syntheticPointers } from './scene-input';
@@ -48,6 +48,11 @@ export interface TestScene {
   /** The default camera, as `<Canvas camera>` takes it; r3f's default (fov 50 at z 5) when omitted */
   camera?: RenderProps<HTMLCanvasElement>['camera'];
   /**
+   * More root props, as `<Canvas>` takes them: `renderer={{ shadows: true }}`, `orthographic`, `scene`.
+   * A `renderer` settings object is merged with the backend the harness picks.
+   */
+  canvas?: SceneCanvas;
+  /**
    * How many frames the root advances before it is captured, or before `act` runs; 1 when omitted.
    * Each is a sixtieth of a second of the scene's clock after the one before.
    */
@@ -73,6 +78,15 @@ export interface TestScene {
   parity?: false | SceneParity;
 }
 
+/** The root props a scene may set beyond its size, camera and the harness's own */
+export type SceneCanvas = Partial<Pick<RenderProps<HTMLCanvasElement>, 'orthographic' | 'scene'>> & {
+  /** Renderer settings, such as `{ shadows: true }`; a scene runs on several renderers, so never one renderer */
+  renderer?: Exclude<
+    RenderProps<HTMLCanvasElement>['renderer'],
+    boolean | PixiRenderer | ((...args: never[]) => unknown)
+  >;
+};
+
 /** A scene on a live root, and the way to take it down */
 export interface MountedScene {
   canvas: HTMLCanvasElement;
@@ -82,11 +96,20 @@ export interface MountedScene {
   destroy: () => void;
 }
 
-/** The renderer options of a root: pixi-3d's backend for this library; three.js's WebGL defaults for r3f */
-function rendererProps(renderer: RendererType): Partial<RenderProps<HTMLCanvasElement>> {
-  if (renderer === 'three') return {};
+/**
+ * The root props of a scene on a renderer: its `canvas` props, with the renderer settings where that
+ * renderer's entry reads them. This library takes them as `renderer`, with pixi-3d's backend added;
+ * r3f's WebGL entry takes them as `gl` and rejects `renderer`, which is for its WebGPU entry.
+ * @param renderer - The renderer the scene runs on
+ * @param canvas - The scene's `canvas` props
+ */
+export function canvasProps(
+  renderer: RendererType,
+  { renderer: settings, ...canvas }: SceneCanvas = {},
+): Partial<RenderProps<HTMLCanvasElement>> {
+  if (renderer === 'three') return settings ? { ...canvas, gl: settings } : canvas;
 
-  return { renderer: { preference: renderer } } as Partial<RenderProps<HTMLCanvasElement>>;
+  return { ...canvas, renderer: { ...settings, preference: renderer } };
 }
 
 /** Calls back once a commit has put it, and the scene rendered before it, in the root */
@@ -180,7 +203,7 @@ export async function mountScene(
       dpr,
       camera: scene.camera,
       events,
-      ...rendererProps(renderer),
+      ...canvasProps(renderer, scene.canvas),
     });
 
     const store = await commit(root, scene.render());

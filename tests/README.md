@@ -61,12 +61,12 @@ export const scene: TestScene = {
 };
 ```
 
-A scene imports `react`, `react-pixi-fiber` and `@test-scene`, and never `three` or `@pixi/3d`: either would tie it to one renderer, and it runs on both.
+A scene imports `react`, `react-pixi-fiber` and `@test-scene`, and never `three` or `@pixi/3d`: either would tie it to one renderer, and it runs on both. It names only what both entries have: r3f's API and three's element names. The library's own extras, such as its catalog classes or pixi-3d's element names (`<cubeGeometry>`, `<material3D>`), exist only on pixi-3d, so a scene that uses them skips three.js and sets `parity: false`, as `tests/scenes/core/native-names.scene.tsx` does.
 
 For each renderer of the vitest project, the harness (`tests/harness/scene-runner.tsx`):
 
-1. Puts a 400 by 300 canvas at a device pixel ratio of 1 on the page, over a black background. three.js clears to transparent and pixi-3d to opaque black, so an empty canvas looks the same on both.
-2. Creates a root with `createRoot` from `react-pixi-fiber`, `frameloop: 'never'` and r3f's pointer events, and renders the scene. It waits for anything the scene suspends on, such as a texture.
+1. Puts a 400 by 300 canvas at a device pixel ratio of 1 on the page, over a black background. Both renderers clear to transparent, so the black shows through.
+2. Creates a root with `createRoot` from `react-pixi-fiber`, `frameloop: 'never'`, r3f's pointer events and the scene's `canvas` props, and renders the scene. It waits for anything the scene suspends on, such as a texture.
 3. Holds `performance.now()` still, and advances the root by `frames` frames, each a sixtieth of a second of the scene's clock after the one before. The first frame has a delta of 0. Nothing moves between frames, so the picture doesn't depend on how fast the machine ran.
 4. Runs `act`, if there is one, then advances one more frame.
 5. Captures the canvas and compares it with `tests/snapshots/<key>.<renderer>.png`. On a pixi-3d renderer it then measures the capture against `tests/snapshots/<key>.three.png` (see "Parity with three.js").
@@ -77,6 +77,7 @@ Every scene can also set:
 
 - `size`: `{ width, height, dpr }` of the canvas, in CSS px.
 - `camera`: the default camera, as `<Canvas camera>` takes it. r3f's default is a perspective camera with a fov of 50 at z 5, aimed at the origin.
+- `canvas`: more root props, as `<Canvas>` takes them: `renderer` settings such as `{ shadows: true }`, `orthographic` and `scene`. The harness hands the renderer settings to each entry where it reads them: as `renderer` to this library, with pixi-3d's backend added, and as `gl` to r3f's WebGL entry, which rejects `renderer`.
 - `frames`: how many frames to advance before the capture, or before `act`. The default is 1.
 - `act`: drives the scene before it is captured. See "Interaction scenes".
 - `pixelMatch`: how many pixels may differ from the reference image. The default is 16. Raise it for one scene only when a GPU draws that scene differently.
@@ -157,10 +158,10 @@ export const example: Example = {
 
 What the docs site can rely on:
 
-- **Format.** `Example` is `render`, plus any of `camera`, `frames`, `act`, `parity`, `pixelMatch`, `skip` and `fails`, with the meanings a scene gives them. `render()` returns the children of a `<Canvas>`, and `camera` is the Canvas's `camera` prop. An example takes the default 400 by 300 canvas; it has no `size`.
+- **Format.** `Example` is `render`, plus any of `camera`, `canvas`, `frames`, `act`, `parity`, `pixelMatch`, `skip` and `fails`, with the meanings a scene gives them. `render()` returns the children of a `<Canvas>`, `camera` is the Canvas's `camera` prop and `canvas` more of its props. An example takes the default 400 by 300 canvas; it has no `size`.
 - **Regions.** `// #region <name>` and `// #endregion <name>` mark the code a page quotes. A name may mark several blocks of a file, which read as one in their order, so a region can take an import from the top of the file and a component from further down. Code outside every region, such as `import type { Example }` and the `example` export, is never shown.
 - **Key and pictures.** An example runs as a scene keyed `docs/<topic>/<name>`. Its reference images are `tests/snapshots/docs/<topic>/<name>.webgl.png`, `.webgpu.png` and `.three.png`, each 400 by 300, and its parity composite after a run is `.temp/parity/docs/<topic>/<name>.png`.
-- **Live.** `runExample(example, host, props)` mounts the example in a `<Canvas>` that fills `host`, on r3f's default frameloop, as an app would run it. `props` are more Canvas props, such as `{ renderer: { preference: 'webgpu' } }` for pixi-3d's WebGPU renderer. It returns a function that unmounts it.
+- **Live.** `runExample(example, renderer, host)` mounts the example in a `<Canvas>` that fills `host`, on r3f's default frameloop, as an app would run it, on `webgl`, `webgpu` or `three`. It returns a function that unmounts it.
 - **Playground.** `/scene-frame.html?kind=example&id=<topic>/<name>&renderer=webgl|webgpu|three&live` runs it live on one renderer.
 
 `examples/start/first-scene.example.tsx` is r3f's "Your first scene" tutorial with the import swapped. It uses `meshStandardMaterial`, from the tutorial's first step, where the tutorial ends on `meshPhongMaterial`, which the catalog doesn't have yet.
@@ -241,7 +242,7 @@ A scene that can't pass yet carries `fails`, with part of the failure message it
 
 ## Unit tests
 
-A unit test is for what no picture shows: that a mesh, its geometry and its material were destroyed on unmount, that a re-render kept the same object, that `<Canvas>` measured its parent and ran the real `requestAnimationFrame` loop. They run in the `unit` project on pixi-3d, after the scenes, because the loop stalls while other pages hold the GPU. A test that uses React's `act` sets `globalThis.IS_REACT_ACT_ENVIRONMENT = true`; one that runs the real loop sets it to `false` and waits with `vi.waitFor`.
+A unit test is for what no picture shows: that a mesh, its geometry and its material were destroyed on unmount, that a re-render kept the same object, that `<Canvas>` measured its parent and ran the real `requestAnimationFrame` loop, that camera matrices are ready before the first frame, that the renderer keeps and releases one view per scene, that the canvas clears to transparent. They run in the `unit` project on pixi-3d, after the scenes, because the loop stalls while other pages hold the GPU. A test that uses React's `act` sets `globalThis.IS_REACT_ACT_ENVIRONMENT = true`; one that runs the real loop sets it to `false` and waits with `vi.waitFor`.
 
 ## Assets
 

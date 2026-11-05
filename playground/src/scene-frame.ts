@@ -1,5 +1,3 @@
-import type { CanvasProps } from 'react-pixi-fiber';
-
 import type { Example } from '../../examples/example';
 import type { RendererType, TestScene } from '../../tests/harness/scene-runner';
 import { findEntry } from './scenes';
@@ -23,9 +21,7 @@ try {
     // As an app runs it: a Canvas filling the window on r3f's default frameloop.
     const { runExample } = await import('../../examples/example');
 
-    const props = renderer === 'three' ? {} : ({ renderer: { preference: renderer } } as Partial<CanvasProps>);
-
-    runExample(scene, document.body, props);
+    runExample(scene, renderer);
   } else {
     // As the tests build it: the same runner, the same clock, DOM events in place of Playwright's input.
     const { mountScene } = await import('../../tests/harness/scene-runner');

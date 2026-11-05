@@ -1,6 +1,5 @@
-import type { Mesh3D } from '@pixi/3d';
 import { act } from 'react';
-import type { ReactNode } from 'react';
+import type { ElementRef, ReactNode, RefObject } from 'react';
 import { createRoot } from 'react-pixi-fiber';
 import type { ReconcilerRoot, RootState } from 'react-pixi-fiber';
 import { afterEach, beforeAll, expect, it } from 'vitest';
@@ -34,9 +33,9 @@ async function mount(element: ReactNode): Promise<RootState> {
 
 // A picture can't tell a mesh updated in place from one rebuilt, nor show that GPU resources were released.
 it('updates a mesh in place on re-render, and disposes it with its geometry and material on unmount', async () => {
-  const ref: { current: Mesh3D | null } = { current: null };
+  const ref: RefObject<ElementRef<'mesh'> | null> = { current: null };
   const box = (x: number) => (
-    <mesh ref={ref as never} position={[x, 0, 0]}>
+    <mesh ref={ref} position={[x, 0, 0]}>
       <boxGeometry />
       <meshStandardMaterial />
     </mesh>

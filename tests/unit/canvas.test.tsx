@@ -7,7 +7,7 @@ import { expect, it, vi } from 'vitest';
 
 // The scenes drive their own frames; this is the one place the real requestAnimationFrame loop runs,
 // outside act(), as an app runs: the loop and Canvas's own measuring commit on their own.
-it('mounts through <Canvas> from react-dom, sized by its parent, and runs useFrame on the default frameloop', async () => {
+it('mounts through <Canvas> from react-dom, sized by its parent, with its background, and runs useFrame on the default frameloop', async () => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = false;
 
   const host = document.body.appendChild(document.createElement('div'));
@@ -34,7 +34,7 @@ it('mounts through <Canvas> from react-dom, sized by its parent, and runs useFra
   }
 
   dom.render(
-    <Canvas onCreated={(created) => void (state = created)}>
+    <Canvas onCreated={(created) => void (state = created)} background="#336699">
       <Spin />
     </Canvas>,
   );
@@ -43,6 +43,7 @@ it('mounts through <Canvas> from react-dom, sized by its parent, and runs useFra
   expect(state!.size.width).toBe(64);
   expect(state!.size.height).toBe(48);
   expect(host.querySelector('canvas')).toBe(state!.gl.domElement);
+  expect(state!.scene.background).toBe('#336699');
 
   dom.unmount();
   host.remove();

@@ -99,11 +99,7 @@ export default defineConfig({
         resolve: { alias: [fiberAlias('pixi')] },
         test: {
           name: 'unit',
-          include: [
-            'tests/unit/**/*.test.{ts,tsx}',
-            'tests/harness/__tests__/**/*.test.{ts,tsx}',
-            'tests/*.test.{ts,tsx}',
-          ],
+          include: ['tests/unit/**/*.test.{ts,tsx}', 'tests/harness/__tests__/**/*.test.{ts,tsx}'],
           exclude: EXCLUDE,
           provide: { fiber: 'pixi' },
           sequence: { groupOrder: 2 },

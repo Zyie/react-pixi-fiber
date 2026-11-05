@@ -21,11 +21,11 @@ declare module '@site/static/example-sources/index.json' {
 }
 
 /**
- * The library, which the live runtime bundles from the repo's `src`. The frame reads only its `Canvas`,
- * which the entry may not export yet; the docs don't type-check `src` itself.
+ * The library, which the live runtime bundles from the repo's `src`. The frame reads only its `Canvas`;
+ * the docs don't type-check `src` itself.
  */
 declare module 'react-pixi-fiber' {
   import type { ComponentType, ReactNode } from 'react';
 
-  export const Canvas: ComponentType<{ renderer?: object; children?: ReactNode }> | undefined;
+  export const Canvas: ComponentType<{ renderer?: object; camera?: unknown; children?: ReactNode }>;
 }

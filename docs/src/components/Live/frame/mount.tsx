@@ -8,25 +8,26 @@
 import { cloneElement, createElement, isValidElement } from 'react';
 import type { ComponentType, ReactElement, ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
-import * as fiber from 'react-pixi-fiber';
+import { Canvas } from 'react-pixi-fiber';
 
 import type { Renderer } from '../types';
 
 /** What an example module exports, as far as the frame reads it */
 interface ExampleModule {
-  readonly example?: { readonly render?: () => ReactNode; readonly canvas?: Readonly<Record<string, unknown>> };
+  readonly example?: {
+    readonly render?: () => ReactNode;
+    readonly camera?: unknown;
+    readonly canvas?: Readonly<{ renderer?: unknown } & Record<string, unknown>>;
+  };
   readonly default?: ComponentType;
 }
-
-/** The `<Canvas>` of the entry, when it exports one; read off the namespace, so the build passes without it */
-const { Canvas } = fiber;
 
 /**
  * Renders an example module into an element
  * @param module - The example, imported
  * @param container - The element its canvas fills
  * @param renderer - The renderer the page chose
- * @throws When the module exports no example, or the entry has no `Canvas` to draw it in
+ * @throws When the module exports no example
  */
 export function mount(module: ExampleModule, container: HTMLElement, renderer: Renderer): void {
   const options = { preference: renderer };
@@ -36,14 +37,15 @@ export function mount(module: ExampleModule, container: HTMLElement, renderer: R
   else if (typeof module.default === 'function') content = createElement(module.default);
   else throw new TypeError('An example exports `example`, whose `render()` returns its scene.');
 
-  if (isValidElement(content) && Canvas && content.type === Canvas) {
+  if (isValidElement(content) && content.type === Canvas) {
     const element = content as ReactElement<{ renderer?: object }>;
 
     content = cloneElement(element, { renderer: { ...options, ...element.props.renderer } });
   } else {
-    if (!Canvas)
-      throw new TypeError("react-pixi-fiber doesn't export Canvas yet, so the frame has nothing to draw in.");
-    content = createElement(Canvas, { renderer: options, ...module.example?.canvas }, content);
+    const { camera, canvas = {} } = module.example ?? {};
+    const settings = typeof canvas.renderer === 'object' ? canvas.renderer : {};
+
+    content = createElement(Canvas, { camera, ...canvas, renderer: { ...settings, ...options } }, content);
   }
 
   createRoot(container).render(content);
