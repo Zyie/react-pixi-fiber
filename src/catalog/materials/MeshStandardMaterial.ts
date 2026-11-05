@@ -89,7 +89,8 @@ export class MeshStandardMaterial extends Material3D {
   // @ts-expect-error -- three's `emissive` is a Color where pixi-3d's Material3D has its EmissiveProps; the alias keeps those privately
   declare public readonly emissive: Color;
   private readonly _color: Color;
-  private readonly _emissiveProps: EmissiveProps;
+  /** pixi-3d's emissive controls, which the physical material makes again when it lays out its features */
+  protected _emissiveProps: EmissiveProps;
   /** Missing while pixi-3d's constructor runs, which sets `normalScale` before the alias makes it */
   private readonly _normalScale?: Vector2;
 
@@ -101,12 +102,11 @@ export class MeshStandardMaterial extends Material3D {
       emissive: { color: 0x000000, strength: 1 },
       extraBits: [threeStandardMapsBit],
     });
-    const props = (this as unknown as { emissive: EmissiveProps }).emissive;
+    this._emissiveProps = (this as unknown as { emissive: EmissiveProps }).emissive;
     const glow = new Color(0x000000)._onChange(() => {
-      props.color = toPixiColor(glow);
+      this._emissiveProps.color = toPixiColor(glow);
     });
 
-    this._emissiveProps = props;
     this._color = new Color(0xffffff)._onChange(() => {
       this.baseColor = toPixiColor(this._color);
     });

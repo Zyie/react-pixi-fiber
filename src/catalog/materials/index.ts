@@ -2,6 +2,7 @@ export { MeshBasicMaterial, type MeshBasicMaterialParameters } from './MeshBasic
 export { MeshLambertMaterial, type MeshLambertMaterialParameters } from './MeshLambertMaterial';
 export { MeshMatcapMaterial, type MeshMatcapMaterialParameters } from './MeshMatcapMaterial';
 export { MeshNormalMaterial, type MeshNormalMaterialParameters } from './MeshNormalMaterial';
+export { MeshPhysicalMaterial, type MeshPhysicalMaterialParameters } from './MeshPhysicalMaterial';
 export { MeshPhongMaterial, type MeshPhongMaterialParameters } from './MeshPhongMaterial';
 export { MeshStandardMaterial, type MeshStandardMaterialParameters } from './MeshStandardMaterial';
 export { MeshToonMaterial, type MeshToonMaterialParameters } from './MeshToonMaterial';
