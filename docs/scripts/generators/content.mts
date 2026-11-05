@@ -378,6 +378,7 @@ export function docsPages(shared: Shared): readonly Page[] {
     ...GUIDES.map((guide) => guidePageOf(guide, sources, parity)),
     sectionIndex('tutorials', sources),
     sectionIndex('reference', sources),
+    sectionIndex('advanced', sources),
   ];
 }
 
