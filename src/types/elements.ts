@@ -1,0 +1,189 @@
+import type { Container3D } from '@pixi/3d';
+import type * as React from 'react';
+
+import type { EventHandlers } from './events';
+import type { RootStore } from './state';
+import type { ConstructorRepresentation, IsAllOptional, Mutable, Overwrite } from './utils';
+
+/**
+ * Anything with a numeric `set`: pixi-3d's vectors, quaternions and matrices
+ * @category types
+ * @advanced
+ */
+export interface MathRepresentation {
+  set(...args: number[]): unknown;
+}
+
+/**
+ * What a math prop accepts: the object, the arguments of its `set`, or one number for every
+ * component when `set` takes it (`scale={2}`)
+ * @category types
+ * @advanced
+ */
+export type MathType<T extends MathRepresentation> =
+  | T
+  | Parameters<T['set']>
+  | Readonly<Parameters<T['set']>>
+  | (IsAllOptional<Parameters<T['set']>> extends true ? number : never);
+
+/**
+ * The math props of `P`, widened to {@link MathType}
+ * @category types
+ * @advanced
+ */
+export type MathProps<P> = {
+  [K in keyof P as P[K] extends MathRepresentation ? K : never]: P[K] extends MathRepresentation
+    ? MathType<P[K]>
+    : never;
+};
+
+/**
+ * The React props every element takes
+ * @category types
+ * @advanced
+ */
+export interface ReactProps<P> {
+  children?: React.ReactNode;
+  ref?: React.Ref<P>;
+  key?: React.Key;
+}
+
+/**
+ * Event props, for scene nodes
+ * @category types
+ * @advanced
+ */
+export type EventProps<P> = P extends Container3D ? Partial<EventHandlers> : {};
+
+/**
+ * Where a child attaches on its parent: a property path, or a function that attaches it and
+ * returns the detach
+ * @category types
+ * @advanced
+ */
+export type AttachType<O = unknown> = string | ((parent: unknown, self: O) => () => void);
+
+/**
+ * Constructor arguments of a class, as the `args` prop
+ * @category types
+ * @advanced
+ */
+export type Args<T> = T extends ConstructorRepresentation ? ConstructorParameters<T> : unknown[];
+
+type ArgsProp<P> = P extends ConstructorRepresentation
+  ? IsAllOptional<ConstructorParameters<P>> extends true
+    ? { args?: Args<P> }
+    : { args: Args<P> }
+  : { args: unknown[] };
+
+/**
+ * The r3f props every element takes: `args`, `object`, `dispose` and `attach`
+ * @category types
+ * @advanced
+ */
+export type InstanceProps<T = unknown, P = unknown> = ArgsProp<P> & {
+  /** An existing object to use instead of constructing one */
+  object?: T;
+  /** `null` keeps the object alive when the element unmounts */
+  dispose?: null;
+  /** Where the object attaches on its parent */
+  attach?: AttachType<T>;
+};
+
+/**
+ * The props of an element for class `T`: its fields, math props, React props and events
+ * @category types
+ * @advanced
+ */
+export type ElementProps<T extends ConstructorRepresentation, P = InstanceType<T>> = Partial<
+  Overwrite<P, MathProps<P> & ReactProps<P> & EventProps<P>>
+>;
+
+/**
+ * The JSX props for class `T`
+ * @example
+ * ```tsx
+ * import { extend, type ThreeElement } from 'react-pixi-fiber';
+ *
+ * class Spinner extends Mesh3D {}
+ * extend({ Spinner });
+ *
+ * declare module 'react-pixi-fiber' {
+ *   interface ThreeElements {
+ *     spinner: ThreeElement<typeof Spinner>;
+ *   }
+ * }
+ * ```
+ * @category types
+ * @standard
+ */
+export type ThreeElement<T extends ConstructorRepresentation> = Mutable<
+  Overwrite<ElementProps<T>, Omit<InstanceProps<InstanceType<T>, T>, 'object'>>
+>;
+
+/**
+ * Every class in a namespace as an element named in camelCase; everything else is dropped
+ * @category types
+ * @advanced
+ */
+export type ThreeToJSXElements<T extends object> = {
+  [
+    K in keyof T & string as T[K] extends ConstructorRepresentation ? Uncapitalize<K> : never
+  ]: T[K] extends ConstructorRepresentation ? ThreeElement<T[K]> : never;
+};
+
+/**
+ * Element names HTML or SVG already use; a catalog class with one of these names is reachable
+ * with a `three` prefix instead (pixi-3d's `Track` is `<threeTrack>`)
+ * @category types
+ * @advanced
+ */
+export type DomElementName = 'audio' | 'source' | 'line' | 'path' | 'track';
+
+/**
+ * The JSX element map for a namespace of classes, plus `<primitive>`
+ * @category types
+ * @advanced
+ */
+export type ThreeElementsOf<T extends object> = Omit<ThreeToJSXElements<T>, DomElementName> & {
+  /** Wraps an existing object; any prop is applied to it by name */
+  primitive: Partial<EventHandlers> & {
+    object: object;
+    ref?: React.Ref<unknown>;
+    key?: React.Key;
+    children?: React.ReactNode;
+    dispose?: null;
+    attach?: AttachType;
+    [prop: string]: unknown;
+  };
+} & {
+  [K in DomElementName & keyof ThreeToJSXElements<T> as `three${Capitalize<K>}`]: ThreeToJSXElements<T>[K];
+};
+
+/**
+ * A React element's place in r3f's tree: what `useInstanceHandle` returns
+ * @category types
+ * @advanced
+ */
+export interface Instance<O = unknown> {
+  /** The root's store */
+  root: RootStore;
+  /** The element name */
+  type: string;
+  /** The parent instance */
+  parent: Instance | null;
+  /** The child instances */
+  children: Instance[];
+  /** The element's props */
+  props: InstanceProps<O> & Record<string, unknown>;
+  /** The object the element made */
+  object: O & { __r3f?: Instance<O> };
+  /** How many event handlers it has */
+  eventCount: number;
+  /** Its event handlers */
+  handlers: Partial<EventHandlers>;
+  /** Where it attaches on its parent */
+  attach?: AttachType<O>;
+  /** Whether Suspense or Activity is hiding it */
+  isHidden: boolean;
+}

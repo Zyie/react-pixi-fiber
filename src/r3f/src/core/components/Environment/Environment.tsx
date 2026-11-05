@@ -1,0 +1,577 @@
+import * as React from 'react'
+import { suspend } from 'suspend-react'
+// Relative, never the package name: this component is part of the shared core chunk.
+import { useThree, useFrame } from '../../hooks'
+import { getThree } from '../../three'
+import { createPortal } from '../../portal'
+import { extend } from '../../reconciler'
+import { applyProps } from '../../utils'
+// `Euler` here is R3F's permissive prop type (`MathType<THREE.Euler>`, which also accepts a tuple),
+// not three's class. That is what the package-name import was resolving to, and narrowing it to
+// three's `Euler` would quietly break `backgroundRotation={[0, 0, 0]}` for every consumer.
+import type { Euler } from '../../../../types/three'
+// Types only: the classes come from three's shared core (getThree) and the root's renderer
+// support (the cube render target differs per renderer).
+import type { Texture, Scene, CubeCamera, CubeTexture, ColorRepresentation } from 'three'
+import { PresetsType } from './environment-assets'
+import { EnvironmentLoaderProps, useEnvironment } from '../../hooks/useEnvironment'
+
+/**
+ * Props for Environment component that sets up global cubemap for PBR materials and backgrounds.
+ *
+ * @property children - React children to render into custom environment portal
+ * @property frames - Number of frames to render the environment. Use 1 for static, Infinity for animated (default: 1)
+ * @property near - Near clipping plane for cube camera (default: 0.1)
+ * @property far - Far clipping plane for cube camera (default: 1000)
+ * @property resolution - Resolution of the cube render target (default: 256)
+ * @property background - Whether to set scene.background. Can be true, false, or "only" (which only sets background) (default: false)
+ *
+ * @property blur - @deprecated Use backgroundBlurriness instead
+ * @property backgroundBlurriness - Blur factor between 0 and 1 for background (default: 0, requires three.js 0.146+)
+ * @property backgroundIntensity - Intensity factor for background (default: 1, requires three.js 0.163+)
+ * @property backgroundRotation - Rotation for background as Euler angles (default: [0,0,0], requires three.js 0.163+)
+ * @property environmentIntensity - Intensity factor for environment lighting (default: 1, requires three.js 0.163+)
+ * @property environmentRotation - Rotation for environment as Euler angles (default: [0,0,0], requires three.js 0.163+)
+ *
+ * @property map - Pre-existing texture to use as environment map
+ * @property preset - HDRI Haven preset: 'apartment', 'city', 'dawn', 'forest', 'lobby', 'night', 'park', 'studio', 'sunset', 'warehouse'. Not for production use.
+ * @property scene - Custom THREE.Scene or ref to apply environment to (default: uses default scene)
+ * @property ground - Ground projection settings. Use true for defaults or object with:
+ *   - height: Height of camera used to create env map (default: 15)
+ *   - radius: Radius of the world (default: 60)
+ *   - scale: Scale of backside projected sphere (default: 1000)
+ *
+ * Additional loader props:
+ * @property files - File path(s) for environment. Supports .hdr, .exr, .jpg (Ultra HDR or plain), an LDR .png/.webp/.avif/.gif, or array of 6 cube faces
+ * @property path - Base path for file loading
+ * @property extensions - Texture extensions override
+ */
+export type EnvironmentProps = {
+  children?: React.ReactNode
+  frames?: number
+  near?: number
+  far?: number
+  resolution?: number
+  background?: boolean | 'only'
+
+  /** deprecated, use backgroundBlurriness */
+  blur?: number
+  backgroundBlurriness?: number
+  backgroundIntensity?: number
+  backgroundRotation?: Euler
+  environmentIntensity?: number
+  environmentRotation?: Euler
+
+  map?: Texture
+  preset?: PresetsType
+  scene?: Scene | React.RefObject<Scene>
+  ground?:
+    | boolean
+    | {
+        radius?: number
+        height?: number
+        scale?: number
+      }
+
+  /** Solid color for background (alternative to files/preset) */
+  color?: ColorRepresentation
+
+  /** Separate files for background (when different from environment files) */
+  backgroundFiles?: string | string[]
+} & EnvironmentLoaderProps
+
+/**
+ * Type guard to check if object is a React ref to a Scene
+ */
+const isRef = (obj: any): obj is React.RefObject<Scene> => obj.current && obj.current.isScene
+
+/**
+ * Resolves a Scene from either a direct Scene object or a React ref
+ */
+const resolveScene = (scene: Scene | React.RefObject<Scene>) => (isRef(scene) ? scene.current : scene)
+
+/**
+ * Internal utility to set environment and background properties on a scene.
+ * Applies texture to scene.environment and/or scene.background based on settings.
+ * Returns cleanup function to restore original values.
+ *
+ * @param background - Whether to set background (true/false/'only')
+ * @param scene - Custom scene to apply to (optional)
+ * @param defaultScene - Default scene from Three.js context
+ * @param texture - Texture to apply as environment/background
+ * @param sceneProps - Additional scene properties (blurriness, intensity, rotation)
+ * @returns Cleanup function that restores original scene properties
+ */
+function setEnvProps(
+  background: boolean | 'only',
+  scene: Scene | React.RefObject<Scene> | undefined,
+  defaultScene: Scene,
+  texture: Texture,
+  sceneProps: Partial<EnvironmentProps> = {},
+) {
+  // defaults
+  sceneProps = {
+    backgroundBlurriness: 0,
+    backgroundIntensity: 1,
+    backgroundRotation: [0, 0, 0],
+    environmentIntensity: 1,
+    environmentRotation: [0, 0, 0],
+    ...sceneProps,
+  }
+
+  const target = resolveScene(scene || defaultScene)
+  const oldbg = target.background
+  const oldenv = target.environment
+  const oldSceneProps = {
+    backgroundBlurriness: target.backgroundBlurriness,
+    backgroundIntensity: target.backgroundIntensity,
+    backgroundRotation: target.backgroundRotation.clone(),
+    environmentIntensity: target.environmentIntensity,
+    environmentRotation: target.environmentRotation.clone(),
+  }
+  if (background !== 'only') target.environment = texture
+  if (background) target.background = texture
+  applyProps(target as any, sceneProps)
+
+  return () => {
+    if (background !== 'only') target.environment = oldenv
+    if (background) target.background = oldbg
+    applyProps(target as any, oldSceneProps)
+  }
+}
+
+/**
+ * Internal component that applies a pre-existing texture as environment map.
+ * Sets scene.environment and optionally scene.background.
+ *
+ * @example
+ * ```jsx
+ * <CubeCamera>{(texture) => <EnvironmentMap map={texture} />}</CubeCamera>
+ * ```
+ */
+export function EnvironmentMap({ scene, background = false, map, ...config }: EnvironmentProps) {
+  const defaultScene = useThree((state) => state.scene)
+  React.useLayoutEffect(() => {
+    if (map) return setEnvProps(background, scene, defaultScene, map, config)
+  })
+  return null
+}
+
+/**
+ * Internal component that loads environment textures from files or presets.
+ * Uses HDRLoader for .hdr, EXRLoader for .exr, UltraHDRLoader for .jpg/.jpeg (a JPEG without a gain
+ * map loads as a plain image), TextureLoader for an LDR .png/.webp/.avif/.gif, or CubeTextureLoader
+ * for arrays of images.
+ *
+ * @example With preset
+ * ```jsx
+ * <EnvironmentCube preset="sunset" />
+ * ```
+ *
+ * @example From HDR file
+ * ```jsx
+ * <EnvironmentCube files="environment.hdr" />
+ * ```
+ *
+ * @example From an Ultra HDR JPEG (smallest footprint)
+ * ```jsx
+ * <EnvironmentCube files="file.jpg" />
+ * ```
+ *
+ * @example From cube faces
+ * ```jsx
+ * <EnvironmentCube files={['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png']} />
+ * ```
+ */
+export function EnvironmentCube({
+  background = false,
+  scene,
+  blur,
+  backgroundBlurriness,
+  backgroundIntensity,
+  backgroundRotation,
+  environmentIntensity,
+  environmentRotation,
+  ...rest
+}: EnvironmentProps) {
+  const texture = useEnvironment(rest)
+  const defaultScene = useThree((state) => state.scene)
+
+  React.useLayoutEffect(() => {
+    return setEnvProps(background, scene, defaultScene, texture, {
+      backgroundBlurriness: blur ?? backgroundBlurriness,
+      backgroundIntensity,
+      backgroundRotation,
+      environmentIntensity,
+      environmentRotation,
+    })
+  })
+
+  React.useEffect(() => {
+    return () => {
+      texture.dispose()
+    }
+  }, [texture])
+
+  return null
+}
+
+/**
+ * Internal component that renders custom environment using a portal and cube camera.
+ * Renders children into an off-buffer and films with a cube camera to create environment map.
+ * Can be static (frames=1) or animated (frames=Infinity).
+ *
+ * @example Custom environment with sphere
+ * ```jsx
+ * <EnvironmentPortal background near={1} far={1000} resolution={256}>
+ *   <mesh scale={100}>
+ *     <sphereGeometry args={[1, 64, 64]} />
+ *     <meshBasicMaterial map={texture} side={THREE.BackSide} />
+ *   </mesh>
+ * </EnvironmentPortal>
+ * ```
+ *
+ * @example Animated environment
+ * ```jsx
+ * <EnvironmentPortal frames={Infinity} resolution={256}>
+ *   <Float>
+ *     <mesh />
+ *   </Float>
+ * </EnvironmentPortal>
+ * ```
+ *
+ * @example Mixed with preset
+ * ```jsx
+ * <EnvironmentPortal preset="warehouse">
+ *   <mesh />
+ * </EnvironmentPortal>
+ * ```
+ */
+export function EnvironmentPortal({
+  children,
+  near = 0.1,
+  far = 1000,
+  resolution = 256,
+  frames = 1,
+  map,
+  background = false,
+  blur,
+  backgroundBlurriness,
+  backgroundIntensity,
+  backgroundRotation,
+  environmentIntensity,
+  environmentRotation,
+  scene,
+  files,
+  path,
+  preset = undefined,
+  extensions,
+}: EnvironmentProps) {
+  const renderer = useThree((state) => state.renderer)
+  const support = useThree((state) => state.internal.support)
+  const defaultScene = useThree((state) => state.scene)
+  const camera = React.useRef<CubeCamera>(null!)
+  const [virtualScene] = React.useState(() => new (getThree().Scene)())
+  const fbo = React.useMemo(() => {
+    // WebGLCubeRenderTarget is WebGL-only. Under WebGPURenderer the equivalent is three's
+    // CubeRenderTarget, which exists precisely because the WebGL one is not compatible —
+    // 'three/webgpu' stopped exporting WebGLCubeRenderTarget in r185 for that reason. The
+    // renderer support of this root carries the matching one.
+    const fbo = new support.CubeRenderTarget(resolution)
+    fbo.texture.type = getThree().HalfFloatType
+    return fbo
+  }, [resolution, support])
+
+  React.useEffect(() => {
+    return () => {
+      fbo.dispose()
+    }
+  }, [fbo])
+
+  React.useLayoutEffect(() => {
+    if (frames === 1) {
+      const autoClear = renderer.autoClear
+      renderer.autoClear = true
+      camera.current.update(renderer as Parameters<CubeCamera['update']>[0], virtualScene)
+      renderer.autoClear = autoClear
+    }
+    return setEnvProps(background, scene, defaultScene, fbo.texture, {
+      backgroundBlurriness: blur ?? backgroundBlurriness,
+      backgroundIntensity,
+      backgroundRotation,
+      environmentIntensity,
+      environmentRotation,
+    })
+  }, [
+    children,
+    virtualScene,
+    fbo.texture,
+    scene,
+    defaultScene,
+    background,
+    frames,
+    renderer,
+    blur,
+    backgroundBlurriness,
+    backgroundIntensity,
+    backgroundRotation,
+    environmentIntensity,
+    environmentRotation,
+  ])
+
+  let count = 1
+  useFrame(() => {
+    if (frames === Infinity || count < frames) {
+      const autoClear = renderer.autoClear
+      renderer.autoClear = true
+      camera.current.update(renderer as Parameters<CubeCamera['update']>[0], virtualScene)
+      renderer.autoClear = autoClear
+      count++
+    }
+  })
+
+  return (
+    <>
+      {createPortal(
+        <>
+          {children}
+          <cubeCamera ref={camera} args={[near, far, fbo]} />
+          {files || preset ? (
+            <EnvironmentCube background files={files} preset={preset} path={path} extensions={extensions} />
+          ) : map ? (
+            <EnvironmentMap background map={map} extensions={extensions} />
+          ) : null}
+        </>,
+        virtualScene,
+      )}
+    </>
+  )
+}
+
+// GroundedSkybox imports from `three`, so it loads on demand: a static import would put the WebGL
+// renderer into the eager graph of every app that renders an <Environment>, ground or not.
+const GROUND_KEY = Symbol('r3f-grounded-skybox')
+const useGroundProjectedEnvImpl = () =>
+  suspend(() => import('three/examples/jsm/objects/GroundedSkybox.js').then((m) => m.GroundedSkybox), [GROUND_KEY])
+
+/**
+ * Internal component for ground-projected environment.
+ * Projects the environment onto a ground plane, placing your model on the "ground" within the env map.
+ * Uses GroundProjectedEnv from three/examples/jsm/modifiers/GroundProjectedEnv.
+ *
+ * @example
+ * ```jsx
+ * <EnvironmentGround ground />
+ * ```
+ *
+ * @example With custom settings
+ * ```jsx
+ * <EnvironmentGround
+ *   ground={{
+ *     height: 15, // Height of camera used to create env map
+ *     radius: 60, // Radius of the world
+ *     scale: 1000, // Scale of backside projected sphere
+ *   }}
+ * />
+ * ```
+ */
+function EnvironmentGround(props: EnvironmentProps) {
+  const textureDefault = useEnvironment(props)
+  const texture = props.map || textureDefault
+
+  const GroundProjectedEnvImpl = useGroundProjectedEnvImpl()
+  React.useMemo(() => extend({ GroundProjectedEnvImpl }), [GroundProjectedEnvImpl])
+
+  React.useEffect(() => {
+    return () => {
+      textureDefault.dispose()
+    }
+  }, [textureDefault])
+
+  const height = (props.ground as any)?.height ?? 15
+  const radius = (props.ground as any)?.radius ?? 60
+  const scale = (props.ground as any)?.scale ?? 1000
+
+  const args = React.useMemo<[Texture | CubeTexture, number, number]>(
+    () => [texture, height, radius],
+    [texture, height, radius],
+  )
+
+  // Created by name rather than as typed JSX: `groundProjectedEnvImpl` is deliberately not on the
+  // element map. drei declares an element of that name against its own class, and a second
+  // declaration with a different signature would break every app that has both installed.
+  return (
+    <>
+      <EnvironmentMap {...props} map={texture} />
+      {React.createElement('groundProjectedEnvImpl', { args, scale })}
+    </>
+  )
+}
+
+/**
+ * Internal component that sets a solid color as scene background.
+ * Does not affect scene.environment (lighting/reflections).
+ *
+ * @example
+ * ```jsx
+ * <EnvironmentColor color="red" />
+ * <EnvironmentColor color="#ff0000" />
+ * <EnvironmentColor color={0xff0000} />
+ * ```
+ */
+function EnvironmentColor({ color, scene }: EnvironmentProps) {
+  const defaultScene = useThree((state) => state.scene)
+  React.useLayoutEffect(() => {
+    if (color === undefined) return
+    const target = resolveScene(scene || defaultScene)
+    const oldBg = target.background
+    target.background = new (getThree().Color)(color)
+    return () => {
+      target.background = oldBg
+    }
+  })
+  return null
+}
+
+/**
+ * Internal component that handles separate background and environment textures.
+ * Useful when you want different visuals for the backdrop vs. lighting/reflections.
+ *
+ * @example
+ * ```jsx
+ * <EnvironmentDualSource
+ *   files="lighting.hdr"
+ *   backgroundFiles="sky.jpg"
+ *   background
+ * />
+ * ```
+ */
+function EnvironmentDualSource(props: EnvironmentProps) {
+  const { backgroundFiles, ...envProps } = props
+  return (
+    <>
+      {/* Without files or a preset there is no environment to light with, only the backdrop */}
+      {(envProps.files || envProps.preset) && <EnvironmentCube {...envProps} background={false} />}
+      {/* A preset would take precedence over the backdrop's own files */}
+      <EnvironmentCube {...props} files={backgroundFiles} preset={undefined} background="only" />
+    </>
+  )
+}
+
+/**
+ * Sets up a global environment map for PBR materials and backgrounds.
+ * Affects scene.environment and optionally scene.background unless a custom scene is passed.
+ *
+ * Supports multiple input methods:
+ * - **Presets**: Selection of HDRI Haven assets (apartment, city, dawn, forest, lobby, night, park, studio, sunset, warehouse)
+ * - **Files**: HDR (.hdr), EXR (.exr), JPEG (.jpg, Ultra HDR when it carries a gain map), LDR image (.png, .webp, .avif, .gif), or cube faces (array of 6 images)
+ * - **Texture**: Pre-existing cube texture via `map` prop
+ * - **Custom Scene**: Render children into environment using portal and cube camera
+ * - **Ground Projection**: Project environment onto ground plane
+ *
+ * @remarks
+ * - Preset property is NOT meant for production and may fail (relies on CDNs)
+ * - Ultra HDR JPEG has the smallest file footprint
+ * - Use `frames={Infinity}` for animated environments with low resolution for performance
+ * - Ground projection places models on the "ground" within the environment map
+ * - Supports self-hosting with @pmndrs/assets using dynamic imports
+ *
+ * @example Basic preset usage
+ * ```jsx
+ * <Environment preset="sunset" />
+ * ```
+ *
+ * @example From HDR file
+ * ```jsx
+ * <Environment files="/hdr/environment.hdr" />
+ * ```
+ *
+ * @example From an Ultra HDR JPEG (smallest footprint)
+ * ```jsx
+ * <Environment files="file.jpg" />
+ * ```
+ *
+ * @example With self-hosted assets
+ * ```jsx
+ * import { suspend } from 'suspend-react'
+ * const city = import('@pmndrs/assets/hdri/city.exr').then(m => m.default)
+ *
+ * <Environment files={suspend(city)} />
+ * ```
+ *
+ * @example From existing texture
+ * ```jsx
+ * <CubeCamera>{(texture) => <Environment map={texture} />}</CubeCamera>
+ * ```
+ *
+ * @example Custom environment scene
+ * ```jsx
+ * <Environment background near={1} far={1000} resolution={256}>
+ *   <mesh scale={100}>
+ *     <sphereGeometry args={[1, 64, 64]} />
+ *     <meshBasicMaterial map={texture} side={THREE.BackSide} />
+ *   </mesh>
+ * </Environment>
+ * ```
+ *
+ * @example Animated environment
+ * ```jsx
+ * <Environment frames={Infinity} resolution={256}>
+ *   <Float>
+ *     <mesh />
+ *   </Float>
+ * </Environment>
+ * ```
+ *
+ * @example Mixed custom scene with preset
+ * ```jsx
+ * <Environment background preset="warehouse">
+ *   <mesh />
+ * </Environment>
+ * ```
+ *
+ * @example With ground projection
+ * ```jsx
+ * <Environment ground={{ height: 15, radius: 60 }} preset="city" />
+ * ```
+ *
+ * @example As background only
+ * ```jsx
+ * <Environment background="only" preset="sunset" />
+ * ```
+ *
+ * @example With rotation and intensity
+ * ```jsx
+ * <Environment
+ *   background
+ *   backgroundBlurriness={0.5}
+ *   backgroundIntensity={0.8}
+ *   backgroundRotation={[0, Math.PI / 2, 0]}
+ *   environmentIntensity={1.2}
+ *   environmentRotation={[0, Math.PI / 4, 0]}
+ *   preset="studio"
+ * />
+ * ```
+ */
+export function Environment(props: EnvironmentProps) {
+  // Handle color-only background (no files/preset/map)
+  if (props.color !== undefined && !props.files && !props.preset && !props.map) {
+    return <EnvironmentColor {...props} />
+  }
+
+  // Handle separate background/env files
+  if (props.backgroundFiles && props.backgroundFiles !== props.files) {
+    return <EnvironmentDualSource {...props} />
+  }
+
+  // Existing routing logic
+  return props.ground ? (
+    <EnvironmentGround {...props} />
+  ) : props.map ? (
+    <EnvironmentMap {...props} />
+  ) : props.children ? (
+    <EnvironmentPortal {...props} />
+  ) : (
+    <EnvironmentCube {...props} />
+  )
+}

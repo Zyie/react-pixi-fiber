@@ -1,0 +1,353 @@
+import { Camera3D, Matrix4, Quaternion, Vector3, View3D } from '@pixi/3d';
+import type { Container3D, ShadowFilter, ToneMapping } from '@pixi/3d';
+import { Color, Container, autoDetectRenderer } from 'pixi.js';
+import type { ColorSource, Renderer } from 'pixi.js';
+
+import { DirectionalLight } from '../catalog/DirectionalLight';
+import { setShadowsEnabled } from './shadowViews';
+
+/**
+ * What the renderer is built with; r3f passes `canvas` and `antialias`, and the `renderer` (or
+ * `gl`) prop of `<Canvas>` adds to them
+ * @category renderer
+ * @standard
+ */
+export interface PixiRendererParameters {
+  /** The canvas to draw into */
+  canvas: HTMLCanvasElement | OffscreenCanvas;
+  /** Smooth edges with multisampling @default true */
+  antialias?: boolean;
+  /** See through to the page where nothing is drawn, as three's `alpha` @default true */
+  alpha?: boolean;
+  /** Which pixi.js backend to try first @default 'webgl' */
+  preference?: 'webgl' | 'webgpu';
+  /** Power preference passed to the GPU adapter */
+  powerPreference?: GPUPowerPreference;
+}
+
+/**
+ * three's `renderer.shadowMap`; r3f writes it from the `shadows` renderer setting
+ * @category renderer
+ * @standard
+ */
+export interface PixiShadowMap {
+  /** Draw shadows at all; lights cast them only while this is on, as in three @default false */
+  enabled: boolean;
+  /** three's shadow map type constant (`PCFShadowMap`, ...), mapped to a pixi-3d `shadowFilter` @default 1 */
+  type: number;
+  /** Kept for three's shape; pixi-3d renders shadows every frame */
+  autoUpdate: boolean;
+  /** Kept for three's shape; pixi-3d renders shadows every frame */
+  needsUpdate: boolean;
+}
+
+interface SceneView {
+  readonly view: View3D;
+  readonly stage: Container;
+  proxy: Camera3D | null;
+  background: unknown;
+}
+
+const TONE_MAPPINGS: readonly ToneMapping[] = [
+  'none',
+  'none',
+  'reinhard',
+  'uncharted2',
+  'aces',
+  'custom',
+  'aces',
+  'aces',
+];
+const SHADOW_FILTERS: readonly ShadowFilter[] = ['hard', 'pcf', 'pcf-high', 'pcf-high'];
+
+const sceneWorld = new Matrix4();
+const cameraWorld = new Matrix4();
+const proxyPosition = new Vector3();
+const proxyQuaternion = new Quaternion();
+const proxyScale = new Vector3();
+
+const isDescendant = (node: Container3D, root: Container3D): boolean => {
+  for (let parent = node.parent; parent; parent = parent.parent) if (parent === root) return true;
+  return false;
+};
+
+/**
+ * three's renderer surface over a pixi.js renderer and pixi-3d views
+ *
+ * r3f's core drives a renderer through `init`, `setSize`, `setPixelRatio`, `render(scene, camera)`
+ * and `dispose`. This facade answers them with a pixi.js renderer on the canvas and one `View3D`
+ * per scene it is asked to draw, so a HUD, portal or offscreen scene gets its own view instead of
+ * rebuilding one view every frame. A view draws with the camera it is given when that camera is in
+ * its scene; any other camera is copied onto a proxy camera in the scene before each frame.
+ *
+ * three's renderer settings are forwarded to each view as it draws: `toneMapping` and
+ * `toneMappingExposure` become the view's tone mapping and exposure, and `shadowMap.type` its shadow
+ * filter. `shadowMap.enabled` gates which lights cast shadows. The background is transparent unless
+ * `alpha` is `false`, as in three.
+ * @example
+ * ```tsx
+ * import { Canvas, useThree } from 'react-pixi-fiber';
+ *
+ * <Canvas renderer={{ preference: 'webgpu', shadows: true }}>
+ *   <Scene />
+ * </Canvas>;
+ *
+ * // Inside the canvas
+ * const renderer = useThree((state) => state.renderer);
+ * renderer.toneMappingExposure = 1.5;
+ * ```
+ * @category renderer
+ * @standard
+ */
+export class PixiRenderer {
+  /** Always `true`; tells this renderer apart from three's */
+  public readonly isPixiRenderer = true;
+  /** The canvas drawn into */
+  public readonly domElement: HTMLCanvasElement | OffscreenCanvas;
+  /** three's backend flag: `isWebGPUBackend` is set when pixi.js picked WebGPU */
+  public backend: { isWebGPUBackend?: true } = {};
+  /** The pixi.js renderer, once `init` has resolved */
+  public pixi: Renderer | null = null;
+  /** Which pixi.js backend to try first */
+  public preference: 'webgl' | 'webgpu';
+  /** Clear the canvas before each `render`, as three's `autoClear` @default true */
+  public autoClear = true;
+  /** three's tone mapping constant; r3f sets `ACESFilmicToneMapping` @default NoToneMapping */
+  public toneMapping = 0;
+  /** Brightness before tone mapping, pixi-3d's `exposure` @default 1 */
+  public toneMappingExposure = 1;
+  /** Kept for three's shape; pixi-3d always writes sRGB @default 'srgb' */
+  public outputColorSpace = 'srgb';
+  /** three's shadow map settings */
+  public readonly shadowMap: PixiShadowMap = { enabled: false, type: 1, autoUpdate: true, needsUpdate: false };
+
+  private readonly _antialias: boolean;
+  private readonly _powerPreference: PixiRendererParameters['powerPreference'];
+  private readonly _views = new Map<Container3D, SceneView>();
+  private readonly _clearColor = new Color(0x000000);
+  private _clearAlpha: number;
+  private _width = 300;
+  private _height = 150;
+  private _pixelRatio = 1;
+
+  /** @param parameters - The canvas and how to draw into it */
+  constructor({
+    canvas,
+    antialias = true,
+    alpha = true,
+    preference = 'webgl',
+    powerPreference,
+  }: PixiRendererParameters) {
+    this.domElement = canvas;
+    this._antialias = antialias;
+    this._clearAlpha = alpha ? 0 : 1;
+    this.preference = preference;
+    this._powerPreference = powerPreference;
+  }
+
+  /**
+   * Creates the pixi.js renderer on the canvas; r3f awaits it before the first frame
+   * @returns This renderer
+   */
+  public async init(): Promise<this> {
+    if (this.pixi) return this;
+    this.pixi = await autoDetectRenderer({
+      canvas: this.domElement,
+      antialias: this._antialias,
+      preference: this.preference,
+      powerPreference: this._powerPreference,
+      width: this._width,
+      height: this._height,
+      resolution: this._pixelRatio,
+      autoDensity: false,
+      backgroundColor: this._clearColor,
+      backgroundAlpha: this._clearAlpha,
+    });
+    if (this.pixi.name === 'webgpu') this.backend = { isWebGPUBackend: true };
+    return this;
+  }
+
+  /** Whether `init` has resolved */
+  public hasInitialized(): boolean {
+    return this.pixi !== null;
+  }
+
+  /**
+   * Sets the drawing buffer's pixel ratio
+   * @param ratio - Device pixels per CSS pixel
+   */
+  public setPixelRatio(ratio: number): void {
+    this._pixelRatio = ratio;
+    this.pixi?.resize(this._width, this._height, ratio);
+  }
+
+  /** Device pixels per CSS pixel */
+  public getPixelRatio(): number {
+    return this._pixelRatio;
+  }
+
+  /**
+   * Sets the canvas size in CSS pixels
+   * @param width - Width in CSS pixels
+   * @param height - Height in CSS pixels
+   * @param updateStyle - Also set the canvas element's CSS size, as three does
+   */
+  public setSize(width: number, height: number, updateStyle = true): void {
+    this._width = width;
+    this._height = height;
+    this.pixi?.resize(width, height, this._pixelRatio);
+    if (updateStyle && 'style' in this.domElement) {
+      this.domElement.style.width = `${width}px`;
+      this.domElement.style.height = `${height}px`;
+    }
+  }
+
+  /**
+   * Writes the canvas size in CSS pixels into `target`
+   * @param target - Receives `x` as the width and `y` as the height
+   * @returns `target`
+   */
+  public getSize<T extends { x: number; y: number }>(target: T): T {
+    target.x = this._width;
+    target.y = this._height;
+    return target;
+  }
+
+  /**
+   * Sets what the canvas clears to
+   * @param color - The clear colour
+   * @param alpha - Its opacity, 0 to 1
+   */
+  public setClearColor(color: ColorSource, alpha = 1): void {
+    this._clearColor.setValue(color);
+    this._clearAlpha = alpha;
+    if (this.pixi) {
+      this.pixi.background.color = this._clearColor;
+      this.pixi.background.alpha = alpha;
+    }
+  }
+
+  /** The colour the canvas clears to */
+  public getClearColor(): Color {
+    return this._clearColor;
+  }
+
+  /**
+   * Sets the opacity the canvas clears to
+   * @param alpha - 0 to 1
+   */
+  public setClearAlpha(alpha: number): void {
+    this.setClearColor(this._clearColor, alpha);
+  }
+
+  /** The opacity the canvas clears to, 0 to 1 */
+  public getClearAlpha(): number {
+    return this._clearAlpha;
+  }
+
+  /**
+   * The view a scene is drawn through, made the first time the scene is drawn
+   *
+   * For pixi-3d settings with no three counterpart: passes, environment, fog, culling.
+   * @param scene - A scene this renderer draws
+   * @returns The scene's view, or `undefined` before its first `render`
+   */
+  public getView(scene: Container3D): View3D | undefined {
+    return this._views.get(scene)?.view;
+  }
+
+  /**
+   * Draws a scene from a camera, three's `renderer.render`
+   * @param scene - The scene's root
+   * @param camera - The camera to draw from; it doesn't need to be in the scene
+   */
+  public render(scene: Container3D, camera: Camera3D): void {
+    const pixi = this.pixi;
+    if (!pixi) return;
+
+    const entry = this._views.get(scene) ?? this._createView(scene, camera);
+    const { view } = entry;
+
+    if (camera.view3d === view) {
+      view.camera = camera;
+    } else {
+      entry.proxy ??= new Camera3D();
+      this._syncProxy(entry.proxy, camera, scene);
+      view.camera = entry.proxy;
+    }
+
+    this._applySettings(entry, scene);
+    pixi.render({ container: entry.stage, clear: this.autoClear });
+  }
+
+  /** Clears the canvas to the clear colour */
+  public clear(): void {
+    this.pixi?.render({ container: new Container(), clear: true });
+  }
+
+  /**
+   * Stops drawing a scene and frees its view, leaving the scene's children in place
+   * @param scene - A scene this renderer draws
+   */
+  public releaseView(scene: Container3D): void {
+    const entry = this._views.get(scene);
+    if (!entry) return;
+    this._views.delete(scene);
+    if (entry.proxy) scene.removeChild(entry.proxy);
+    entry.proxy?.destroy();
+    const children = scene.children.slice();
+    entry.view.destroy();
+    for (const child of children) if (!child.destroyed) scene.addChild(child);
+    entry.stage.destroy();
+  }
+
+  /** Frees every view and the pixi.js renderer; scenes keep their children */
+  public dispose(): void {
+    for (const scene of this._views.keys()) this.releaseView(scene);
+    this.pixi?.destroy();
+    this.pixi = null;
+  }
+
+  private _createView(scene: Container3D, camera: Camera3D): SceneView {
+    const inScene = isDescendant(camera, scene);
+    const proxy = inScene ? null : new Camera3D();
+    const view = new View3D({ root: scene, camera: proxy ?? camera, autoResize: true });
+    const stage = new Container();
+    stage.addChild(view);
+    const entry: SceneView = { view, stage, proxy, background: undefined };
+    this._views.set(scene, entry);
+    return entry;
+  }
+
+  private _syncProxy(proxy: Camera3D, camera: Camera3D, scene: Container3D): void {
+    proxy.mode = camera.mode;
+    proxy.fov = camera.fov;
+    proxy.zoom = camera.zoom;
+    proxy.near = camera.near;
+    proxy.far = camera.far;
+    proxy.orthographicSize = camera.orthographicSize;
+    sceneWorld.getInverse(scene.getGlobalTransform(sceneWorld));
+    sceneWorld.multiply(camera.getGlobalTransform(cameraWorld)).decompose(proxyPosition, proxyQuaternion, proxyScale);
+    proxy.position.copyFrom(proxyPosition);
+    proxy.quaternion = proxyQuaternion;
+    proxy.scale.copyFrom(proxyScale);
+  }
+
+  private _applySettings(entry: SceneView, scene: Container3D): void {
+    const { view } = entry;
+    const toneMapping = TONE_MAPPINGS[this.toneMapping] ?? 'aces';
+    if (view.toneMapping !== toneMapping) view.toneMapping = toneMapping;
+    view.exposure = this.toneMappingExposure;
+    const shadowFilter = SHADOW_FILTERS[this.shadowMap.type] ?? 'pcf';
+    if (view.shadowFilter !== shadowFilter) view.shadowFilter = shadowFilter;
+    setShadowsEnabled(view, this.shadowMap.enabled);
+
+    const background = (scene as Container3D & { background?: ColorSource | null }).background;
+    if (background !== undefined && background !== entry.background) {
+      entry.background = background;
+      view.background = background;
+    }
+
+    for (const light of view.lights) if (light instanceof DirectionalLight) light.aimAtTarget();
+  }
+}
