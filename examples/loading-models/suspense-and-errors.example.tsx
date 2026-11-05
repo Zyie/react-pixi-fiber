@@ -90,7 +90,8 @@ export function App() {
 /**
  * r3f's SuspenseAndErrors demo: the scene waits on a slow load, then a component loads a file that
  * isn't there. The error reaches the nearest error boundary, which turns the orange box red; the
- * demo has none, so its error reaches the page. Its waits are shorter, and the test waits them out.
+ * demo has none, so its error reaches the page. Its waits are shorter, and the picture is taken after
+ * them.
  */
 export const example: Example = {
   title: 'Suspense and load errors',

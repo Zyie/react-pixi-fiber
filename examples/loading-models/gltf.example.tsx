@@ -31,7 +31,7 @@ export function App() {
 
 /**
  * r3f's Gltf demo: a click swaps the model `useLoader` loads, both preloaded so the swap doesn't wait.
- * The demo swaps its birds on a timer; this swaps on a click, which the test makes, so the picture is
+ * The demo swaps its birds on a timer; this swaps on a click, and the picture is taken after one, on
  * the second model.
  */
 export const example: Example = {

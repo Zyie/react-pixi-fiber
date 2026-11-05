@@ -51,7 +51,7 @@ export function App() {
 /**
  * r3f's SuspenseMaterial demo: the sphere is white while its material loads, and salmon a second
  * later; a click loads it again. It suspends on a loader where the demo suspends on a timer, and the
- * test waits out the second.
+ * picture is taken once the second is up.
  */
 export const example: Example = {
   title: 'A fallback material while one loads',

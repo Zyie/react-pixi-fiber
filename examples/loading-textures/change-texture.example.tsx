@@ -33,8 +33,8 @@ export function App() {
 
 /**
  * r3f's ChangeTexture demo: `useTexture` with a URL that changes, from textures preloaded with
- * `useTexture.preload`. The demo changes it on a timer; this changes it on a click, which the test
- * makes, so the picture is the second texture.
+ * `useTexture.preload`. The demo changes it on a timer; this changes it on a click, and the picture is
+ * taken after one, on the second texture.
  */
 export const example: Example = {
   title: 'Changing a texture',

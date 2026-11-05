@@ -74,7 +74,7 @@ export function App() {
 
 /**
  * r3f's AutoDispose demo: a click swaps one box for another, and r3f disposes the geometry and material
- * of the one that unmounts. The test clicks the blue box, so the picture is the orange one.
+ * of the one that unmounts. The picture is taken after a click on the blue box, on the orange one.
  */
 export const example: Example = {
   title: 'Swapping objects that dispose themselves',

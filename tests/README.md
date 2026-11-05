@@ -246,7 +246,7 @@ A unit test is for what no picture shows: that `react-pixi-fiber/three`'s math g
 
 ## Assets
 
-Scenes load textures from `tests/assets`, which vitest and the playground both serve at `/`: `tests/assets/textures/quadrants.png` is `/textures/quadrants.png`. Nothing is fetched from the network.
+Scenes load textures from `tests/assets`, which vitest and the playground both serve at `/`: `tests/assets/textures/quadrants.png` is `/textures/quadrants.png`. Nothing is fetched from the network. `scripts/test/make-assets.mts` writes the models in `tests/assets/models` and the textures besides `quadrants.png` from code, so every file there is the repo's own; run it again after changing it, and look at the scenes that load what changed. A scene that loads a file `useLoader` caches by URL shares it with every scene on the page, so give its URL a query of its own (`/models/box.glb?primitive`).
 
 ## The playground
 
