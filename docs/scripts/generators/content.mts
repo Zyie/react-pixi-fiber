@@ -73,7 +73,7 @@ function page(id: string, fields: Page['fields'], children: readonly Flow[]): Pa
  * many as fit in `DESCRIPTION_LENGTH`, at least one, and two when the first is short
  * @param paragraph - The paragraph's text
  */
-export function describe(paragraph: string): string {
+function describe(paragraph: string): string {
   const sentences = paragraph.split(/(?<=[.!?])\s+/);
   let description = sentences[0]!;
 
@@ -112,7 +112,7 @@ function contextOf(guide: Guide, names: ReadonlyMap<string, string>): DocContext
  * A command for each package manager, as tabs that remember the reader's choice across the site
  * @param packages - What to install, as `npm install` names them
  */
-export function installTabs(packages: string): Flow {
+function installTabs(packages: string): Flow {
   return Tabs(
     { groupId: 'package-manager' },
     PACKAGE_MANAGERS.map((add) => {

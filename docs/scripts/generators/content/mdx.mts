@@ -91,9 +91,9 @@ function mapImage(src: string, context: DocContext): string {
 
 /**
  * The name a code span may link by: the code itself, without `()` after a name, without the arguments
- * of a call of a plain name, as in `flushLayout(node)`, or without the value of a declaration, as in
- * `alignItems: 'center'`. A member call with arguments keeps them, since `layout.flush(container)` may
- * be the layout system's and not a node's.
+ * of a call of a plain name, as in `useFrame(callback)`, or without the value of a declaration, as in
+ * `frameloop: 'demand'`. A member call with arguments keeps them, since `state.advance(time)` is
+ * the store's and not the exported `advance`.
  * @param code - The code span's text
  */
 function nameOf(code: string): string {

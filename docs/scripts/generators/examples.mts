@@ -9,8 +9,8 @@
  * the JSDoc above it; its alt text that of its picture in the guide. Its pictures are those of
  * `examples/pictures.mts`.
  *
- * Each example's code is also a JSON file in `static/example-sources`, listed in its `index.json`, for
- * the API reference's cards and a playground to open by name.
+ * Each example's code is also a JSON file in `static/example-sources`, listed in its `index.json`, which
+ * the API reference's cards read, and an editor would open by name.
  */
 import path from 'node:path';
 

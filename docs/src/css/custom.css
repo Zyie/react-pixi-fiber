@@ -779,6 +779,14 @@ a code {
   color: inherit;
 }
 
+/* A name as a heading, such as `useFrame`, in the heading's own size and without the box of inline code */
+.markdown :is(h1, h2, h3, h4) code {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 0.9em;
+}
+
 /* Code blocks */
 
 /* The block's pre sets code at --ifm-code-font-size of this, about 13.4px */

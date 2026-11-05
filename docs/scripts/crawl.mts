@@ -149,7 +149,7 @@ for (const file of ['/robots.txt', '/sitemap.xml', '/llms.txt', '/llms-full.txt'
 
 /**
  * Queues a link found on a page: a page to open, a file to check, an anchor to look for. A hash that
- * holds state, such as the playground's `#code=...`, is no anchor.
+ * holds state, such as `#code=...`, is no anchor.
  * @param from - The page it's on
  * @param href - Where it points, resolved
  */

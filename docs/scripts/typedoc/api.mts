@@ -854,7 +854,7 @@ function callOf(file: SourceFile, node: Declaration): { callable: ApiCallable | 
 
 /**
  * The interfaces that `declare global` and `declare module` blocks of a file add to, named by their
- * namespace or module: `PixiMixins.Container`, `@pixi/react.PixiElements`
+ * namespace or module: `JSX.IntrinsicElements`, `react.JSX.IntrinsicElements`
  * @param file - The file
  * @param statements - The statements to look in
  * @param scope - The names of the blocks around them

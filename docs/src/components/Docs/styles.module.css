@@ -103,7 +103,6 @@
   }
 }
 
-/* A deviation's code stops clear of the sticky navbar when a link jumps to it */
 /* How an item of r3f's surface carries over: a pill in its hue, as text and a tint */
 .status {
   --status-hue: var(--layout-note);

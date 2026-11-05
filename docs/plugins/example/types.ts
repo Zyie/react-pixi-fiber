@@ -8,7 +8,7 @@ export interface ExamplePicture {
 
 /** What `loader.mts` makes of an example file, handed to `<Example>` as its `source` prop */
 export interface ExampleSource {
-  /** `<topic>/<name>`, as the gallery and the playground name it */
+  /** `<topic>/<name>`, as the gallery names it */
   readonly id: string;
   /** The code to show: every part of the region, without region markers, or the whole program */
   readonly code: string;
