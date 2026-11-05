@@ -24,6 +24,10 @@ import { MathUtils } from '../math/MathUtils';
  * by themselves. The rest are kept for three's shape and change nothing: `shadowSide`, `alphaHash`,
  * `alphaToCoverage`, `depthFunc`, `colorWrite`, `premultipliedAlpha`, `dithering`, `forceSinglePass`,
  * `precision`, the custom blend factors, `clippingPlanes` and the stencil settings.
+ *
+ * A transparent `DoubleSide` material draws in one pass, in triangle order, as with three's
+ * `forceSinglePass`: three draws its back faces first and its front faces over them, so where a
+ * back face comes later in the index buffer pixi-3d blends it over the front.
  * @category compat
  * @advanced
  */
@@ -77,7 +81,7 @@ export interface MaterialMembers {
   premultipliedAlpha: boolean;
   /** Kept for three's shape */
   dithering: boolean;
-  /** Kept for three's shape */
+  /** Kept for three's shape: a transparent `DoubleSide` material always draws in one pass */
   forceSinglePass: boolean;
   /** Pushes its depth back to avoid z-fighting, by `polygonOffsetFactor` */
   polygonOffset: boolean;
