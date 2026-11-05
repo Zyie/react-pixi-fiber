@@ -7,7 +7,7 @@ export default defineConfig({
     reportUnusedDisableDirectives: 'error',
   },
   plugins: ['eslint', 'typescript', 'import', 'unicorn', 'vitest', 'react', 'jsdoc'],
-  ignorePatterns: ['.repos/**', 'dist/**', 'spike/**', 'src/r3f/**'],
+  ignorePatterns: ['.repos/**', 'dist/**', 'src/r3f/**'],
   rules: {
     'import/no-empty-named-blocks': 'error',
     'import/no-duplicates': 'error',
