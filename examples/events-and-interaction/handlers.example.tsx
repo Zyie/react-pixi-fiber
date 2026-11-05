@@ -23,7 +23,7 @@ function Logger() {
       onPointerMissed={() => console.log('missed')}
     >
       <boxGeometry />
-      <meshStandardMaterial color="royalblue" />
+      <meshPhongMaterial color="royalblue" />
     </mesh>
     // #endregion handlers
   );

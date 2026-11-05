@@ -24,7 +24,7 @@ Any object that has a `raycast` method receives events, such as a mesh:
   onPointerMissed={() => console.log('missed')}
 >
   <boxGeometry />
-  <meshStandardMaterial color="royalblue" />
+  <meshPhongMaterial color="royalblue" />
 </mesh>
 ```
 
@@ -37,7 +37,7 @@ Start with the click a DOM element would have:
 ```tsx
 <mesh onClick={() => alert('Hello')}>
   <boxGeometry />
-  <meshStandardMaterial color="royalblue" />
+  <meshPhongMaterial color="royalblue" />
 </mesh>
 ```
 
@@ -60,7 +60,7 @@ and scale the mesh by it:
 ```tsx
 <mesh scale={active ? 1.5 : 1} onClick={() => setActive(!active)}>
   <boxGeometry />
-  <meshStandardMaterial color="royalblue" />
+  <meshPhongMaterial color="royalblue" />
 </mesh>
 ```
 
@@ -88,7 +88,7 @@ Click the mesh and it scales up and down. In three steps it:
   onPointerOut={() => setHovered(false)}
 >
   <boxGeometry />
-  <meshStandardMaterial color={hovered ? 'hotpink' : 'royalblue'} />
+  <meshPhongMaterial color={hovered ? 'hotpink' : 'royalblue'} />
 </mesh>
 ```
 

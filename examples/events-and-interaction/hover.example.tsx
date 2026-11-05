@@ -20,7 +20,7 @@ function Box(props: { position: [number, number, number] }) {
       onPointerOut={() => setHovered(false)}
     >
       <boxGeometry />
-      <meshStandardMaterial color={hovered ? 'hotpink' : 'royalblue'} />
+      <meshPhongMaterial color={hovered ? 'hotpink' : 'royalblue'} />
     </mesh>
     // #endregion box
   );

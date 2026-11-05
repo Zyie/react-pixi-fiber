@@ -59,7 +59,7 @@ function Object({ scale = 1, z = 0, opacity = 1 }) {
       }}
       scale={scale}
     >
-      <sphereGeometry args={[1, 8, 6]} />
+      <dodecahedronGeometry args={[1, 0]} />
       <meshStandardMaterial transparent={opacity < 1} opacity={opacity} color={hovered ? 'hotpink' : 'orange'} />
     </mesh>
   );
@@ -83,8 +83,8 @@ export function App() {
  * `@use-gesture/react`: pointerdown captures the pointer, so the object keeps getting moves while the
  * pointer is outside it, and the offset in pixels becomes world units through the viewport's
  * `factor`. The front object has been dragged up and to the right, uncovering the small one behind
- * it, and turns pink under the pointer. The demo's dodecahedrons are low-poly spheres, and its spot and
- * point lights directional lights.
+ * it, and turns pink under the pointer. The demo's spot and point lights, which don't decay, are
+ * directional lights: pixi-3d's lights always decay.
  */
 export const example: Example = {
   title: 'Dragging with pointer capture',

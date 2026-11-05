@@ -15,7 +15,7 @@ function Box() {
     // #region box
     <mesh scale={active ? 1.5 : 1} onClick={() => setActive(!active)}>
       <boxGeometry />
-      <meshStandardMaterial color="royalblue" />
+      <meshPhongMaterial color="royalblue" />
     </mesh>
     // #endregion box
   );

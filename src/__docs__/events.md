@@ -22,7 +22,7 @@ Objects that implement a `raycast` method, as meshes and instanced meshes do, ca
   onPointerMissed={() => console.log('missed')}
 >
   <boxGeometry />
-  <meshStandardMaterial color="royalblue" />
+  <meshPhongMaterial color="royalblue" />
 </mesh>
 ```
 
@@ -102,7 +102,7 @@ function Sphere() {
 }
 ```
 
-![A see-through pair of spheres on the left, and a pink sphere in front of a grey card on the right](../../tests/snapshots/docs/events/selection.webgl.png)
+![A see-through pair of spheres on the left, and a pink sphere in front of a grey circle on the right](../../tests/snapshots/docs/events/selection.webgl.png)
 
 ### `stopPropagation`
 
@@ -176,7 +176,7 @@ function Box() {
       onPointerMissed={() => console.log('mesh.missed')}
     >
       <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color={state ? 'hotpink' : 'blue'} />
+      <meshPhysicalMaterial color={state ? 'hotpink' : 'blue'} />
     </mesh>
   );
 }

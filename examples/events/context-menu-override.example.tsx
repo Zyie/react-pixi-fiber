@@ -21,7 +21,7 @@ function Box() {
       onPointerMissed={() => console.log('mesh.missed')}
     >
       <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color={state ? 'hotpink' : 'blue'} />
+      <meshPhysicalMaterial color={state ? 'hotpink' : 'blue'} />
     </mesh>
   );
 }
@@ -45,8 +45,8 @@ export function App() {
 /**
  * r3f's ContextMenuOverride demo: a right click on the box toggles its colour and keeps the browser's
  * menu closed with `preventDefault()` on the native event. The box has been right-clicked once. The
- * demo's physical material and undecayed point light are a standard material and a directional light
- * here, and the zoom fits the box in a smaller canvas.
+ * demo's point light, which doesn't decay, is a directional light here, since pixi-3d's lights always
+ * decay, and the zoom fits the box in a smaller canvas.
  */
 export const example: Example = {
   title: 'Overriding the context menu',

@@ -19,12 +19,12 @@ function Sphere() {
 }
 // #endregion sphere
 
-function Card() {
+function Circle() {
   const [hovered, setHovered] = useState(false);
 
   return (
     <mesh onPointerOver={(e) => (e.stopPropagation(), setHovered(true))} onPointerOut={() => setHovered(false)}>
-      <planeGeometry args={[1.8, 1.8]} />
+      <circleGeometry args={[1, 64]} />
       <meshBasicMaterial color={hovered ? 'lightgreen' : 'grey'} />
     </mesh>
   );
@@ -59,7 +59,7 @@ function Scene() {
         </group>
       </group>
       <group position={[1.25, 0, 0]}>
-        <Card />
+        <Circle />
         <Sphere />
       </group>
     </>
@@ -79,10 +79,9 @@ export function App() {
  * r3f's Selection demo: on the left, nested groups around two see-through spheres log over and out
  * as the pointer crosses them, every ancestor in turn; on the right, a sphere in front of a card, each
  * stopping propagation, so only the nearest lights up. The pointer rests on the right sphere, which
- * turns pink while the card behind stays grey. The demo's circle is a square card here, its
- * `renderOrder` is left out, and the zoom fits a smaller canvas. On pixi-3d the inner see-through
- * sphere shows as a darker disc, where three.js hides it: three's transparent material writes depth,
- * so the outer sphere, drawn first, covers the inner one, and pixi-3d's blended pass writes none.
+ * turns pink while the circle behind stays grey. The demo's `renderOrder` is left out, and the zoom
+ * fits a smaller canvas. The outer see-through sphere writes depth, as three's transparent materials
+ * do, so it hides the inner one, drawn after it.
  */
 export const example: Example = {
   title: 'Selection',

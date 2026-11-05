@@ -39,7 +39,7 @@ function Plane({
   return (
     <mesh name={color} position={position} onPointerOver={onPointerOver} onPointerOut={onPointerOut}>
       <planeGeometry />
-      <meshBasicMaterial color={hovered ? 'orange' : color} />
+      <meshBasicMaterial color={hovered ? 'orange' : color} toneMapped={false} />
     </mesh>
   );
 }
@@ -60,8 +60,8 @@ export function App() {
  * propagation on pointer over. With the pointer where the middle plane covers the back one, the middle
  * plane turns orange and the back one (hotpink) never hears of the pointer. The demo's HUD layers of
  * glTF bottles in drei environments are left out, the camera looks from the front rather than from
- * behind, so the planes need no `side`, and the planes keep tone mapping, which pixi-3d's unlit
- * material can't yet turn off without also skipping the sRGB output.
+ * behind, so the planes need no `side`, and with no lights in the scene the planes are unlit
+ * `meshBasicMaterial`s in place of the demo's physical ones, out of tone mapping as the demo's are.
  */
 export const example: Example = {
   title: 'Stop propagation',

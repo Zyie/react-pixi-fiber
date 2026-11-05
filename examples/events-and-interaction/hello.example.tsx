@@ -10,7 +10,7 @@ function Box() {
     // #region box
     <mesh onClick={() => alert('Hello')}>
       <boxGeometry />
-      <meshStandardMaterial color="royalblue" />
+      <meshPhongMaterial color="royalblue" />
     </mesh>
     // #endregion box
   );

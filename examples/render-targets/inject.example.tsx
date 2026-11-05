@@ -21,7 +21,7 @@ function Cube({ color, ...props }: CubeProps) {
   return (
     <mesh {...props} scale={size}>
       <boxGeometry args={[0.5, 0.5, 0.5]} />
-      <meshBasicMaterial color={color} />
+      <meshBasicMaterial color={color} toneMapped={false} />
     </mesh>
   );
 }
