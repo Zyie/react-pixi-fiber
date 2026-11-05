@@ -44,8 +44,10 @@ export interface PixiShadowMap {
 interface SceneView {
   readonly view: View3D;
   readonly stage: Container;
+  readonly release: () => void;
   proxy: Camera3D | null;
   background: unknown;
+  drawnAt: number;
 }
 
 const TONE_MAPPINGS: readonly ToneMapping[] = [
@@ -78,7 +80,10 @@ const isDescendant = (node: Container3D, root: Container3D): boolean => {
  * and `dispose`. This facade answers them with a pixi.js renderer on the canvas and one `View3D`
  * per scene it is asked to draw, so a HUD, portal or offscreen scene gets its own view instead of
  * rebuilding one view every frame. A view draws with the camera it is given when that camera is in
- * its scene; any other camera is copied onto a proxy camera in the scene before each frame.
+ * its scene; any other camera is copied onto a proxy camera in the scene before each frame. A
+ * scene's view is freed when the scene is destroyed, or once it has gone
+ * {@link PixiRenderer#viewMaxIdleFrames | viewMaxIdleFrames} frames undrawn, and is made again if
+ * the scene is drawn after that.
  *
  * three's renderer settings are forwarded to each view as it draws: `toneMapping` and
  * `toneMappingExposure` become the view's tone mapping and exposure, and `shadowMap.type` its shadow
@@ -120,6 +125,12 @@ export class PixiRenderer {
   public outputColorSpace = 'srgb';
   /** three's shadow map settings */
   public readonly shadowMap: PixiShadowMap = { enabled: false, type: 1, autoUpdate: true, needsUpdate: false };
+  /**
+   * Frames a scene can go undrawn before its view is freed. A frame ends when a scene is drawn a
+   * second time, so a HUD that unmounts stops holding a view while the main scene keeps drawing.
+   * @default 120
+   */
+  public viewMaxIdleFrames: number = 120;
 
   private readonly _antialias: boolean;
   private readonly _powerPreference: PixiRendererParameters['powerPreference'];
@@ -130,6 +141,10 @@ export class PixiRenderer {
   private _width = 300;
   private _height = 150;
   private _pixelRatio = 1;
+  private _frame = 0;
+  private readonly _releaseIfIdle = (entry: SceneView, scene: Container3D): void => {
+    if (this._frame - entry.drawnAt > this.viewMaxIdleFrames) this.releaseView(scene);
+  };
 
   /** @param parameters - The canvas and how to draw into it */
   constructor({
@@ -249,9 +264,11 @@ export class PixiRenderer {
   /**
    * The view a scene is drawn through, made the first time the scene is drawn
    *
-   * For pixi-3d settings with no three counterpart: passes, environment, fog, culling.
+   * For pixi-3d settings with no three counterpart: passes, environment, fog, culling. A view that
+   * was freed, because its scene went {@link PixiRenderer#viewMaxIdleFrames | viewMaxIdleFrames}
+   * frames undrawn, is made new on the scene's next draw without those settings.
    * @param scene - A scene this renderer draws
-   * @returns The scene's view, or `undefined` before its first `render`
+   * @returns The scene's view, or `undefined` before its first `render` and after it is freed
    */
   public getView(scene: Container3D): View3D | undefined {
     return this._views.get(scene)?.view;
@@ -266,7 +283,13 @@ export class PixiRenderer {
     const pixi = this.pixi;
     if (!pixi) return;
 
-    const entry = this._views.get(scene) ?? this._createView(scene, camera);
+    let entry = this._views.get(scene);
+    if (entry?.drawnAt === this._frame) {
+      this._frame++;
+      this._views.forEach(this._releaseIfIdle);
+    }
+    entry ??= this._createView(scene, camera);
+    entry.drawnAt = this._frame;
     const { view } = entry;
 
     if (camera.view3d === view) {
@@ -294,11 +317,12 @@ export class PixiRenderer {
     const entry = this._views.get(scene);
     if (!entry) return;
     this._views.delete(scene);
+    scene.off('destroyed', entry.release);
     if (entry.proxy) scene.removeChild(entry.proxy);
     entry.proxy?.destroy();
     const children = scene.children.slice();
     entry.view.destroy();
-    for (const child of children) if (!child.destroyed) scene.addChild(child);
+    if (!scene.destroyed) for (const child of children) if (!child.destroyed) scene.addChild(child);
     entry.stage.destroy();
   }
 
@@ -316,7 +340,15 @@ export class PixiRenderer {
     const view = new View3D({ root: scene, camera: proxy ?? camera, autoResize: true });
     const stage = new Container();
     stage.addChild(view);
-    const entry: SceneView = { view, stage, proxy, background: undefined };
+    const entry: SceneView = {
+      view,
+      stage,
+      proxy,
+      background: undefined,
+      drawnAt: this._frame,
+      release: () => this.releaseView(scene),
+    };
+    scene.once('destroyed', entry.release);
     this._views.set(scene, entry);
     return entry;
   }

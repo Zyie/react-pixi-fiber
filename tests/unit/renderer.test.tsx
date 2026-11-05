@@ -1,7 +1,7 @@
 import type { WebGLRenderer } from 'pixi.js';
-import { act } from 'react';
+import { act, useState } from 'react';
 import type { ReactNode } from 'react';
-import { PerspectiveCamera, Scene, createRoot } from 'react-pixi-fiber';
+import { PerspectiveCamera, Scene, createPortal, createRoot, useFrame } from 'react-pixi-fiber';
 import type { ReconcilerRoot, RootState } from 'react-pixi-fiber';
 import { afterEach, beforeAll, expect, it } from 'vitest';
 
@@ -66,6 +66,66 @@ it('keeps one view per scene, draws a camera from outside it through a proxy, an
 
   state.renderer.releaseView(hud);
   expect(state.renderer.getView(hud)).toBeUndefined();
+});
+
+const hudScenes: Scene[] = [];
+
+/** r3f's HUD pattern: a component owns a scene that only its `useFrame` draws, and nothing destroys it */
+function Hud() {
+  const [hud] = useState(() => new Scene());
+  const [hudCamera] = useState(() => new PerspectiveCamera(50, 1, 0.1, 100));
+
+  if (!hudScenes.includes(hud)) hudScenes.push(hud);
+  useFrame(
+    ({ renderer, scene, camera }) => {
+      renderer.render(scene, camera);
+      renderer.autoClear = false;
+      renderer.render(hud, hudCamera);
+      renderer.autoClear = true;
+    },
+    { phase: 'render' },
+  );
+
+  return createPortal(<mesh />, hud);
+}
+
+it('frees the view of a scene that is no longer drawn, and makes it again if the scene is drawn later', async () => {
+  const state = await mount(<mesh />);
+  const { renderer } = state;
+  let time = performance.now();
+  const advance = (frames: number) => {
+    for (let i = 0; i < frames; i++) state.advance((time += 16));
+  };
+
+  for (let i = 0; i < 3; i++) {
+    await act(async () => root!.render(<Hud key={i} />));
+    advance(2);
+    expect(renderer.getView(hudScenes[i])).toBeDefined();
+    await act(async () => root!.render(<mesh />));
+  }
+
+  advance(renderer.viewMaxIdleFrames + 1);
+  expect(hudScenes).toHaveLength(3);
+  for (const hud of hudScenes) expect(renderer.getView(hud)).toBeUndefined();
+  expect(renderer.getView(state.scene)).toBeDefined();
+
+  const camera = new PerspectiveCamera(50, 1, 0.1, 100);
+  renderer.render(hudScenes[0], camera);
+  expect(renderer.getView(hudScenes[0])).toBeDefined();
+});
+
+it('frees the view of a scene when the scene is destroyed', async () => {
+  const state = await mount(<mesh />);
+  const hud = new Scene();
+  const child = new Scene();
+
+  hud.addChild(child);
+  state.renderer.render(hud, state.camera);
+  expect(state.renderer.getView(hud)).toBeDefined();
+
+  hud.destroy();
+  expect(state.renderer.getView(hud)).toBeUndefined();
+  expect(child.destroyed).toBe(false);
 });
 
 // The scenes draw over a black page, where a transparent clear and an opaque black one look the same.

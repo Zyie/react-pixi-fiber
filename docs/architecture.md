@@ -87,6 +87,7 @@ Three-shaped classes core builds by name:
 - `init()` creates the pixi.js renderer on the canvas (`autoDetectRenderer`, WebGL first unless `preference: 'webgpu'`), with a transparent background unless `alpha: false`, as three's. `backend.isWebGPUBackend` is set when pixi.js picks WebGPU.
 - `setSize`, `setPixelRatio`, `getSize`, `getPixelRatio`, `setClearColor`, `setClearAlpha`, `clear`, `autoClear`, `domElement`.
 - `render(scene, camera)` keeps a `Map<scene, View3D>`, making a view (and a pixi container holding it) the first time a scene is drawn. A HUD, portal or offscreen scene gets its own view instead of rebuilding one view every frame. When the camera is in the scene, the view draws with it; any other camera is copied each frame onto a proxy camera the facade adds to the scene (settings, and the transform relative to the scene).
+- A view is freed when its scene is destroyed (the scene's `destroyed` event), or once the scene has gone `viewMaxIdleFrames` frames (120) undrawn, and made again if the scene is drawn later. A frame ends when some scene is drawn a second time, so a HUD component that owns a `new Scene()` stops holding a view after it unmounts while the main scene keeps drawing.
 - `releaseView(scene)` frees a scene's view and leaves its children in place. `dispose()` frees every view and the pixi.js renderer.
 - `getView(scene)` hands out the view for pixi-3d settings with no three counterpart: passes, environment, fog, culling.
 
