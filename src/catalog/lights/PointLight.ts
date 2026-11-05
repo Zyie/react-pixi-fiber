@@ -45,6 +45,7 @@ export class PointLight extends PixiPointLight {
     this.decay = decay;
   }
 
+  /** The light's colour, a three `Color` in the working colour space */
   // @ts-expect-error -- three's `color` is a three Color where pixi-3d's light has a pixi Color; pixi-3d reads it through LightColor's display channels
   public override get color(): Color {
     return this._threeColor;

@@ -58,6 +58,7 @@ export class HemisphereLight extends PixiAmbientLight {
     this.position.copyFrom(DEFAULT_UP);
   }
 
+  /** The colour from above, a three `Color` in the working colour space */
   // @ts-expect-error -- three's `color` is a three Color where pixi-3d's light has a pixi Color; it adds nothing to pixi-3d's flat ambient term
   public override get color(): Color {
     return this._skyColor;

@@ -56,6 +56,15 @@ export const GUIDES: readonly Guide[] = [
     file: 'src/__docs__/loading-models-and-textures.md',
     section: 'tutorials',
   },
+  {
+    id: 'lights-and-shadows',
+    title: 'Lights and shadows',
+    file: 'src/__docs__/lights-and-shadows.md',
+    section: 'tutorials',
+  },
+  { id: 'canvas', title: 'Canvas', file: 'src/__docs__/canvas.md', section: 'reference' },
+  { id: 'camera-parenting', title: 'Camera parenting', file: 'src/__docs__/camera-parenting.md', section: 'reference' },
+  { id: 'visibility', title: 'Visibility', file: 'src/__docs__/visibility.md', section: 'reference' },
   { id: 'three-entry', title: 'The three entry', file: 'src/__docs__/three-entry.md', section: 'reference' },
   {
     id: DIFFERENCES_ID,
