@@ -19,6 +19,8 @@ import { QuaternionKeyframeTrack } from '../../animation/QuaternionKeyframeTrack
 import { VectorKeyframeTrack } from '../../animation/VectorKeyframeTrack';
 import {
   ClampToEdgeWrapping,
+  DoubleSide,
+  FrontSide,
   LinearFilter,
   LinearMipmapLinearFilter,
   LinearMipmapNearestFilter,
@@ -32,7 +34,10 @@ import {
 } from '../../catalog/constants';
 import { DirectionalLight } from '../../catalog/lights/DirectionalLight';
 import { PointLight } from '../../catalog/lights/PointLight';
+import { SpotLight } from '../../catalog/lights/SpotLight';
 import { MeshBasicMaterial } from '../../catalog/materials/MeshBasicMaterial';
+import { MeshPhysicalMaterial } from '../../catalog/materials/MeshPhysicalMaterial';
+import type { MeshPhysicalMaterialParameters } from '../../catalog/materials/MeshPhysicalMaterial';
 import { MeshStandardMaterial } from '../../catalog/materials/MeshStandardMaterial';
 import { Bone } from '../../catalog/objects/Bone';
 import { Group } from '../../catalog/objects/Group';
@@ -68,8 +73,23 @@ const FILTERS: Record<number, number> = {
   9987: LinearMipmapLinearFilter,
 };
 
-/** Material extensions `MeshStandardMaterial` covers; any other keeps pixi-3d's own material */
+/** Material extensions `MeshStandardMaterial` covers */
 const STANDARD_EXTENSIONS = new Set(['KHR_texture_transform', 'KHR_materials_emissive_strength']);
+
+/**
+ * Material extensions `MeshPhysicalMaterial` covers by their factors; one that names a texture, or any
+ * other extension, keeps pixi-3d's own material
+ */
+const PHYSICAL_EXTENSIONS = new Set([
+  'KHR_materials_clearcoat',
+  'KHR_materials_sheen',
+  'KHR_materials_transmission',
+  'KHR_materials_volume',
+  'KHR_materials_iridescence',
+  'KHR_materials_specular',
+  'KHR_materials_anisotropy',
+  'KHR_materials_ior',
+]);
 
 const scratchMatrix = new Matrix4();
 const scratchPosition = new Vector3();
@@ -523,15 +543,28 @@ function buildLight(build: Build, index: number): Container3D | undefined {
   let light: Container3D | undefined;
 
   if (lightDef.type === 'directional') {
-    const directional = new DirectionalLight(color.getHex(), intensity);
+    light = aimed(new DirectionalLight(color, intensity));
+  } else if (lightDef.type === 'point') {
+    light = new PointLight(color, intensity, lightDef.range ?? 0);
+  } else if (lightDef.type === 'spot') {
+    const inner = lightDef.spot?.innerConeAngle ?? 0;
+    const outer = lightDef.spot?.outerConeAngle ?? Math.PI / 4;
 
-    directional.target.position.set(0, 0, -1);
-    directional.addChild(directional.target);
-    light = directional;
-  } else if (lightDef.type === 'point') light = new PointLight(color.getHex(), intensity, lightDef.range ?? 0);
+    light = aimed(
+      new SpotLight(color, intensity, lightDef.range ?? 0, outer, 1 - inner / outer),
+    ) as unknown as Container3D;
+  }
+  light?.position.set(0, 0, 0);
 
   if (light && lightDef.name) light.name = uniqueName(build, lightDef.name);
 
+  return light;
+}
+
+/** A directional or spot light aimed down its own -Z, as glTF's lights shine, by a target it carries */
+function aimed<T extends DirectionalLight | SpotLight>(light: T): T {
+  light.target.position.set(0, 0, -1);
+  light.addChild(light.target);
   return light;
 }
 
@@ -542,6 +575,7 @@ interface GltfLight {
   color?: number[];
   intensity?: number;
   range?: number;
+  spot?: { innerConeAngle?: number; outerConeAngle?: number };
 }
 
 /** A three texture over one of the file's pixi textures, with three's settings for how it is used */
@@ -589,8 +623,67 @@ function textureFor(
   return texture;
 }
 
-function setSlot(material: BaseMaterial3D, slot: string, texture: Texture | null): void {
-  if (texture) (material.textures as unknown as Record<string, PixiTexture>)[slot] = texture;
+/** The factors of the material extensions `MeshPhysicalMaterial` takes, as three's GLTFLoader maps them */
+type ExtensionDef = Record<string, number | number[] | Record<string, unknown> | undefined>;
+
+/** Whether an extension's definition names a texture, which `MeshPhysicalMaterial` can't take */
+const hasTexture = (definition: ExtensionDef): boolean =>
+  Object.keys(definition).some((key) => key.endsWith('Texture'));
+
+/** three's `MeshPhysicalMaterial` parameters from the physical extensions of a glTF material */
+function physicalParameters(extensions: object): MeshPhysicalMaterialParameters {
+  const ext = (name: string): ExtensionDef | undefined =>
+    (extensions as Record<string, ExtensionDef | undefined>)[name];
+  const number = (definition: ExtensionDef | undefined, key: string, fallback: number): number =>
+    typeof definition?.[key] === 'number' ? (definition[key] as number) : fallback;
+  const rgb = (definition: ExtensionDef | undefined, key: string, fallback: number[]): Color =>
+    new Color().setRGB(
+      ...((Array.isArray(definition?.[key]) ? definition[key] : fallback) as [number, number, number]),
+    );
+  const parameters: MeshPhysicalMaterialParameters = {};
+  const clearcoat = ext('KHR_materials_clearcoat');
+  const sheen = ext('KHR_materials_sheen');
+  const transmission = ext('KHR_materials_transmission');
+  const volume = ext('KHR_materials_volume');
+  const iridescence = ext('KHR_materials_iridescence');
+  const specular = ext('KHR_materials_specular');
+  const anisotropy = ext('KHR_materials_anisotropy');
+  const ior = ext('KHR_materials_ior');
+
+  if (clearcoat) {
+    parameters.clearcoat = number(clearcoat, 'clearcoatFactor', 0);
+    parameters.clearcoatRoughness = number(clearcoat, 'clearcoatRoughnessFactor', 0);
+  }
+  if (sheen) {
+    parameters.sheen = 1;
+    parameters.sheenColor = rgb(sheen, 'sheenColorFactor', [0, 0, 0]);
+    parameters.sheenRoughness = number(sheen, 'sheenRoughnessFactor', 0);
+  }
+  if (transmission) parameters.transmission = number(transmission, 'transmissionFactor', 0);
+  if (volume) {
+    parameters.thickness = number(volume, 'thicknessFactor', 0);
+    parameters.attenuationDistance = number(volume, 'attenuationDistance', Infinity);
+    parameters.attenuationColor = rgb(volume, 'attenuationColor', [1, 1, 1]);
+  }
+  if (iridescence) {
+    parameters.iridescence = number(iridescence, 'iridescenceFactor', 0);
+    parameters.iridescenceIOR = number(iridescence, 'iridescenceIor', 1.3);
+    parameters.iridescenceThicknessRange = [
+      number(iridescence, 'iridescenceThicknessMinimum', 100),
+      number(iridescence, 'iridescenceThicknessMaximum', 400),
+    ];
+  }
+  if (specular) {
+    parameters.specularIntensity = number(specular, 'specularFactor', 1);
+    parameters.specularColor = rgb(specular, 'specularColorFactor', [1, 1, 1]);
+  }
+  if (anisotropy) {
+    parameters.anisotropy = number(anisotropy, 'anisotropyStrength', 0);
+    parameters.anisotropyRotation = number(anisotropy, 'anisotropyRotation', 0);
+  }
+  if (ior) parameters.ior = number(ior, 'ior', 1.5);
+
+  return parameters;
 }
 
 /** The material of a file's material index, built once; the index past the file's own is glTF's default */
@@ -600,59 +693,54 @@ function materialFor(build: Build, index: number): BaseMaterial3D {
   if (cached) return cached;
 
   const materialDef: GltfFormat.Material = build.json.materials?.[index] ?? {};
-  const extensions = Object.keys(materialDef.extensions ?? {});
-  const unlit = extensions.includes('KHR_materials_unlit');
+  const extensions = materialDef.extensions ?? {};
+  const names = Object.keys(extensions);
   const pbr = materialDef.pbrMetallicRoughness ?? {};
   const [r, g, b, a] = pbr.baseColorFactor ?? [1, 1, 1, 1];
-  const color = new Color().setRGB(r, g, b);
-  const transparent = materialDef.alphaMode === 'BLEND';
+  const shared = {
+    color: new Color().setRGB(r, g, b),
+    opacity: a,
+    transparent: materialDef.alphaMode === 'BLEND',
+    alphaTest: materialDef.alphaMode === 'MASK' ? (materialDef.alphaCutoff ?? 0.5) : 0,
+    side: materialDef.doubleSided ? DoubleSide : FrontSide,
+    vertexColors: true,
+    map: textureFor(build, pbr.baseColorTexture, SRGBColorSpace),
+  };
+  const physical = names.filter((name) => !STANDARD_EXTENSIONS.has(name));
   let material: BaseMaterial3D;
 
-  if (unlit) {
-    material = new MeshBasicMaterial({
-      color,
-      opacity: a,
-      transparent,
-      map: textureFor(build, pbr.baseColorTexture, SRGBColorSpace),
-    });
-  } else if (extensions.every((name) => STANDARD_EXTENSIONS.has(name))) {
+  if (names.includes('KHR_materials_unlit')) {
+    material = new MeshBasicMaterial(shared);
+  } else if (
+    physical.every(
+      (name) => PHYSICAL_EXTENSIONS.has(name) && !hasTexture((extensions as Record<string, ExtensionDef>)[name]),
+    )
+  ) {
     const [er, eg, eb] = materialDef.emissiveFactor ?? [0, 0, 0];
-    const standard = new MeshStandardMaterial({
-      color,
-      opacity: a,
-      transparent,
+    const metallicRoughness = textureFor(build, pbr.metallicRoughnessTexture, NoColorSpace);
+    const parameters: MeshPhysicalMaterialParameters = {
+      ...shared,
       roughness: pbr.roughnessFactor ?? 1,
       metalness: pbr.metallicFactor ?? 1,
+      roughnessMap: metallicRoughness,
+      metalnessMap: metallicRoughness,
+      normalMap: textureFor(build, materialDef.normalTexture, NoColorSpace),
+      aoMap: textureFor(build, materialDef.occlusionTexture, NoColorSpace),
+      aoMapIntensity: materialDef.occlusionTexture?.strength ?? 1,
       emissive: new Color().setRGB(er, eg, eb),
       emissiveIntensity:
-        (materialDef.extensions?.KHR_materials_emissive_strength as { emissiveStrength?: number } | undefined)
-          ?.emissiveStrength ?? 1,
-      map: textureFor(build, pbr.baseColorTexture, SRGBColorSpace),
-    });
+        (extensions.KHR_materials_emissive_strength as { emissiveStrength?: number } | undefined)?.emissiveStrength ??
+        1,
+      emissiveMap: textureFor(build, materialDef.emissiveTexture, SRGBColorSpace),
+    };
+    const scale = materialDef.normalTexture?.scale;
 
-    setSlot(standard, 'metallicRoughness', textureFor(build, pbr.metallicRoughnessTexture, NoColorSpace));
-    setSlot(standard, 'normal', textureFor(build, materialDef.normalTexture, NoColorSpace));
-    setSlot(standard, 'occlusion', textureFor(build, materialDef.occlusionTexture, NoColorSpace));
-    setSlot(standard, 'emissive', textureFor(build, materialDef.emissiveTexture, SRGBColorSpace));
-    if (materialDef.normalTexture?.scale !== undefined) standard.normalScale = materialDef.normalTexture.scale;
-    if (materialDef.occlusionTexture?.strength !== undefined) {
-      standard.occlusionStrength = materialDef.occlusionTexture.strength;
-    }
-    material = standard;
+    if (scale !== undefined) parameters.normalScale = [scale, scale];
+    material = physical.length
+      ? new MeshPhysicalMaterial({ ...parameters, ...physicalParameters(extensions) })
+      : new MeshStandardMaterial(parameters);
   } else {
     material = build.source.materials[index];
-  }
-
-  if (material instanceof MeshStandardMaterial || material instanceof MeshBasicMaterial) {
-    material.vertexColors = true;
-    if (materialDef.alphaMode === 'MASK') {
-      material.alphaMode = 'mask';
-      material.alphaCutoff = materialDef.alphaCutoff ?? 0.5;
-    }
-    if (materialDef.doubleSided) {
-      (material as { doubleSided: boolean }).doubleSided = true;
-      material.state.culling = false;
-    }
   }
 
   Object.assign(material, {
