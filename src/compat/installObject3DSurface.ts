@@ -290,7 +290,6 @@ type RotationInput = PointData3D & { order?: EulerOrder };
 const X_AXIS = { x: 1, y: 0, z: 0 };
 const Y_AXIS = { x: 0, y: 1, z: 0 };
 const Z_AXIS = { x: 0, y: 0, z: 1 };
-const DEFAULT_UP = { x: 0, y: 1, z: 0 };
 
 const matrixWorlds = new WeakMap<Container3D, Matrix4>();
 const userDatas = new WeakMap<Container3D, Record<string, unknown>>();
@@ -298,6 +297,13 @@ const ups = new WeakMap<Container3D, Vector3>();
 const rotations = new WeakMap<Container3D, Euler>();
 const angles = new WeakMap<Container3D, EulerDegrees>();
 const manualMatrices = new WeakSet<Container3D>();
+
+/**
+ * The `up` a node starts with, three's `Object3D.DEFAULT_UP`; a node copies it the first time its `up`
+ * is read, and `lookAt` uses it for a node whose `up` was never read
+ * @internal
+ */
+export const DEFAULT_UP: Vector3 = new Vector3(0, 1, 0);
 
 const scratchMatrix = new Matrix4();
 const scratchPosition = new Vector3();
@@ -326,7 +332,7 @@ const keepMatrix = (): void => {};
 
 const upOf = (node: Container3D): Vector3 => {
   let up = ups.get(node);
-  if (!up) ups.set(node, (up = new Vector3(DEFAULT_UP.x, DEFAULT_UP.y, DEFAULT_UP.z)));
+  if (!up) ups.set(node, (up = DEFAULT_UP.clone()));
   return up;
 };
 

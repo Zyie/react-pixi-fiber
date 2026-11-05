@@ -10,6 +10,8 @@ import type { BufferAttributeLike } from '../math/Vector3';
  * @advanced
  */
 export interface ThreeVector3Members {
+  /** Always `true`; three and r3f duck-type vectors by it */
+  readonly isVector3: true;
   /**
    * Copies `v` into this vector, three's name for `copyFrom`
    * @param v - The vector to copy
@@ -262,6 +264,13 @@ export interface ThreeVector3Members {
  * @advanced
  */
 export interface ThreeQuaternionMembers {
+  /** Always `true`; three duck-types quaternions by it */
+  readonly isQuaternion: true;
+  /**
+   * The components in order: x, y, z, w
+   * @yields Each in turn
+   */
+  [Symbol.iterator](): Generator<number, void>;
   /**
    * Copies `q` into this quaternion, three's name for `copyFrom`
    * @param q - The quaternion to copy
@@ -307,6 +316,8 @@ export interface ThreeQuaternionMembers {
  * @advanced
  */
 export interface ThreeMatrix4Members {
+  /** Always `true`; three duck-types matrices by it */
+  readonly isMatrix4: true;
   /**
    * Copies `m` into this matrix, three's name for `copyFrom`
    * @param m - The matrix to copy

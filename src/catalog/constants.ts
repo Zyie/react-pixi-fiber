@@ -1,6 +1,7 @@
 /**
  * three's constants, by three's names and with three r187's values, so code that reads them from
- * `three` reads them from `react-pixi-fiber/three`. The renderer and catalog map the ones pixi-3d has a
+ * `three` reads them from `react-pixi-fiber/three`. three's legacy `MipMap` spellings of the mipmap
+ * filters are left out, for the `Mipmap` ones. The renderer and catalog map the ones pixi-3d has a
  * counterpart for; the JSDoc of each mapped one says what it maps to. The rest are kept for three's shape.
  */
 /**
@@ -454,18 +455,6 @@ export const LessStencilFunc = 513;
  */
 export const LinearFilter = 1006;
 /**
- * three's `LinearMipMapLinearFilter`
- * @category constants
- * @advanced
- */
-export const LinearMipMapLinearFilter = 1008;
-/**
- * three's `LinearMipMapNearestFilter`
- * @category constants
- * @advanced
- */
-export const LinearMipMapNearestFilter = 1007;
-/**
  * three's `LinearMipmapLinearFilter`: chooses the two mipmaps that most closely match the size of the pixel being textured and uses the 'LinearFilter' criterion to produce a texture value from each mipmap
  * @category constants
  * @standard
@@ -574,18 +563,6 @@ export const MultiplyOperation = 0;
  * @standard
  */
 export const NearestFilter = 1003;
-/**
- * three's `NearestMipMapLinearFilter`
- * @category constants
- * @advanced
- */
-export const NearestMipMapLinearFilter = 1005;
-/**
- * three's `NearestMipMapNearestFilter`
- * @category constants
- * @advanced
- */
-export const NearestMipMapNearestFilter = 1004;
 /**
  * three's `NearestMipmapLinearFilter`: chooses the two mipmaps that most closely match the size of the pixel being textured and uses the 'NearestFilter' criterion to produce a texture value from each mipmap
  * @category constants

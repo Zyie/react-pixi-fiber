@@ -12,7 +12,7 @@ import type { Mesh } from 'react-pixi-fiber/three';
 
 - **Math.** `Vector2`, `Vector3`, `Vector4`, `Euler`, `Quaternion`, `Matrix3`, `Matrix4`, `Color`, `ColorManagement`, `MathUtils`, `Box3`, `Sphere`, `Ray`, `Plane`, `Spherical`, `Frustum` and `Clock`, with the surface three code calls: `set`, `copy`, `clone`, `add`, `sub`, `multiplyScalar`, `lerp`, `normalize`, `length`, `distanceTo`, `applyMatrix4`, `applyQuaternion`, `setFromEuler`, `slerp`, `compose`, `decompose`, `makeRotationFromEuler`, `invert` and the rest. Each extends pixi-3d's class of the same kind, so pixi-3d takes them wherever it takes its own.
 - **Classes.** The catalog's classes under three's names: `Object3D`, `Group`, `Mesh`, `Scene`, `PerspectiveCamera`, `OrthographicCamera`, `AmbientLight`, `DirectionalLight`, `PointLight`, `BoxGeometry`, `SphereGeometry`, `PlaneGeometry`, `MeshStandardMaterial`, `MeshBasicMaterial`, `TextureLoader` and `Raycaster`. They are the classes the JSX elements build, so `useRef<Mesh>(null!)` types a `<mesh>` ref.
-- **Constants.** Every constant three r187 exports, with three's values: `DoubleSide`, `AdditiveBlending`, `RepeatWrapping`, `SRGBColorSpace`, `ACESFilmicToneMapping`, `MOUSE` and the rest. The renderer and the catalog map the ones pixi-3d has a counterpart for.
+- **Constants.** Every constant three r187 exports but the legacy `MipMap` spellings of the mipmap filters (use `LinearMipmapLinearFilter` and its siblings), with three's values: `DoubleSide`, `AdditiveBlending`, `RepeatWrapping`, `SRGBColorSpace`, `ACESFilmicToneMapping`, `MOUSE` and the rest. The renderer and the catalog map the ones pixi-3d has a counterpart for.
 
 ## Nodes
 

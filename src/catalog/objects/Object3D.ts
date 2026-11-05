@@ -1,9 +1,9 @@
 import { Container3D } from '@pixi/3d';
 import type { PointData3D } from '@pixi/3d';
 
-import { lookAtPoint } from '../../compat/installObject3DSurface';
+import { DEFAULT_UP, lookAtPoint } from '../../compat/installObject3DSurface';
 import type { Euler } from '../../math/Euler';
-import { Vector3 } from '../../math/Vector3';
+import type { Vector3 } from '../../math/Vector3';
 
 /**
  * three's `Object3D`: a plain pixi-3d `Container3D`, with three's members
@@ -20,8 +20,8 @@ import { Vector3 } from '../../math/Vector3';
  * @standard
  */
 export class Object3D extends Container3D {
-  /** The `up` a node starts with, as three's `Object3D.DEFAULT_UP` */
-  public static readonly DEFAULT_UP: Vector3 = new Vector3(0, 1, 0);
+  /** The `up` every node starts with, as three's `Object3D.DEFAULT_UP`; change it before nodes read theirs */
+  public static readonly DEFAULT_UP: Vector3 = DEFAULT_UP;
 
   /**
    * Whether a value is a scene node: any pixi-3d `Container3D`, as every three node is an `Object3D`

@@ -3,8 +3,9 @@
  *
  * three must not be a runtime dependency of the library. It is a devDependency only so the vendored
  * r3f entries (`src/r3f/src/legacy.tsx`) can render the same scenes through three for parity. This
- * fails when any file in `dist` imports `three` or a `three/...` subpath, statically, dynamically or
- * as a declaration import, or when `package.json` lists three as a dependency or peer dependency.
+ * fails when any file in `dist`, of any entry (`react-pixi-fiber`, `react-pixi-fiber/three`,
+ * `react-pixi-fiber/addons`), imports `three` or a `three/...` subpath, statically, dynamically or as a
+ * declaration import, or when `package.json` lists three as a dependency or peer dependency.
  */
 import fs from 'node:fs';
 import path from 'node:path';

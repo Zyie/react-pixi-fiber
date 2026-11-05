@@ -4,7 +4,9 @@ A React renderer for [`@pixi/3d`](https://github.com/pixijs/pixi-3d) with [react
 
 ```diff
 - import { Canvas, useFrame } from '@react-three/fiber';
+- import { Color, Vector3 } from 'three';
 + import { Canvas, useFrame } from 'react-pixi-fiber';
++ import { Color, Vector3 } from 'react-pixi-fiber/three';
 ```
 
 ```tsx
@@ -28,7 +30,7 @@ Parity is measured, not assumed: every scene and example is a visual test that r
 
 ## Status
 
-Unreleased and local. `@pixi/3d` isn't on npm yet, so the library builds against its source in `.repos/pixi-3d`. The catalog covers the common r3f scene: meshes, groups, box, sphere and plane geometries, standard and basic materials with `map`, ambient, directional and point lights, directional shadows, perspective and orthographic cameras, and textures through `useLoader` and `useTexture`. Events, `useFrame`, `useThree`, portals and Suspense are r3f's own.
+Unreleased and local. `@pixi/3d` isn't on npm yet, so the library builds against its source in `.repos/pixi-3d`. The catalog covers the common r3f scene: meshes, groups, box, sphere and plane geometries, standard and basic materials with `map`, ambient, directional and point lights, directional shadows, perspective and orthographic cameras, and textures through `useLoader` and `useTexture`. Every node has three's `Object3D` surface, and `react-pixi-fiber/three` has three's math, `Color` with its colour management, the catalog's classes and three's constants. Events, `useFrame`, `useThree`, portals and Suspense are r3f's own.
 
 ## Develop
 

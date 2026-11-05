@@ -15,16 +15,18 @@ How code in `react-pixi-fiber` is written. Authors read it before writing code; 
 
 ## Three is not a dependency
 
-- Nothing reachable from `src/index.tsx` imports `three`, a `three/...` subpath or `@types/three`, as a value or as a type. three is a devDependency only so the vendored entries can render the same scenes through three. _(`npm run test:bundle` on the built package)_
+- Nothing reachable from any entry (`src/index.tsx`, `src/three.ts`, `src/addons/index.ts`) imports `three`, a `three/...` subpath or `@types/three`, as a value or as a type. three is a devDependency only so the vendored entries can render the same scenes through three. _(`npm run test:bundle` on the built package)_
 - The entry doesn't re-export a vendored module with `export *` or `export { x } from`: the declarations would name three's types, and a module like `core/components/Environment` would pull three's addons into the bundle. Each value is re-declared in `src/index.tsx` with a type from `src/types`, which names pixi-3d.
 - Public types are ours, in `src/types`, typed against pixi-3d and the catalog. A type from `#types` (r3f's) appears only in files the declaration bundle never reaches: the provider and the wrappers around core calls.
 
 ## Classes and files
 
-- Each class gets its own file beside the files of its kind: catalog aliases in `src/catalog`, three-shaped math and picking in `src/compat`, the renderer in `src/renderer`.
+- Each class gets its own file beside the files of its kind: catalog aliases in their area's folder of `src/catalog` (`objects`, `scene`, `lights`, `geometries`, `materials`, ...), three's math in `src/math`, picking in `src/compat`, the renderer in `src/renderer`. `docs/architecture.md` lists the area modules.
 - Every class member has an explicit `public`, `protected`, or `private`, except constructors. Private members are named `_camelCase`, and members that are never reassigned are `readonly`.
 - Class fields typed `number` get an initializer even when the constructor assigns the real value: `public aspect: number = 1;`.
 - A catalog alias keeps three's class name, constructor signature and defaults, and maps them onto the pixi-3d class it extends. Where pixi-3d's default differs from three's (a mesh's shadows, a material's metalness), the alias passes three's.
+- A catalog node class re-declares `rotation` as an `Euler` and `lookAt` with three's arguments, and a colour field is a three `Color` handed to pixi-3d with `toPixiColor`; `docs/architecture.md` ("Adding to the catalog") has the recipe.
+- A three math class extends pixi-3d's class of the same kind and adds only what pixi-3d's lacks, so pixi-3d takes it wherever it takes its own. A member the support copies onto pixi-3d's prototypes is listed in the class's `*_MEMBERS` list, typed in `src/compat/threeMembers.ts`, and calls pixi-3d's own methods through references kept at load, never through `super`.
 - Casts name a precise type rather than `any`. `any` is for the rare place a type truly can't be written; say why in a disable comment. _(lint)_
 
 ## Imports and exports
@@ -32,8 +34,9 @@ How code in `react-pixi-fiber` is written. Authors read it before writing code; 
 - Files in `src` import each other by relative path. Tests, examples and docs import the library as `react-pixi-fiber`, which `tsconfig.json` and the Vite aliases resolve to `src/index.tsx`. That name is what lets the harness render the same scene through three.
 - Type-only imports use `import type` on their own line. _(lint)_ `tsconfig.json` leaves out `verbatimModuleSyntax` because the vendored code imports types without it; the lint rule holds our files to it instead.
 - `src/index.tsx` is written by hand and exports the public API by name. A name it lets out is published, so nothing `@internal` goes through it.
+- Each area module's `index.ts` exports its public classes by name. `src/three.ts`, `src/addons/index.ts` and `src/catalog/catalog.ts` take every area module whole (`export *`, `import * as`), so a class is added to all three with one line in its area's `index.ts`, and an area module never exports anything `@internal`.
 - Export an `@internal` declaration only when another file imports it.
-- pixi-3d's prototypes are patched in one place, `src/compat/installObject3DSurface.ts`, and only when a root loads the support (`loadPixiSupport`). Importing the package changes nothing on its own, which is what `"sideEffects": false` promises.
+- pixi-3d's prototypes are patched from one place, `installObject3DSurface` in `src/compat/installObject3DSurface.ts` (which calls `installRaycasting` in `src/compat/Raycaster.ts`), and only when a root loads the support (`loadPixiSupport`). Importing the package changes nothing on its own, which is what `"sideEffects": false` promises.
 
 ## Comments and JSDoc
 
@@ -61,7 +64,7 @@ How code in `react-pixi-fiber` is written. Authors read it before writing code; 
 
 - Test with pictures first: a visual scene is the default test, drawn through pixi-3d and compared with a reference image (`tests/README.md`). Write a unit test only where there's no picture to compare.
 - Look at what you rendered. Open every image you produce and check it shows what you meant; a passing comparison only says it didn't change.
-- Parity is measured by rendering the same scene through three: a scene imports only `react-pixi-fiber` and uses r3f's API, so the harness can point that name at the vendored legacy entry.
+- Parity is measured by rendering the same scene through three: a scene imports only `react-pixi-fiber`, `react-pixi-fiber/three` and `react-pixi-fiber/addons` and uses r3f's and three's API, so the harness can point those names at the vendored legacy entry, `three` and three's addons.
 
 ## Commits
 
