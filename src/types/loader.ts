@@ -30,13 +30,16 @@ type Callback<T> = { bivarianceHack(value: T): void }['bivarianceHack'];
 type LoaderInstance<T> = T extends ConstructorRepresentation<infer L> ? L : T;
 
 /**
- * What a loader's `load` hands its callback
+ * What a loader's `load` hands its callback, with `useGraph`'s `nodes`, `materials` and `meshes` when
+ * it has a `scene`, as r3f adds them to a loaded glTF
  * @category types
  * @advanced
  */
 export type LoaderResult<T> =
   LoaderInstance<T> extends { load(url: never, onLoad?: (result: infer R) => void, ...rest: never[]): unknown }
-    ? R
+    ? R extends { scene: Container3D }
+      ? R & ObjectMap
+      : R
     : unknown;
 
 /**
