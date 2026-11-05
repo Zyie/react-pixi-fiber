@@ -12,6 +12,7 @@ import type { Mesh } from 'react-pixi-fiber/three';
 
 - **Math.** `Vector2`, `Vector3`, `Vector4`, `Euler`, `Quaternion`, `Matrix3`, `Matrix4`, `Color`, `ColorManagement`, `MathUtils`, `Box3`, `Sphere`, `Ray`, `Plane`, `Spherical`, `Frustum` and `Clock`, with the surface three code calls: `set`, `copy`, `clone`, `add`, `sub`, `multiplyScalar`, `lerp`, `normalize`, `length`, `distanceTo`, `applyMatrix4`, `applyQuaternion`, `setFromEuler`, `slerp`, `compose`, `decompose`, `makeRotationFromEuler`, `invert` and the rest. Each extends pixi-3d's class of the same kind, so pixi-3d takes them wherever it takes its own.
 - **Classes.** The catalog's classes under three's names: `Object3D`, `Group`, `Mesh`, `Scene`, `Fog`, `FogExp2`, `PerspectiveCamera`, `OrthographicCamera`, `AmbientLight`, `HemisphereLight`, `DirectionalLight`, `PointLight`, `SpotLight`, the `LightShadow` classes, `BoxGeometry`, `SphereGeometry`, `PlaneGeometry`, `MeshStandardMaterial`, `MeshBasicMaterial`, `InstancedMesh`, `InstancedBufferAttribute`, `TextureLoader` and `Raycaster`. They are the classes the JSX elements build, so `useRef<Mesh>(null!)` types a `<mesh>` ref.
+- **Textures, loaders and animation.** `Texture`, `CanvasTexture`, `DataTexture`, `VideoTexture` and `CubeTexture` over pixi's textures; `Loader`, `LoadingManager`, `DefaultLoadingManager`, `LoaderUtils`, `Cache`, `ImageLoader`, `FileLoader`, `TextureLoader` and `CubeTextureLoader`; `AnimationMixer`, `AnimationAction`, `AnimationClip`, `PropertyBinding`, `EventDispatcher` and the keyframe tracks; `SkinnedMesh`, `Skeleton` and `Bone`. [Loading models](loading-models.md) and [Loading textures](loading-textures.md) show them at work.
 - **Constants.** Every constant three r187 exports but the legacy `MipMap` spellings of the mipmap filters (use `LinearMipmapLinearFilter` and its siblings), with three's values: `DoubleSide`, `AdditiveBlending`, `RepeatWrapping`, `SRGBColorSpace`, `ACESFilmicToneMapping`, `MOUSE` and the rest. The renderer and the catalog map the ones pixi-3d has a counterpart for.
 
 ## Nodes
@@ -69,15 +70,15 @@ And for TypeScript, in `tsconfig.json`:
 
 Import `react-pixi-fiber` in place of `@react-three/fiber` as well. Only the alias reaches packages that import `three` themselves, and those, such as `@react-three/drei`, also import `@react-three/fiber`, so they aren't covered.
 
-What three's addons provide, such as `GLTFLoader` and `OrbitControls`, comes from `react-pixi-fiber/addons` as it lands.
+What three's addons provide comes from `react-pixi-fiber/addons` as it lands: `GLTFLoader`, `DRACOLoader` and `MeshoptDecoder` are there.
 
 ## What's missing
 
 An import of a class this entry doesn't have fails to build, which is better than one that half works. Not here yet:
 
 - `BufferGeometry`, `BufferAttribute`, and geometries other than box, sphere and plane.
-- `Material` and materials other than standard and basic, `Texture` and its subclasses.
-- `SpotLight`, `HemisphereLight`, `RectAreaLight`, `Fog`, `Points`, `Line`, `Sprite`, `InstancedMesh`, `AnimationMixer`, `Layers`, `EventDispatcher`, three's renderers and render targets, and loaders other than `TextureLoader`.
+- `Material` and materials other than standard and basic.
+- `SpotLight`, `HemisphereLight`, `RectAreaLight`, `Fog`, `Points`, `Line`, `Sprite`, `InstancedMesh`, `Layers`, three's renderers and render targets, and loaders other than three's core loaders and `GLTFLoader`.
 - `Object3D.clone` and `copy`.
 
 And what differs from three:

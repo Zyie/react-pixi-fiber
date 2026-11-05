@@ -29,3 +29,13 @@ declare module 'react-pixi-fiber' {
 
   export const Canvas: ComponentType<{ renderer?: object; camera?: unknown; children?: ReactNode }>;
 }
+
+/**
+ * The library's three entry, which the live runtime bundles from the repo's `src`. The frame reads only
+ * its `DefaultLoadingManager`, to serve the runtime's assets to three's loaders.
+ */
+declare module 'react-pixi-fiber/three' {
+  export const DefaultLoadingManager: {
+    setURLModifier(transform?: (url: string) => string): unknown;
+  };
+}

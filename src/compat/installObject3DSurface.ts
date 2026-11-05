@@ -15,6 +15,7 @@ import {
 import type { PointData3D, QuaternionData } from '@pixi/3d';
 import { Container, DEG_TO_RAD, FederatedEvent } from 'pixi.js';
 
+import { installTextureTracking } from '../catalog/textures/textureTransform';
 import { Euler } from '../math/Euler';
 import type { EulerOrder } from '../math/Euler';
 import { MATRIX4_MEMBERS, Matrix4 } from '../math/Matrix4';
@@ -844,6 +845,7 @@ export function installObject3DSurface(): void {
 
   installRaycasting();
   installMaterialSurface();
+  installTextureTracking();
 
   Mesh3D.defaultOptions.geometry ??= placeholderGeometry();
   Mesh3D.defaultOptions.material ??= placeholderMaterial();

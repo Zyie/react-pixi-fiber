@@ -158,7 +158,7 @@ export const example: Example = {
 What the docs site can rely on:
 
 - **Format.** `Example` is `render`, plus any of `camera`, `canvas`, `frames`, `act`, `parity`, `pixelMatch`, `skip` and `fails`, with the meanings a scene gives them, and a `title` and `description` for the docs' gallery. `render()` returns the children of a `<Canvas>`, `camera` is the Canvas's `camera` prop and `canvas` more of its props. An example takes the default 400 by 300 canvas; it has no `size`.
-- **Topic.** A topic folder named like a guide's id (`your-first-scene`, `basic-animations`, `events-and-interaction`, `loading-models-and-textures`) links that guide from the example's page.
+- **Topic.** A topic folder named like a guide's id (`your-first-scene`, `basic-animations`, `events-and-interaction`, `loading-models`, `loading-textures`) links that guide from the example's page.
 - **Regions.** `// #region <name>` and `// #endregion <name>` mark the code a page quotes. A name may mark several blocks of a file, which read as one in their order, so a region can take an import from the top of the file and a component from further down. Code outside every region, such as `import type { Example }` and the `example` export, is never shown.
 - **Key and pictures.** An example runs as a scene keyed `docs/<topic>/<name>`. Its reference images are `tests/snapshots/docs/<topic>/<name>.webgl.png`, `.webgpu.png` and `.three.png`, each 400 by 300, and its parity composite after a run is `.temp/parity/docs/<topic>/<name>.png`.
 - **Live.** `runExample(example, renderer, host)` mounts the example in a `<Canvas>` that fills `host`, on r3f's default frameloop, as an app would run it, on `webgl`, `webgpu` or `three`. It returns a function that unmounts it.
@@ -246,7 +246,7 @@ A unit test is for what no picture shows: that `react-pixi-fiber/three`'s math g
 
 ## Assets
 
-Scenes load textures from `tests/assets`, which vitest and the playground both serve at `/`: `tests/assets/textures/quadrants.png` is `/textures/quadrants.png`. Nothing is fetched from the network.
+Scenes load textures from `tests/assets`, which vitest and the playground both serve at `/`: `tests/assets/textures/quadrants.png` is `/textures/quadrants.png`. Nothing is fetched from the network. `scripts/test/make-assets.mts` writes the models in `tests/assets/models` and the textures besides `quadrants.png` from code, so every file there is the repo's own; run it again after changing it, and look at the scenes that load what changed. A scene that loads a file `useLoader` caches by URL shares it with every scene on the page, so give its URL a query of its own (`/models/box.glb?primitive`).
 
 ## The playground
 

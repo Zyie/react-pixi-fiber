@@ -1,1 +1,11 @@
-export {};
+export { AnimationAction } from './AnimationAction';
+export { AnimationClip } from './AnimationClip';
+export { AnimationMixer } from './AnimationMixer';
+export { BooleanKeyframeTrack } from './BooleanKeyframeTrack';
+export { ColorKeyframeTrack } from './ColorKeyframeTrack';
+export { EventDispatcher, type DispatchedEvent, type EventListener } from './EventDispatcher';
+export { KeyframeTrack, type KeyframeInterpolation } from './KeyframeTrack';
+export { NumberKeyframeTrack } from './NumberKeyframeTrack';
+export { PropertyBinding, type ParsedTrackName } from './PropertyBinding';
+export { QuaternionKeyframeTrack } from './QuaternionKeyframeTrack';
+export { VectorKeyframeTrack } from './VectorKeyframeTrack';

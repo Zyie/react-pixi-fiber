@@ -1,4 +1,4 @@
-import type { Container3D } from '@pixi/3d';
+import type { BaseMaterial3D, Container3D } from '@pixi/3d';
 
 import type { ConstructorRepresentation } from './utils';
 
@@ -17,7 +17,7 @@ export type InputLike = string | string[] | string[][] | Readonly<string | strin
 export interface LoaderLike {
   /** Loads a URL and calls back with the result, its progress, or an error */
   load(
-    url: string,
+    url: InputLike,
     onLoad?: Callback<unknown>,
     onProgress?: Callback<ProgressEvent>,
     onError?: Callback<unknown>,
@@ -30,13 +30,16 @@ type Callback<T> = { bivarianceHack(value: T): void }['bivarianceHack'];
 type LoaderInstance<T> = T extends ConstructorRepresentation<infer L> ? L : T;
 
 /**
- * What a loader's `load` hands its callback
+ * What a loader's `load` hands its callback, with `useGraph`'s `nodes`, `materials` and `meshes` when
+ * it has a `scene`, as r3f adds them to a loaded glTF
  * @category types
  * @advanced
  */
 export type LoaderResult<T> =
-  LoaderInstance<T> extends { load(url: string, onLoad?: (result: infer R) => void, ...rest: never[]): unknown }
-    ? R
+  LoaderInstance<T> extends { load(url: never, onLoad?: (result: infer R) => void, ...rest: never[]): unknown }
+    ? R extends { scene: Container3D }
+      ? R & ObjectMap
+      : R
     : unknown;
 
 /**
@@ -55,7 +58,7 @@ export interface ObjectMap {
   /** Every node, by name */
   nodes: Record<string, Container3D>;
   /** Every material, by name */
-  materials: Record<string, unknown>;
+  materials: Record<string, BaseMaterial3D>;
   /** Every mesh, by name */
   meshes: Record<string, Container3D>;
 }

@@ -100,4 +100,4 @@ A handler gets r3f's event: the DOM event's fields, and what the ray hit. `e.obj
 
 ## Next steps
 
-Pictures and models make a scene: [load them](loading-models-and-textures.md).
+Pictures and models make a scene: load [models](loading-models.md) and [textures](loading-textures.md).

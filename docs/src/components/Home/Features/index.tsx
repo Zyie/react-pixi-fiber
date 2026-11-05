@@ -89,7 +89,10 @@ const FEATURES: readonly { title: string; icon: ReactNode; body: ReactNode; guid
         and glTF models.
       </>
     ),
-    guides: [{ label: 'Loading models and textures', to: '/docs/tutorials/loading-models-and-textures/' }],
+    guides: [
+      { label: 'Loading models', to: '/docs/tutorials/loading-models/' },
+      { label: 'Loading textures', to: '/docs/tutorials/loading-textures/' },
+    ],
   },
   {
     title: 'Parity, measured',
