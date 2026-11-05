@@ -28,7 +28,7 @@ function Controls() {
 }
 ```
 
-![A red box and a dark ball on a grey floor, turned by a drag](../../../tests/snapshots/docs/camera-controls/orbit.webgl.png)
+![A red box and a dark ball on a grey floor, turned by a drag](../../../../tests/snapshots/docs/camera-controls/orbit.webgl.png)
 
 `renderer.domElement` is the canvas; r3f's older `gl.domElement` is the same element. Left drag orbits, the wheel or a middle drag dollies, and a right drag (or a left drag with Shift, Control or Meta) pans. One finger orbits and two dolly and pan.
 
@@ -184,7 +184,7 @@ export function App() {
 }
 ```
 
-![City blocks panned by a drag](../../../tests/snapshots/docs/camera-controls/map.webgl.png)
+![City blocks panned by a drag](../../../../tests/snapshots/docs/camera-controls/map.webgl.png)
 
 ## What differs
 

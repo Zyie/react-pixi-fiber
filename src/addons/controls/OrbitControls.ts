@@ -119,7 +119,7 @@ const documentOf = (element: ControlsElement | null): Document | null =>
  *   const { camera, gl } = useThree();
  *   const controls = useRef<OrbitControls>(null);
  *   useFrame(() => controls.current?.update());
- *   return <orbitControls ref={controls} args={[camera, gl.domElement]} enableDamping />;
+ *   return <orbitControls ref={controls} args={[camera, renderer.domElement]} enableDamping />;
  * }
  * ```
  * @category catalog
