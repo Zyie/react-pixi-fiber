@@ -45,7 +45,7 @@ export interface TestScene {
   render: () => ReactNode;
   /** The canvas in CSS px and its device pixel ratio; 400 by 300 at a ratio of 1 when omitted */
   size?: { width: number; height: number; dpr?: number };
-  /** The default camera, as `<Canvas camera>` takes it; r3f's default (fov 75 at z 5) when omitted */
+  /** The default camera, as `<Canvas camera>` takes it; r3f's default (fov 50 at z 5) when omitted */
   camera?: RenderProps<HTMLCanvasElement>['camera'];
   /**
    * How many frames the root advances before it is captured, or before `act` runs; 1 when omitted.

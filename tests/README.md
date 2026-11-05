@@ -76,7 +76,7 @@ A scene's key is its path under `tests/scenes` without `.scene.tsx`: `tests/scen
 Every scene can also set:
 
 - `size`: `{ width, height, dpr }` of the canvas, in CSS px.
-- `camera`: the default camera, as `<Canvas camera>` takes it. r3f's default is a perspective camera with a fov of 75 at z 5.
+- `camera`: the default camera, as `<Canvas camera>` takes it. r3f's default is a perspective camera with a fov of 50 at z 5, aimed at the origin.
 - `frames`: how many frames to advance before the capture, or before `act`. The default is 1.
 - `act`: drives the scene before it is captured. See "Interaction scenes".
 - `pixelMatch`: how many pixels may differ from the reference image. The default is 16. Raise it for one scene only when a GPU draws that scene differently.
