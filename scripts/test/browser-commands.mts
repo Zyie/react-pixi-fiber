@@ -151,6 +151,14 @@ const pointer: BrowserCommand<
   } else if (action === 'up') {
     await page.mouse.up();
     state.down = false;
+  } else if (action === 'contextmenu') {
+    await page.mouse.down({ button: 'right' });
+    await page.mouse.up({ button: 'right' });
+  } else if (action === 'dblclick') {
+    await page.mouse.down();
+    await page.mouse.up();
+    await page.mouse.down({ clickCount: 2 });
+    await page.mouse.up({ clickCount: 2 });
   } else await page.mouse.wheel(deltaX, deltaY);
 };
 
@@ -183,7 +191,8 @@ const resetPointers: BrowserCommand<[], void> = async ({ page }) => {
  *   A failing comparison writes an expected, actual and diff strip to `.pr_uploads/visual/<key>.<renderer>.png`.
  *   On a pixi-3d renderer it also measures the capture against `tests/snapshots/<key>.three.png` and
  *   writes the scene's composite to `.temp/parity/<key>.png`.
- * - `pointer` sends real mouse and wheel input to a scene's canvas.
+ * - `pointer` sends real mouse and wheel input to a scene's canvas: moves, left-button presses, a
+ *   right-button press that opens the context menu, double clicks and the wheel.
  * - `resetPointers` undoes what `pointer` left behind: it releases a button that is still down and
  *   moves the mouse off the page. Test files share a page, so without it the next canvas would appear
  *   under the mouse of the scene before.

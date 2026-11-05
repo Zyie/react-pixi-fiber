@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 /** The mouse of a scene; positions are CSS px from the canvas's top-left corner */
 export interface SceneMouse {
-  /** Moves the mouse */
+  /** Moves the mouse. A point off the canvas, such as `move(450, 150)`, takes it off the canvas, which then gets a `pointerleave`. */
   move: (x: number, y: number) => Promise<void>;
   /** Presses the left button where the mouse is */
   down: () => Promise<void>;
@@ -12,6 +12,10 @@ export interface SceneMouse {
   click: (x: number, y: number) => Promise<void>;
   /** Turns the wheel where the mouse is, by CSS px, with the signs of a DOM `wheel` event */
   wheel: (deltaX: number, deltaY: number) => Promise<void>;
+  /** Moves the mouse to a point and presses and releases the right button there, which opens the context menu */
+  contextMenu: (x: number, y: number) => Promise<void>;
+  /** Moves the mouse to a point and clicks twice there, which double-clicks */
+  doubleClick: (x: number, y: number) => Promise<void>;
 }
 
 /** What a scene's `act` drives the scene with: input, the scene's own clock, and new props */
@@ -33,8 +37,11 @@ export interface SceneInput {
   update: (children: ReactNode) => Promise<void>;
 }
 
-/** What the mouse does */
-export type MouseAction = 'move' | 'down' | 'up' | 'wheel';
+/**
+ * What the mouse does. `contextmenu` presses and releases the right button, and `dblclick` clicks
+ * twice, each where the mouse is.
+ */
+export type MouseAction = 'move' | 'down' | 'up' | 'wheel' | 'contextmenu' | 'dblclick';
 
 /** Delivers one input to a scene's canvas; resolves once the page has handled it */
 export type SendMouse = (
@@ -82,6 +89,14 @@ export function createMouse(send: SendMouse): SceneMouse {
       placed('wheel');
       await send('wheel', x, y, deltaX, deltaY);
     },
+    async contextMenu(atX, atY) {
+      await mouse.move(atX, atY);
+      await send('contextmenu', x, y, 0, 0);
+    },
+    async doubleClick(atX, atY) {
+      await mouse.move(atX, atY);
+      await send('dblclick', x, y, 0, 0);
+    },
   };
 
   return mouse;
@@ -90,7 +105,8 @@ export function createMouse(send: SendMouse): SceneMouse {
 /**
  * Dispatches a DOM event at a point of a canvas, as the browser would
  * @param canvas - The canvas the point is on
- * @param type - The DOM event, such as `pointermove`, `click` or `wheel`; all but `wheel` are PointerEvents
+ * @param type - The DOM event, such as `pointermove`, `click` or `wheel`; `wheel` is a WheelEvent,
+ * `dblclick` a MouseEvent and the rest PointerEvents
  * @param x - CSS px from the left of the canvas
  * @param y - CSS px from the top of the canvas
  * @param init - The rest of the event: its buttons, or the deltas of a wheel
@@ -103,18 +119,36 @@ export function dispatchPointer(
   init: PointerEventInit & WheelEventInit = {},
 ): void {
   const { left, top } = canvas.getBoundingClientRect();
-  const event = { bubbles: true, cancelable: true, composed: true, clientX: left + x, clientY: top + y, ...init };
-  // A `click` is a PointerEvent too, as Chrome sends it: r3f matches it to its pointerdown by `pointerId`.
-  canvas.dispatchEvent(type === 'wheel' ? new WheelEvent(type, event) : new PointerEvent(type, event));
+  const bubbles = type !== 'pointerleave';
+  const event = { bubbles, cancelable: true, composed: true, clientX: left + x, clientY: top + y, ...init };
+  // A `click` and a `contextmenu` are PointerEvents too, as Chrome sends them: r3f matches each to its
+  // pointerdown by `pointerId`. Chrome's `dblclick` is a plain MouseEvent.
+  canvas.dispatchEvent(
+    type === 'wheel'
+      ? new WheelEvent(type, event)
+      : type === 'dblclick'
+        ? new MouseEvent(type, event)
+        : new PointerEvent(type, event),
+  );
 }
 
 /**
  * A mouse that dispatches DOM events on the canvas. The playground drives a scene's `act` with it,
  * because a page can't reach Playwright; the tests use real input.
+ *
+ * A move off the canvas dispatches a `pointerleave`, and later moves reach the canvas only while the
+ * left button is down, as they would for a drag that captured the pointer.
  * @param canvas - The scene's canvas
  */
 export const syntheticPointers: PointerSource = (canvas) => {
   let pressedAt: string | null = null;
+  let inside = false;
+  const mouse = { pointerId: 1, pointerType: 'mouse', isPrimary: true };
+  const press = (x: number, y: number, button: number, buttons: number, release: number): void => {
+    dispatchPointer(canvas, 'pointerdown', x, y, { ...mouse, button, buttons });
+    if (button === 2) dispatchPointer(canvas, 'contextmenu', x, y, { ...mouse, button, buttons });
+    dispatchPointer(canvas, 'pointerup', x, y, { ...mouse, button, buttons: release });
+  };
 
   return createMouse((action, x, y, deltaX, deltaY) => {
     if (action === 'wheel') {
@@ -123,9 +157,35 @@ export const syntheticPointers: PointerSource = (canvas) => {
       return;
     }
 
-    const pointer = { pointerId: 1, pointerType: 'mouse', isPrimary: true, button: action === 'move' ? -1 : 0 };
+    if (action === 'contextmenu') {
+      press(x, y, 2, 2, 0);
 
-    dispatchPointer(canvas, `pointer${action}`, x, y, { ...pointer, buttons: action === 'down' ? 1 : 0 });
+      return;
+    }
+
+    if (action === 'dblclick') {
+      for (let click = 1; click <= 2; click++) {
+        press(x, y, 0, 1, 0);
+        dispatchPointer(canvas, 'click', x, y, { ...mouse, button: 0, buttons: 0, detail: click });
+      }
+      dispatchPointer(canvas, 'dblclick', x, y, { button: 0, buttons: 0, detail: 2 });
+
+      return;
+    }
+
+    const pointer = { ...mouse, button: action === 'move' ? -1 : 0 };
+    const buttons = action === 'down' || (action === 'move' && pressedAt !== null) ? 1 : 0;
+
+    if (action === 'move') {
+      const { width, height } = canvas.getBoundingClientRect();
+      const over = x >= 0 && y >= 0 && x < width && y < height;
+
+      if (inside && !over) dispatchPointer(canvas, 'pointerleave', x, y, { ...pointer, buttons });
+      inside = over;
+      if (!over && pressedAt === null) return;
+    }
+
+    dispatchPointer(canvas, `pointer${action}`, x, y, { ...pointer, buttons });
     if (action === 'down') pressedAt = `${x},${y}`;
     if (action === 'up') {
       if (pressedAt === `${x},${y}`) dispatchPointer(canvas, 'click', x, y, { ...pointer, buttons: 0 });
