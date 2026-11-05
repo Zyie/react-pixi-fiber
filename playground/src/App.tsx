@@ -162,7 +162,7 @@ function RendererSelect({ value, onChange }: { value: RendererType; onChange: (r
   );
 }
 
-/** Shows a canvas the playground already holds */
+/** Shows a canvas the playground already holds, in a frame of its shape, so a scene that isn't 4:3 isn't cropped */
 function CanvasHost({ canvas }: { canvas: HTMLCanvasElement }) {
   const host = useRef<HTMLDivElement>(null);
 
@@ -170,7 +170,7 @@ function CanvasHost({ canvas }: { canvas: HTMLCanvasElement }) {
     host.current?.replaceChildren(canvas);
   }, [canvas]);
 
-  return <div ref={host} className="canvas" />;
+  return <div ref={host} className="canvas" style={{ aspectRatio: `${canvas.width} / ${canvas.height}` }} />;
 }
 
 function Pane({ entry, renderer, capture }: { entry: PlaygroundEntry; renderer: RendererType; capture: Capture }) {
@@ -190,6 +190,7 @@ function Pane({ entry, renderer, capture }: { entry: PlaygroundEntry; renderer: 
       </figcaption>
       {capture.status === 'done' && <CanvasHost canvas={capture.canvas} />}
       {capture.status === 'loading' && <div className="canvas placeholder">Rendering…</div>}
+      {capture.status === 'skipped' && <div className="canvas placeholder">Skipped: {capture.reason}</div>}
       {capture.status === 'error' && <pre className="canvas error">{capture.message}</pre>}
     </figure>
   );
@@ -249,7 +250,15 @@ function DiffPane({ a, b, title }: { a: Capture; b: Capture; title: string }) {
           </span>
         )}
       </figcaption>
-      {diff ? <CanvasHost canvas={diff.canvas} /> : <div className="canvas placeholder">Waiting for both…</div>}
+      {diff ? (
+        <CanvasHost canvas={diff.canvas} />
+      ) : (
+        <div className="canvas placeholder">
+          {a.status === 'skipped' || b.status === 'skipped'
+            ? 'Nothing to compare: skipped on one side'
+            : 'Waiting for both…'}
+        </div>
+      )}
       <p className="note">
         {title}. Red pixels differ at pixelmatch threshold {PARITY_THRESHOLD}; yellow is anti-aliasing.
       </p>

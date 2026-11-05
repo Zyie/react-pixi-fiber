@@ -4,10 +4,11 @@ import type { RendererType } from '../../tests/harness/scene-runner';
 import type { FrameMessage } from './scene-frame';
 import type { PlaygroundEntry } from './scenes';
 
-/** Where a capture is: loading, drawn, or failed with a message */
+/** Where a capture is: loading, drawn, skipped on its renderer, or failed with a message */
 export type Capture =
   | { status: 'loading' }
   | { status: 'done'; canvas: HTMLCanvasElement }
+  | { status: 'skipped'; reason: string }
   | { status: 'error'; message: string };
 
 /**
@@ -56,6 +57,12 @@ export function useCapture(entry: PlaygroundEntry | null, renderer: RendererType
 
       if (event.data.type === 'scene-error') {
         setResult({ url, capture: { status: 'error', message: event.data.message } });
+
+        return;
+      }
+      if (event.data.type === 'scene-skipped') {
+        setResult({ url, capture: { status: 'skipped', reason: event.data.reason } });
+        iframe.remove();
 
         return;
       }

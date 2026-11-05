@@ -2,18 +2,7 @@ import { expect } from 'vitest';
 
 import type { RendererType, TestScene } from './scene-runner';
 
-/**
- * Why a scene is skipped on a renderer, or `null` when it runs there
- * @param scene - The scene
- * @param renderer - The renderer about to run
- */
-export function skipReason(scene: TestScene, renderer: RendererType): string | null {
-  const { skip } = scene;
-
-  if (!skip || (skip.renderers && !skip.renderers.includes(renderer))) return null;
-
-  return skip.reason;
-}
+export { skipReason } from './scene-runner';
 
 /**
  * The `fails` mark of a scene on a renderer, if it has one there

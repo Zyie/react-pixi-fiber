@@ -78,6 +78,19 @@ export interface TestScene {
   parity?: false | SceneParity;
 }
 
+/**
+ * Why a scene is skipped on a renderer, or `null` when it runs there
+ * @param scene - The scene
+ * @param renderer - The renderer about to run
+ */
+export function skipReason(scene: TestScene, renderer: RendererType): string | null {
+  const { skip } = scene;
+
+  if (!skip || (skip.renderers && !skip.renderers.includes(renderer))) return null;
+
+  return skip.reason;
+}
+
 /** The root props a scene may set beyond its size, camera and the harness's own */
 export type SceneCanvas = Partial<Pick<RenderProps<HTMLCanvasElement>, 'orthographic' | 'scene'>> & {
   /** Renderer settings, such as `{ shadows: true }`; a scene runs on several renderers, so never one renderer */

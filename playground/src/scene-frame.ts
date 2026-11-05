@@ -1,9 +1,13 @@
 import type { Example } from '../../examples/example';
+import { skipReason } from '../../tests/harness/scene-runner';
 import type { RendererType, TestScene } from '../../tests/harness/scene-runner';
 import { findEntry } from './scenes';
 
 /** What a frame posts to the playground */
-export type FrameMessage = { type: 'scene-result'; bitmap: ImageBitmap } | { type: 'scene-error'; message: string };
+export type FrameMessage =
+  | { type: 'scene-result'; bitmap: ImageBitmap }
+  | { type: 'scene-error'; message: string }
+  | { type: 'scene-skipped'; reason: string };
 
 const params = new URLSearchParams(location.search);
 const entry = findEntry(params.get('kind'), params.get('id'));
@@ -16,8 +20,11 @@ try {
 
   const module = (await entry.load()) as { scene?: TestScene; example?: Example };
   const scene: TestScene = (module.scene ?? module.example)!;
+  const skip = skipReason(scene, renderer);
 
-  if (params.has('live')) {
+  if (skip !== null) {
+    post({ type: 'scene-skipped', reason: skip });
+  } else if (params.has('live')) {
     // As an app runs it: a Canvas filling the window on r3f's default frameloop.
     const { runExample } = await import('../../examples/example');
 
