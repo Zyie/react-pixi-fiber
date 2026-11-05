@@ -20,8 +20,12 @@
     "watch": "tsdown --watch",
     "sync:repos": "node scripts/repos/sync.mts",
     "setup": "npm ci --prefer-offline --no-audit --no-fund && npm run sync:repos",
+    "start": "vite --config playground/vite.config.ts",
     "test": "npm run test:lint && npm run test:types && vitest run --browser.headless",
-    "test:unit": "vitest run --browser.headless",
+    "test:visual": "vitest run --project three --project scenes --browser.headless",
+    "test:three": "vitest run --project three --browser.headless",
+    "test:update": "vitest run --project three --project scenes --browser.headless --update=true",
+    "test:unit": "vitest run --project unit --browser.headless",
     "test:types": "tsc --noEmit -p tsconfig.json",
     "test:lint": "oxlint --deny-warnings && oxfmt --check",
     "lint": "oxlint --fix && oxfmt --write"

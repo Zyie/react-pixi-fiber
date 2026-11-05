@@ -86,13 +86,9 @@ async function checkSceneReferences(
   // The wait gives the browser the time to put the frame on screen, which a WebGPU canvas needs.
   await new Promise((resolve) => setTimeout(resolve, scene.delay ?? 10));
 
-  const result = await server.commands.compareScreenshot(
-    markForCapture(canvas),
-    key,
-    renderer,
-    pixelMatch,
-    scene.parity ?? {},
-  );
+  const result = await server.commands.compareScreenshot(markForCapture(canvas), key, renderer, pixelMatch, {
+    parity: scene.parity ?? {},
+  });
 
   if (!result.passed) {
     expect.fail(

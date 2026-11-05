@@ -1,37 +1,20 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import type { PNG } from 'pngjs';
+import { PNG } from 'pngjs';
 import type { Reporter } from 'vitest/node';
 
-import { diffImages, padImage, saveStrip } from './images.mts';
+import { measureParity, PARITY_THRESHOLD } from '../../tests/harness/parity-metric.ts';
+import type { ParityMeasure } from '../../tests/harness/parity-metric.ts';
+import { padImage, saveStrip } from './images.mts';
+
+export type { ParityMeasure };
 
 /** Where the parity composites and the summary of a run are written */
 export const PARITY_DIR = path.resolve(process.cwd(), '.temp/parity');
 
-/**
- * How far apart two colours may be and still count as the same when a pixi-3d picture is held to
- * three.js's: pixelmatch's threshold. 0.05 lets a grey be about 13 levels off, so shading that is close
- * counts as the same picture, while a face lit a fifth darker, another colour, or a missing or moved
- * object does not. A reference comparison uses 0.1 and an exact pixel budget instead.
- */
-export const PARITY_THRESHOLD = 0.05;
-
-/** How far a channel may be from the scene's background and still count as background */
-const BACKGROUND_TOLERANCE = 8;
-
 /** The pixi-3d renderers parity is measured on */
 export type PixiRenderer = 'webgl' | 'webgpu';
-
-/** How one pixi-3d picture of a scene compares with three.js's */
-export interface ParityMeasure {
-  /** Pixels that differ at `PARITY_THRESHOLD`, anti-aliasing left out */
-  differing: number;
-  /** Pixels either picture draws, which is every pixel that isn't the scene's background in both */
-  drawn: number;
-  /** `differing / drawn`, from 0 to 1: the share of drawn pixels that differ. 0 when nothing is drawn. */
-  share: number;
-}
 
 /** What the run knows about the parity of one scene */
 export interface ParityEntry {
@@ -61,36 +44,24 @@ const store: ParityStore = ((globalThis as { [key: symbol]: ParityStore })[Symbo
 });
 
 /**
- * Whether a pixel is the background colour, within `BACKGROUND_TOLERANCE`
- * @param data - RGBA bytes
- * @param offset - Where the pixel starts
- * @param background - The background's RGB
- */
-const isBackground = (data: Buffer, offset: number, background: readonly number[]): boolean =>
-  Math.abs(data[offset] - background[0]) <= BACKGROUND_TOLERANCE &&
-  Math.abs(data[offset + 1] - background[1]) <= BACKGROUND_TOLERANCE &&
-  Math.abs(data[offset + 2] - background[2]) <= BACKGROUND_TOLERANCE;
-
-/**
  * Measures a pixi-3d picture against three.js's
  * @param pixi - The pixi-3d capture
  * @param three - The three.js reference
- * @param background - The RGB the canvas shows where nothing is drawn
  * @returns The measure, and pixelmatch's picture of the difference
  */
-export function measureParity(
-  pixi: PNG,
-  three: PNG,
-  background: readonly number[],
-): { measure: ParityMeasure; image: PNG } {
-  const { diff, actual, expected, image } = diffImages(pixi, three, PARITY_THRESHOLD);
-  let drawn = 0;
+function measureImages(pixi: PNG, three: PNG): { measure: ParityMeasure; image: PNG } {
+  const width = Math.max(pixi.width, three.width);
+  const height = Math.max(pixi.height, three.height);
+  const image = new PNG({ width, height });
+  const measure = measureParity(
+    padImage(pixi, width, height).data,
+    padImage(three, width, height).data,
+    width,
+    height,
+    image.data,
+  );
 
-  for (let offset = 0; offset < actual.data.length; offset += 4) {
-    if (!isBackground(actual.data, offset, background) || !isBackground(expected.data, offset, background)) drawn++;
-  }
-
-  return { measure: { differing: diff, drawn, share: drawn === 0 ? 0 : diff / drawn }, image };
+  return { measure, image };
 }
 
 /** A share as a percentage with one decimal */
@@ -105,7 +76,6 @@ const percent = (share: number): string => `${(share * 100).toFixed(1)}%`;
  * @param capture - The capture
  * @param three - The three.js reference, when there is one
  * @param maxDiff - The scene's `parity.maxDiff`, if it has one
- * @param background - The RGB the canvas shows where nothing is drawn
  * @returns The measure, or null when there is no three.js reference to measure against
  */
 export function recordParity(
@@ -114,7 +84,6 @@ export function recordParity(
   capture: PNG,
   three: PNG | undefined,
   maxDiff: number | undefined,
-  background: readonly number[],
 ): ParityMeasure | null {
   const entry = store.results.get(key) ?? { measures: {} };
   const shots = store.captures.get(key) ?? {};
@@ -127,10 +96,10 @@ export function recordParity(
 
   if (!three) return null;
 
-  entry.measures[renderer] = measureParity(capture, three, background).measure;
+  entry.measures[renderer] = measureImages(capture, three).measure;
 
   const against = shots.webgl ? 'webgl' : 'webgpu';
-  const { measure, image } = measureParity(shots[against]!, three, background);
+  const { measure, image } = measureImages(shots[against]!, three);
   const width = Math.max(three.width, capture.width);
   const height = Math.max(three.height, capture.height);
   const pad = (shot: PNG | undefined): PNG | undefined => shot && padImage(shot, width, height);
@@ -147,7 +116,8 @@ export function recordParity(
 
 /**
  * Prints a table of the parity of every scene that ran on a pixi-3d renderer at the end of a run, and
- * writes it to `.temp/parity/summary.json`. A scene with a `maxDiff` it exceeds is marked `FAIL`.
+ * writes it to `.temp/parity/summary.json`. The last column says whether a scene with a `maxDiff` is
+ * within it; a scene whose test is marked `fails` can be over it.
  */
 export class ParityReporter implements Reporter {
   public onTestRunStart(): void {
@@ -169,10 +139,10 @@ export class ParityReporter implements Reporter {
       const verdict = entry.missingThree
         ? 'no three.js reference'
         : entry.maxDiff === undefined
-          ? 'reported'
+          ? 'reported only'
           : worst > entry.maxDiff
-            ? 'FAIL'
-            : 'ok';
+            ? 'over maxDiff'
+            : 'within maxDiff';
 
       return [
         key,

@@ -90,7 +90,7 @@ export function createMouse(send: SendMouse): SceneMouse {
 /**
  * Dispatches a DOM event at a point of a canvas, as the browser would
  * @param canvas - The canvas the point is on
- * @param type - The DOM event, such as `pointermove`, `click` or `wheel`
+ * @param type - The DOM event, such as `pointermove`, `click` or `wheel`; all but `wheel` are PointerEvents
  * @param x - CSS px from the left of the canvas
  * @param y - CSS px from the top of the canvas
  * @param init - The rest of the event: its buttons, or the deltas of a wheel
@@ -104,9 +104,8 @@ export function dispatchPointer(
 ): void {
   const { left, top } = canvas.getBoundingClientRect();
   const event = { bubbles: true, cancelable: true, composed: true, clientX: left + x, clientY: top + y, ...init };
-  const Event = type === 'wheel' ? WheelEvent : type === 'click' ? MouseEvent : PointerEvent;
-
-  canvas.dispatchEvent(new Event(type, event));
+  // A `click` is a PointerEvent too, as Chrome sends it: r3f matches it to its pointerdown by `pointerId`.
+  canvas.dispatchEvent(type === 'wheel' ? new WheelEvent(type, event) : new PointerEvent(type, event));
 }
 
 /**
@@ -129,7 +128,7 @@ export const syntheticPointers: PointerSource = (canvas) => {
     dispatchPointer(canvas, `pointer${action}`, x, y, { ...pointer, buttons: action === 'down' ? 1 : 0 });
     if (action === 'down') pressedAt = `${x},${y}`;
     if (action === 'up') {
-      if (pressedAt === `${x},${y}`) dispatchPointer(canvas, 'click', x, y, { button: 0 });
+      if (pressedAt === `${x},${y}`) dispatchPointer(canvas, 'click', x, y, { ...pointer, buttons: 0 });
       pressedAt = null;
     }
   });

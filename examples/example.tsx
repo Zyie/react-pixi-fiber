@@ -1,5 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import { Canvas } from 'react-pixi-fiber';
+import type { CanvasProps } from 'react-pixi-fiber';
 
 import type { TestScene } from '../tests/harness/scene-runner';
 
@@ -18,12 +19,21 @@ export type Example = Pick<
  * Runs an example live, as an app would: a `<Canvas>` that fills its host, on r3f's default frameloop
  * @param example - The example to run
  * @param host - The element the Canvas fills; the page's body when omitted
+ * @param props - More props for the Canvas, such as the renderer to use
  * @returns A function that unmounts it
  */
-export function runExample(example: Example, host: HTMLElement = document.body): () => void {
+export function runExample(
+  example: Example,
+  host: HTMLElement = document.body,
+  props: Partial<CanvasProps> = {},
+): () => void {
   const root = createRoot(host);
 
-  root.render(<Canvas camera={example.camera}>{example.render()}</Canvas>);
+  root.render(
+    <Canvas camera={example.camera} {...props}>
+      {example.render()}
+    </Canvas>,
+  );
 
   return () => root.unmount();
 }

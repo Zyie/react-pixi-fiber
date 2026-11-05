@@ -92,16 +92,21 @@ export default defineConfig({
           sequence: { groupOrder: 1 },
         },
       },
-      // Behaviour with no picture to compare, on pixi-3d.
+      // Behaviour with no picture to compare, and the harness's own tests, on pixi-3d. After the scenes: one
+      // of these runs the real requestAnimationFrame loop, which stalls while other pages hold the GPU.
       {
         extends: true,
         resolve: { alias: [fiberAlias('pixi')] },
         test: {
           name: 'unit',
-          include: ['tests/unit/**/*.test.{ts,tsx}', 'tests/*.test.{ts,tsx}'],
+          include: [
+            'tests/unit/**/*.test.{ts,tsx}',
+            'tests/harness/__tests__/**/*.test.{ts,tsx}',
+            'tests/*.test.{ts,tsx}',
+          ],
           exclude: EXCLUDE,
           provide: { fiber: 'pixi' },
-          sequence: { groupOrder: 1 },
+          sequence: { groupOrder: 2 },
         },
       },
     ],

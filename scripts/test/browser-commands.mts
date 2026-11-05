@@ -6,7 +6,6 @@ import { PNG } from 'pngjs';
 import type { Plugin } from 'vitest/config';
 import type { BrowserCommand } from 'vitest/node';
 
-import { SCENE_BACKGROUND } from '../../tests/harness/scene-constants.ts';
 import type { MouseAction } from '../../tests/harness/scene-input.ts';
 import type { RendererType, SceneParity } from '../../tests/harness/scene-runner.tsx';
 import { diffImages, saveStrip } from './images.mts';
@@ -29,9 +28,6 @@ export interface CompareResult {
 const SNAPSHOTS = path.resolve(process.cwd(), 'tests/snapshots');
 const FAILURES = path.resolve(process.cwd(), '.pr_uploads/visual');
 
-/** The scene background as RGB */
-const BACKGROUND = [1, 3, 5].map((start) => parseInt(SCENE_BACKGROUND.slice(start, start + 2), 16));
-
 /**
  * An element of the test page the harness marked, with `markForCapture`
  * @param iframe - The frame the test runs in
@@ -39,24 +35,36 @@ const BACKGROUND = [1, 3, 5].map((start) => parseInt(SCENE_BACKGROUND.slice(star
  */
 const marked = (iframe: FrameLocator, id: string): Locator => iframe.locator(`[data-shot="${id}"]`);
 
+/** How `compareScreenshot` treats a capture beyond comparing it with its reference */
+export interface CompareOptions {
+  /** The scene's `parity`: how a pixi-3d capture is held to three.js's; not measured when `false` */
+  parity: false | SceneParity;
+  /**
+   * The capture was driven by the playground's synthetic input rather than Playwright's. It is only
+   * compared: a missing reference fails, none is written, parity isn't measured, and a failure's strip
+   * goes to `.pr_uploads/visual/synthetic/`.
+   */
+  synthetic?: boolean;
+}
+
 const compareScreenshot: BrowserCommand<
-  [id: string, key: string, renderer: RendererType, pixelMatch: number, parity: false | SceneParity],
+  [id: string, key: string, renderer: RendererType, pixelMatch: number, options: CompareOptions],
   CompareResult
-> = async ({ iframe, project }, id, key, renderer, pixelMatch, parity) => {
+> = async ({ iframe, project }, id, key, renderer, pixelMatch, { parity, synthetic = false }) => {
   // 'all' with --update, 'new' locally, 'none' on CI: so CI fails on a missing reference
   // where a local run writes it.
-  const { updateSnapshot } = project.config.snapshotOptions;
+  const updateSnapshot = synthetic ? 'none' : project.config.snapshotOptions.updateSnapshot;
   const shot = await marked(iframe, id).screenshot({ type: 'png' });
   const name = `${key}.${renderer}`;
   const reference = path.join(SNAPSHOTS, `${name}.png`);
-  const failureStrip = path.join(FAILURES, `${name}.png`);
+  const failureStrip = path.join(FAILURES, synthetic ? 'synthetic' : '', `${name}.png`);
   const capture = PNG.sync.read(shot);
   const measured = (): CompareResult['parity'] => {
-    if (renderer === 'three' || parity === false) return null;
+    if (renderer === 'three' || parity === false || synthetic) return null;
 
     const threeFile = path.join(SNAPSHOTS, `${key}.three.png`);
     const three = fs.existsSync(threeFile) ? PNG.sync.read(fs.readFileSync(threeFile)) : undefined;
-    const measure = recordParity(key, renderer, capture, three, parity.maxDiff, BACKGROUND);
+    const measure = recordParity(key, renderer, capture, three, parity.maxDiff);
 
     return (
       measure && {
@@ -170,7 +178,8 @@ const resetPointers: BrowserCommand<[], void> = async ({ page }) => {
  * The browser commands of the test harness, which a test calls through `server.commands`. An element
  * is found by the `data-shot` attribute the harness gave it.
  *
- * - `compareScreenshot` captures a scene's canvas and compares it with `tests/snapshots/<key>.<renderer>.png`.
+ * - `compareScreenshot` captures a scene's canvas and compares it with `tests/snapshots/<key>.<renderer>.png`,
+ *   as `CompareOptions` describes.
  *   A failing comparison writes an expected, actual and diff strip to `.pr_uploads/visual/<key>.<renderer>.png`.
  *   On a pixi-3d renderer it also measures the capture against `tests/snapshots/<key>.three.png` and
  *   writes the scene's composite to `.temp/parity/<key>.png`.
