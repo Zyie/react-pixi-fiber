@@ -6,6 +6,7 @@
  * react-pixi-fiber, pixi.js and React.
  */
 import { AbstractRenderer, Assets, Ticker } from 'pixi.js';
+import { DefaultLoadingManager } from 'react-pixi-fiber/three';
 
 import { CHANNEL } from '../types';
 import type { ConsoleLevel, FrameEvent, RunError, RunMessage } from '../types';
@@ -155,6 +156,17 @@ function setPaused(pause: boolean): void {
 }
 
 /**
+ * Has three's loaders (`TextureLoader`, `GLTFLoader`, ...) load the runtime's assets by the paths the
+ * visual tests serve them at, `/textures/crate.png`, as pixi's `Assets` loads them by name
+ * @param message - What the page sent, with the runtime's assets
+ */
+function serveAssets(message: RunMessage): void {
+  const files = new Map(message.assets.map(({ alias, file }) => [alias, new URL(file, document.baseURI).href]));
+
+  DefaultLoadingManager.setURLModifier((url) => files.get(url.split('?')[0].replace(/^\//, '')) ?? url);
+}
+
+/**
  * Runs a program; the frame's bootstrap calls it with the page's message
  * @param message - What the page sent
  * @param program - The blob URL the bootstrap made for the program
@@ -171,6 +183,7 @@ export async function run(message: RunMessage, program: string): Promise<void> {
 
   try {
     Assets.add(message.assets.map(({ alias, file }) => ({ alias, src: file })));
+    serveAssets(message);
 
     const module = (await import(/* @vite-ignore */ program)) as Parameters<typeof mount>[0];
 

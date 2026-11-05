@@ -9,6 +9,7 @@ export interface DispatchedEvent {
   type: string;
   /** The dispatcher, while the event's listeners run */
   target?: unknown;
+  /** Anything else the sender puts on the event, such as a mixer's `action` */
   [key: string]: unknown;
 }
 

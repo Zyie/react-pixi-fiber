@@ -43,6 +43,7 @@ import { SkinnedMesh } from '../../catalog/objects/SkinnedMesh';
 import { OrthographicCamera } from '../../catalog/scene/OrthographicCamera';
 import { PerspectiveCamera } from '../../catalog/scene/PerspectiveCamera';
 import { Texture } from '../../catalog/textures/Texture';
+import { installObject3DSurface } from '../../compat/installObject3DSurface';
 import { FileLoader } from '../../loaders/FileLoader';
 import { Loader } from '../../loaders/Loader';
 import { LoaderUtils } from '../../loaders/LoaderUtils';
@@ -134,6 +135,9 @@ type NodeMap = Map<number, Container3D>;
  * Draco and meshopt compression decode with pixi-3d's decoders: `setDRACOLoader` points pixi-3d's
  * Draco decoder at the `DRACOLoader`'s decoder path, and `setMeshoptDecoder` is taken and not needed.
  * KTX2 textures need `import 'pixi.js/ktx2'`. Plugins (`register`) aren't supported.
+ *
+ * It gives pixi-3d's classes three's members as it parses, as a root does when it starts, so a file
+ * preloaded before any `<Canvas>` mounts, with `useLoader.preload`, is built the same.
  *
  * Geometries and materials from the file free their GPU memory on `dispose` and stay usable, as
  * three's do, so r3f disposing a `<mesh geometry={nodes.Body.geometry} />` that unmounts leaves the
@@ -264,6 +268,8 @@ export class GLTFLoader extends Loader<GLTF> {
   }
 
   private async _parse(data: GLTFData, path: string): Promise<GLTF> {
+    installObject3DSurface();
+
     const { json, buffers } = await readFile(data, path, this.requestHeader, this.withCredentials);
 
     this.dracoLoader?.applyDecoderPath();
