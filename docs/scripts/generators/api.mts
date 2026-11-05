@@ -17,7 +17,7 @@ import { examplePrograms } from '../../plugins/example/source.mts';
 import type { ApiExampleUse, ApiGuideUse, ApiUsageProps } from '../../src/components/Api/ApiUsage.tsx';
 import { ROOT } from '../paths.mts';
 import type { GeneratedFiles, Generator, Shared } from '../sync.mts';
-import type { ApiCallable, ApiDoc, ApiEntry, ApiMember } from '../typedoc/api.mts';
+import type { ApiCallable, ApiDoc, ApiEntry, ApiMember, ApiSymbol } from '../typedoc/api.mts';
 import { ENTRIES, entryFile, isVendored, MAIN, packageName } from '../typedoc/entries.mts';
 import type { Entry, EntryName } from '../typedoc/entries.mts';
 import { GUIDES } from '../typedoc/guides.mts';
@@ -216,6 +216,23 @@ function heading(writer: Writer, depth: 2 | 3, children: readonly PhrasingConten
  */
 function signature(writer: Writer, source: string): Flow {
   return ApiCode({ code: source, links: linksIn(source, writer.link) });
+}
+
+/**
+ * How a const whose type is named, such as `useFrame: UseFrame`, is called: `useFrame(callback?:
+ * FrameCallback): FrameNextControls`; null for anything else, whose declaration already shows it
+ * @param symbol - The symbol
+ */
+function callSignatureOf(symbol: ApiSymbol): string | null {
+  const { callable } = symbol;
+
+  if (symbol.kind !== 'const' || !callable || /=>|\(/.test(symbol.signature)) return null;
+
+  const parameters = callable.parameters.map(
+    ({ name, type, optional }) => `${name}${optional ? '?' : ''}${type ? `: ${type}` : ''}`,
+  );
+
+  return `${symbol.name}(${parameters.join(', ')})${callable.returns ? `: ${callable.returns}` : ''}`;
 }
 
 /**
@@ -452,6 +469,7 @@ function symbolPage(site: Site, page: SymbolPage, position: number): Page {
       vendored,
     }),
     signature(writer, symbol.signature),
+    ...[callSignatureOf(symbol)].flatMap((call) => (call ? [signature(writer, call)] : [])),
     ...jsdoc(writer, symbol.doc?.description || summary.replace(from, `\`${from}\``)),
   );
   if (vendored) {

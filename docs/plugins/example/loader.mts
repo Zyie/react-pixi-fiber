@@ -49,7 +49,7 @@ export default function exampleLoader(this: LoaderContext): string {
   const header = src ? fs.readFileSync(reference) : null;
   const source: ExampleSource = {
     id,
-    code: region ? readRegion(file, region, ROOT) : program.code.trimEnd(),
+    code: region ? readRegion(file, region, ROOT) : program.shown.trimEnd(),
     language: program.language,
     program: program.code,
     compiled: program.compiled,

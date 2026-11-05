@@ -10,7 +10,7 @@ export interface ExamplePicture {
 export interface ExampleSource {
   /** `<topic>/<name>`, as the gallery names it */
   readonly id: string;
-  /** The code to show: every part of the region, without region markers, or the whole program */
+  /** The code to show: every part of the region, without region markers, or what `toProgram` shows of the file */
   readonly code: string;
   readonly language: 'ts' | 'tsx';
   /** The reference image of its visual test, as the site serves it; null until the example has one */
