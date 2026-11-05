@@ -70,6 +70,8 @@ export function App() {
 
 `renderer.setRenderTarget(fbo)` points the next `render` at the target, and `setRenderTarget(null)` points it back at the canvas, exactly as in three.
 
+r3f's shortest sample draws the root's own `scene` into the target and shows it on a plane in that same scene. On WebGL that works as in three, with the plane hidden while the target draws so it never samples the texture it draws into. On WebGPU it doesn't yet: pixi-3d binds the textures of every material a view draws with, hidden meshes' included, so the pass would read and write the target at once, and WebGPU drops it. Keep the scene you draw into a target apart from the mesh that shows it, as above.
+
 ## Argument forms
 
 The hook takes r3f's forms. With no size, the target is the canvas's size in CSS pixels and follows it when the canvas resizes, keeping its texture:

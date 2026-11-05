@@ -76,7 +76,7 @@ const DISPLAY_TO_LINEAR = Uint8Array.from({ length: 256 }, (_, i) => Math.round(
 
 /**
  * Copies rows of pixels, top down in `pixels`, into `buffer` from the bottom row up, as three reads
- * them, decoding the colour to linear
+ * them, decoding the colour to linear, and swapping red and blue when `pixels` is in BGRA order
  */
 function copyRows(
   pixels: Uint8Array | Uint8ClampedArray,
@@ -86,12 +86,15 @@ function copyRows(
   width: number,
   height: number,
   buffer: Uint8Array | Uint8ClampedArray,
+  bgra = false,
 ): void {
   for (let row = 0; row < height; row++) {
     const from = (top + height - 1 - row) * rowBytes + x * 4;
     const to = row * width * 4;
     for (let i = 0; i < width * 4; i++) {
-      buffer[to + i] = (i & 3) === 3 ? pixels[from + i] : DISPLAY_TO_LINEAR[pixels[from + i]];
+      const channel = i & 3;
+      const at = bgra && (channel & 1) === 0 ? from + i + 2 - 2 * channel : from + i;
+      buffer[to + i] = channel === 3 ? pixels[at] : DISPLAY_TO_LINEAR[pixels[at]];
     }
   }
 }
@@ -599,7 +602,8 @@ export class PixiRenderer {
     );
     device.queue.submit([encoder.finish()]);
     await readback.mapAsync(GPUMapMode.READ);
-    copyRows(new Uint8Array(readback.getMappedRange()), rowBytes, 0, 0, width, height, buffer);
+    const bgra = target.texture.source.format === 'bgra8unorm';
+    copyRows(new Uint8Array(readback.getMappedRange()), rowBytes, 0, 0, width, height, buffer, bgra);
     readback.destroy();
     return buffer;
   }

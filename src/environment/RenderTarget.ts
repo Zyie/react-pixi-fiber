@@ -34,11 +34,13 @@ export interface RenderTargetOptions {
 }
 
 /**
- * What a texture format of three's `type` stores in pixi
+ * What a texture format of three's `type` stores in pixi. 8 bits per channel is pixi's own default,
+ * `bgra8unorm`, which WebGL2 stores as `RGBA8`: pixi hands WebGL `rgba8unorm` as the unsized `RGBA`,
+ * which a multisampled renderbuffer can't take, so a target with `samples` would draw nothing.
  * @param type - three's texture type constant
  */
 const formatOf = (type: number | undefined): TEXTURE_FORMATS =>
-  type === HalfFloatType ? 'rgba16float' : type === FloatType ? 'rgba32float' : 'rgba8unorm';
+  type === HalfFloatType ? 'rgba16float' : type === FloatType ? 'rgba32float' : 'bgra8unorm';
 
 /**
  * three's `RenderTarget`: a texture a renderer draws a scene into, to use as a map, a portal or a
