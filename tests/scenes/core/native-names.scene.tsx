@@ -21,5 +21,8 @@ export const scene: TestScene = {
     </>
   ),
   skip: { renderers: ['three'], reason: 'three.js has no pixi-3d classes' },
+  // The orange is wrong in the reference, and pixi-3d is to blame: FlatMaterial decodes baseColor from
+  // sRGB but skips tone mapping, where the view encodes back to sRGB, so 0xf7a84f draws as its linear
+  // value, 237, 100, 20. The alias meshBasicMaterial sets toneMapped to work around it.
   parity: false,
 };
