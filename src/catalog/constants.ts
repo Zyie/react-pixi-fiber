@@ -3,6 +3,7 @@
  * `three` reads them from `react-pixi-fiber/three`. three's legacy `MipMap` spellings of the mipmap
  * filters are left out, for the `Mipmap` ones. The renderer and catalog map the ones pixi-3d has a
  * counterpart for; the JSDoc of each mapped one says what it maps to. The rest are kept for three's shape.
+ * The types three names over them (`Side`, `Blending`, `Wrapping`, ...) close the file.
  */
 /**
  * three's `ACESFilmicToneMapping`, r3f's default; maps to pixi-3d's `'aces'`
@@ -1277,3 +1278,389 @@ export const ZeroSlopeEnding = 2401;
  * @advanced
  */
 export const ZeroStencilOp = 0;
+/**
+ * three's `CullFace` type: `CullFaceNone`, `CullFaceBack`, `CullFaceFront` or `CullFaceFrontBack`
+ * @category constants
+ * @advanced
+ */
+export type CullFace = typeof CullFaceNone | typeof CullFaceBack | typeof CullFaceFront | typeof CullFaceFrontBack;
+/**
+ * three's `ShadowMapType` type: `BasicShadowMap`, `PCFShadowMap`, `PCFSoftShadowMap` or `VSMShadowMap`
+ * @category constants
+ * @standard
+ */
+export type ShadowMapType = typeof BasicShadowMap | typeof PCFShadowMap | typeof PCFSoftShadowMap | typeof VSMShadowMap;
+/**
+ * three's `Side` type: `FrontSide`, `BackSide` or `DoubleSide`
+ * @category constants
+ * @standard
+ */
+export type Side = typeof FrontSide | typeof BackSide | typeof DoubleSide;
+/**
+ * three's `Blending` type: `NoBlending`, `NormalBlending`, `AdditiveBlending`, `SubtractiveBlending`, `MultiplyBlending`, `CustomBlending` or `MaterialBlending`
+ * @category constants
+ * @standard
+ */
+export type Blending =
+  | typeof NoBlending
+  | typeof NormalBlending
+  | typeof AdditiveBlending
+  | typeof SubtractiveBlending
+  | typeof MultiplyBlending
+  | typeof CustomBlending
+  | typeof MaterialBlending;
+/**
+ * three's `BlendingEquation` type: `AddEquation`, `SubtractEquation`, `ReverseSubtractEquation`, `MinEquation` or `MaxEquation`
+ * @category constants
+ * @advanced
+ */
+export type BlendingEquation =
+  | typeof AddEquation
+  | typeof SubtractEquation
+  | typeof ReverseSubtractEquation
+  | typeof MinEquation
+  | typeof MaxEquation;
+/**
+ * three's `BlendingDstFactor` type: any of its 14 constants, from `ZeroFactor` to `OneMinusConstantAlphaFactor`
+ * @category constants
+ * @advanced
+ */
+export type BlendingDstFactor =
+  | typeof ZeroFactor
+  | typeof OneFactor
+  | typeof SrcColorFactor
+  | typeof OneMinusSrcColorFactor
+  | typeof SrcAlphaFactor
+  | typeof OneMinusSrcAlphaFactor
+  | typeof DstAlphaFactor
+  | typeof OneMinusDstAlphaFactor
+  | typeof DstColorFactor
+  | typeof OneMinusDstColorFactor
+  | typeof ConstantColorFactor
+  | typeof OneMinusConstantColorFactor
+  | typeof ConstantAlphaFactor
+  | typeof OneMinusConstantAlphaFactor;
+/**
+ * three's `BlendingSrcFactor` type: `BlendingDstFactor` or `SrcAlphaSaturateFactor`
+ * @category constants
+ * @advanced
+ */
+export type BlendingSrcFactor = BlendingDstFactor | typeof SrcAlphaSaturateFactor;
+/**
+ * three's `DepthModes` type: `NeverDepth`, `AlwaysDepth`, `LessDepth`, `LessEqualDepth`, `EqualDepth`, `GreaterEqualDepth`, `GreaterDepth` or `NotEqualDepth`
+ * @category constants
+ * @advanced
+ */
+export type DepthModes =
+  | typeof NeverDepth
+  | typeof AlwaysDepth
+  | typeof LessDepth
+  | typeof LessEqualDepth
+  | typeof EqualDepth
+  | typeof GreaterEqualDepth
+  | typeof GreaterDepth
+  | typeof NotEqualDepth;
+/**
+ * three's `Combine` type: `MultiplyOperation`, `MixOperation` or `AddOperation`
+ * @category constants
+ * @advanced
+ */
+export type Combine = typeof MultiplyOperation | typeof MixOperation | typeof AddOperation;
+/**
+ * three's `ToneMapping` type: `NoToneMapping`, `LinearToneMapping`, `ReinhardToneMapping`, `CineonToneMapping`, `ACESFilmicToneMapping`, `CustomToneMapping`, `AgXToneMapping` or `NeutralToneMapping`
+ * @category constants
+ * @standard
+ */
+export type ToneMapping =
+  | typeof NoToneMapping
+  | typeof LinearToneMapping
+  | typeof ReinhardToneMapping
+  | typeof CineonToneMapping
+  | typeof ACESFilmicToneMapping
+  | typeof CustomToneMapping
+  | typeof AgXToneMapping
+  | typeof NeutralToneMapping;
+/**
+ * three's `BindMode` type: `AttachedBindMode` or `DetachedBindMode`
+ * @category constants
+ * @advanced
+ */
+export type BindMode = typeof AttachedBindMode | typeof DetachedBindMode;
+/**
+ * three's `Mapping` type: `UVMapping`, `EquirectangularReflectionMapping` or `EquirectangularRefractionMapping`
+ * @category constants
+ * @standard
+ */
+export type Mapping =
+  | typeof UVMapping
+  | typeof EquirectangularReflectionMapping
+  | typeof EquirectangularRefractionMapping;
+/**
+ * three's `CubeTextureMapping` type: `CubeReflectionMapping` or `CubeRefractionMapping`
+ * @category constants
+ * @advanced
+ */
+export type CubeTextureMapping = typeof CubeReflectionMapping | typeof CubeRefractionMapping;
+/**
+ * three's `AnyMapping` type: a `Mapping` or `CubeTextureMapping`
+ * @category constants
+ * @advanced
+ */
+export type AnyMapping = Mapping | CubeTextureMapping;
+/**
+ * three's `Wrapping` type: `RepeatWrapping`, `ClampToEdgeWrapping` or `MirroredRepeatWrapping`
+ * @category constants
+ * @standard
+ */
+export type Wrapping = typeof RepeatWrapping | typeof ClampToEdgeWrapping | typeof MirroredRepeatWrapping;
+/**
+ * three's `MagnificationTextureFilter` type: `NearestFilter` or `LinearFilter`
+ * @category constants
+ * @standard
+ */
+export type MagnificationTextureFilter = typeof NearestFilter | typeof LinearFilter;
+/**
+ * three's `MinificationTextureFilter` type: `NearestFilter`, `NearestMipmapNearestFilter`, `NearestMipmapLinearFilter`, `LinearFilter`, `LinearMipmapNearestFilter` or `LinearMipmapLinearFilter`, by their `Mipmap` spellings, whose values the legacy `MipMap` ones share
+ * @category constants
+ * @standard
+ */
+export type MinificationTextureFilter =
+  | typeof NearestFilter
+  | typeof NearestMipmapNearestFilter
+  | typeof NearestMipmapLinearFilter
+  | typeof LinearFilter
+  | typeof LinearMipmapNearestFilter
+  | typeof LinearMipmapLinearFilter;
+/**
+ * three's `TextureFilter` type: a `MagnificationTextureFilter` or `MinificationTextureFilter`
+ * @category constants
+ * @standard
+ */
+export type TextureFilter = MagnificationTextureFilter | MinificationTextureFilter;
+/**
+ * three's `AttributeGPUType` type: `FloatType` or `IntType`
+ * @category constants
+ * @advanced
+ */
+export type AttributeGPUType = typeof FloatType | typeof IntType;
+/**
+ * three's `TextureDataType` type: any of its 13 constants, from `UnsignedByteType` to `UnsignedInt101111Type`
+ * @category constants
+ * @advanced
+ */
+export type TextureDataType =
+  | typeof UnsignedByteType
+  | typeof ByteType
+  | typeof ShortType
+  | typeof UnsignedShortType
+  | typeof IntType
+  | typeof UnsignedIntType
+  | typeof FloatType
+  | typeof HalfFloatType
+  | typeof UnsignedShort4444Type
+  | typeof UnsignedShort5551Type
+  | typeof UnsignedInt248Type
+  | typeof UnsignedInt5999Type
+  | typeof UnsignedInt101111Type;
+/**
+ * three's `PixelFormat` type: any of its 11 constants, from `AlphaFormat` to `RGBAIntegerFormat`
+ * @category constants
+ * @advanced
+ */
+export type PixelFormat =
+  | typeof AlphaFormat
+  | typeof RGBFormat
+  | typeof RGBAFormat
+  | typeof DepthFormat
+  | typeof DepthStencilFormat
+  | typeof RedFormat
+  | typeof RedIntegerFormat
+  | typeof RGFormat
+  | typeof RGIntegerFormat
+  | typeof RGBIntegerFormat
+  | typeof RGBAIntegerFormat;
+/**
+ * three's `DepthTexturePixelFormat` type: `DepthFormat` or `DepthStencilFormat`
+ * @category constants
+ * @advanced
+ */
+export type DepthTexturePixelFormat = typeof DepthFormat | typeof DepthStencilFormat;
+/**
+ * three's `CompressedPixelFormat` type: any of its 36 constants, from `RGB_S3TC_DXT1_Format` to `SIGNED_RED_GREEN_RGTC2_Format`
+ * @category constants
+ * @advanced
+ */
+export type CompressedPixelFormat =
+  | typeof RGB_S3TC_DXT1_Format
+  | typeof RGBA_S3TC_DXT1_Format
+  | typeof RGBA_S3TC_DXT3_Format
+  | typeof RGBA_S3TC_DXT5_Format
+  | typeof RGB_PVRTC_4BPPV1_Format
+  | typeof RGB_PVRTC_2BPPV1_Format
+  | typeof RGBA_PVRTC_4BPPV1_Format
+  | typeof RGBA_PVRTC_2BPPV1_Format
+  | typeof RGB_ETC1_Format
+  | typeof RGB_ETC2_Format
+  | typeof RGBA_ETC2_EAC_Format
+  | typeof R11_EAC_Format
+  | typeof SIGNED_R11_EAC_Format
+  | typeof RG11_EAC_Format
+  | typeof SIGNED_RG11_EAC_Format
+  | typeof RGBA_ASTC_4x4_Format
+  | typeof RGBA_ASTC_5x4_Format
+  | typeof RGBA_ASTC_5x5_Format
+  | typeof RGBA_ASTC_6x5_Format
+  | typeof RGBA_ASTC_6x6_Format
+  | typeof RGBA_ASTC_8x5_Format
+  | typeof RGBA_ASTC_8x6_Format
+  | typeof RGBA_ASTC_8x8_Format
+  | typeof RGBA_ASTC_10x5_Format
+  | typeof RGBA_ASTC_10x6_Format
+  | typeof RGBA_ASTC_10x8_Format
+  | typeof RGBA_ASTC_10x10_Format
+  | typeof RGBA_ASTC_12x10_Format
+  | typeof RGBA_ASTC_12x12_Format
+  | typeof RGBA_BPTC_Format
+  | typeof RGB_BPTC_SIGNED_Format
+  | typeof RGB_BPTC_UNSIGNED_Format
+  | typeof RED_RGTC1_Format
+  | typeof SIGNED_RED_RGTC1_Format
+  | typeof RED_GREEN_RGTC2_Format
+  | typeof SIGNED_RED_GREEN_RGTC2_Format;
+/**
+ * three's `AnyPixelFormat` type: a `PixelFormat`, `DepthTexturePixelFormat` or `CompressedPixelFormat`
+ * @category constants
+ * @advanced
+ */
+export type AnyPixelFormat = PixelFormat | DepthTexturePixelFormat | CompressedPixelFormat;
+/**
+ * three's `AnimationActionLoopStyles` type: `LoopOnce`, `LoopRepeat` or `LoopPingPong`
+ * @category constants
+ * @standard
+ */
+export type AnimationActionLoopStyles = typeof LoopOnce | typeof LoopRepeat | typeof LoopPingPong;
+/**
+ * three's `InterpolationModes` type: `InterpolateDiscrete`, `InterpolateLinear`, `InterpolateSmooth` or `InterpolateBezier`
+ * @category constants
+ * @advanced
+ */
+export type InterpolationModes =
+  | typeof InterpolateDiscrete
+  | typeof InterpolateLinear
+  | typeof InterpolateSmooth
+  | typeof InterpolateBezier;
+/**
+ * three's `InterpolationEndingModes` type: `ZeroCurvatureEnding`, `ZeroSlopeEnding` or `WrapAroundEnding`
+ * @category constants
+ * @advanced
+ */
+export type InterpolationEndingModes = typeof ZeroCurvatureEnding | typeof ZeroSlopeEnding | typeof WrapAroundEnding;
+/**
+ * three's `AnimationBlendMode` type: `NormalAnimationBlendMode` or `AdditiveAnimationBlendMode`
+ * @category constants
+ * @advanced
+ */
+export type AnimationBlendMode = typeof NormalAnimationBlendMode | typeof AdditiveAnimationBlendMode;
+/**
+ * three's `TrianglesDrawModes` type: `TrianglesDrawMode`, `TriangleStripDrawMode` or `TriangleFanDrawMode`
+ * @category constants
+ * @advanced
+ */
+export type TrianglesDrawModes = typeof TrianglesDrawMode | typeof TriangleStripDrawMode | typeof TriangleFanDrawMode;
+/**
+ * three's `DepthPackingStrategies` type: `BasicDepthPacking`, `RGBADepthPacking`, `RGBDepthPacking` or `RGDepthPacking`
+ * @category constants
+ * @advanced
+ */
+export type DepthPackingStrategies =
+  | typeof BasicDepthPacking
+  | typeof RGBADepthPacking
+  | typeof RGBDepthPacking
+  | typeof RGDepthPacking;
+/**
+ * three's `NormalMapTypes` type: `TangentSpaceNormalMap` or `ObjectSpaceNormalMap`
+ * @category constants
+ * @advanced
+ */
+export type NormalMapTypes = typeof TangentSpaceNormalMap | typeof ObjectSpaceNormalMap;
+/**
+ * three's `ColorSpaceTransfer` type: `LinearTransfer` or `SRGBTransfer`
+ * @category constants
+ * @advanced
+ */
+export type ColorSpaceTransfer = typeof LinearTransfer | typeof SRGBTransfer;
+/**
+ * three's `NormalPacking` type: `NoNormalPacking`, `NormalRGPacking` or `NormalGAPacking`
+ * @category constants
+ * @advanced
+ */
+export type NormalPacking = typeof NoNormalPacking | typeof NormalRGPacking | typeof NormalGAPacking;
+/**
+ * three's `StencilOp` type: `ZeroStencilOp`, `KeepStencilOp`, `ReplaceStencilOp`, `IncrementStencilOp`, `DecrementStencilOp`, `IncrementWrapStencilOp`, `DecrementWrapStencilOp` or `InvertStencilOp`
+ * @category constants
+ * @advanced
+ */
+export type StencilOp =
+  | typeof ZeroStencilOp
+  | typeof KeepStencilOp
+  | typeof ReplaceStencilOp
+  | typeof IncrementStencilOp
+  | typeof DecrementStencilOp
+  | typeof IncrementWrapStencilOp
+  | typeof DecrementWrapStencilOp
+  | typeof InvertStencilOp;
+/**
+ * three's `StencilFunc` type: `NeverStencilFunc`, `LessStencilFunc`, `EqualStencilFunc`, `LessEqualStencilFunc`, `GreaterStencilFunc`, `NotEqualStencilFunc`, `GreaterEqualStencilFunc` or `AlwaysStencilFunc`
+ * @category constants
+ * @advanced
+ */
+export type StencilFunc =
+  | typeof NeverStencilFunc
+  | typeof LessStencilFunc
+  | typeof EqualStencilFunc
+  | typeof LessEqualStencilFunc
+  | typeof GreaterStencilFunc
+  | typeof NotEqualStencilFunc
+  | typeof GreaterEqualStencilFunc
+  | typeof AlwaysStencilFunc;
+/**
+ * three's `TextureComparisonFunction` type: `NeverCompare`, `LessCompare`, `EqualCompare`, `LessEqualCompare`, `GreaterCompare`, `NotEqualCompare`, `GreaterEqualCompare` or `AlwaysCompare`
+ * @category constants
+ * @advanced
+ */
+export type TextureComparisonFunction =
+  | typeof NeverCompare
+  | typeof LessCompare
+  | typeof EqualCompare
+  | typeof LessEqualCompare
+  | typeof GreaterCompare
+  | typeof NotEqualCompare
+  | typeof GreaterEqualCompare
+  | typeof AlwaysCompare;
+/**
+ * three's `Usage` type: any of its 9 constants, from `StaticDrawUsage` to `StreamCopyUsage`
+ * @category constants
+ * @advanced
+ */
+export type Usage =
+  | typeof StaticDrawUsage
+  | typeof DynamicDrawUsage
+  | typeof StreamDrawUsage
+  | typeof StaticReadUsage
+  | typeof DynamicReadUsage
+  | typeof StreamReadUsage
+  | typeof StaticCopyUsage
+  | typeof DynamicCopyUsage
+  | typeof StreamCopyUsage;
+/**
+ * three's `GLSLVersion` type: `GLSL1` or `GLSL3`
+ * @category constants
+ * @advanced
+ */
+export type GLSLVersion = typeof GLSL1 | typeof GLSL3;
+/**
+ * three's `CoordinateSystem` type: `WebGLCoordinateSystem` or `WebGPUCoordinateSystem`
+ * @category constants
+ * @advanced
+ */
+export type CoordinateSystem = typeof WebGLCoordinateSystem | typeof WebGPUCoordinateSystem;

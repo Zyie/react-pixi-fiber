@@ -14,6 +14,28 @@ export interface DispatchedEvent<TType extends string = string> {
 }
 
 /**
+ * three's `BaseEvent`: what `dispatchEvent` takes at the least, a `type`
+ * @category catalog
+ * @advanced
+ */
+export interface BaseEvent<TEventType extends string = string> {
+  /** The event's name */
+  readonly type: TEventType;
+}
+
+/**
+ * three's `Event`: what a listener gets at the least, the event's `type` and the dispatcher as `target`
+ * @category catalog
+ * @advanced
+ */
+export interface Event<TEventType extends string = string, TTarget = unknown> {
+  /** The event's name */
+  readonly type: TEventType;
+  /** The dispatcher */
+  readonly target: TTarget;
+}
+
+/**
  * A listener three's `EventDispatcher` calls with the event, and with the dispatcher as `this`
  * @category catalog
  * @advanced

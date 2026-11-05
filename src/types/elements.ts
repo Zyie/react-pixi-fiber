@@ -38,8 +38,26 @@ export interface EulerRepresentation {
 export type MathTypes = MathRepresentation | EulerRepresentation;
 
 /**
- * What a math prop accepts: the object, the arguments of its `set`, or one number for every
- * component when `set` takes it (`scale={2}`)
+ * The plain object a vector or quaternion prop also takes, which the node copies in: `{ x, y }`,
+ * `{ x, y, z }` or `{ x, y, z, w }`. That covers three's classes from `react-pixi-fiber/three`
+ * (`position={new Vector3(1, 2, 3)}`), which extend pixi-3d's plain vectors rather than the observable
+ * ones a node holds. Euler angles take only an `Euler` or its arguments, as in three.
+ * @internal
+ */
+type MathObject<T> = T extends { order: unknown }
+  ? never
+  : T extends { x: number; y: number; z: number; w: number }
+    ? { x: number; y: number; z: number; w: number }
+    : T extends { x: number; y: number; z: number }
+      ? { x: number; y: number; z: number }
+      : T extends { x: number; y: number }
+        ? { x: number; y: number }
+        : never;
+
+/**
+ * What a math prop accepts: the object, the arguments of its `set`, one number for every component
+ * when `set` takes it (`scale={2}`), or for a vector or quaternion any object with its components,
+ * three's classes from `react-pixi-fiber/three` among them (`position={new Vector3(1, 2, 3)}`)
  * @category types
  * @advanced
  */
@@ -47,7 +65,8 @@ export type MathType<T extends MathTypes> =
   | T
   | Parameters<T['set']>
   | Readonly<Parameters<T['set']>>
-  | (IsAllOptional<Parameters<T['set']>> extends true ? number : never);
+  | (IsAllOptional<Parameters<T['set']>> extends true ? number : never)
+  | MathObject<T>;
 
 /**
  * The math props of `P`, widened to {@link MathType}; colours are {@link ColorProps}

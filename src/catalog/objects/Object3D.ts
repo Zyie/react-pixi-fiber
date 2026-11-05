@@ -6,6 +6,23 @@ import type { Euler } from '../../math/Euler';
 import type { Vector3 } from '../../math/Vector3';
 
 /**
+ * three's `Object3DEventMap`: the events three's `Object3D` sends, by name, for code that types its
+ * listeners with it
+ * @category catalog
+ * @advanced
+ */
+export interface Object3DEventMap {
+  /** Sent when the object is added to a parent */
+  added: Record<never, never>;
+  /** Sent when the object is removed from its parent */
+  removed: Record<never, never>;
+  /** Sent when a child is added to the object */
+  childadded: { child: Object3D };
+  /** Sent when a child is removed from the object */
+  childremoved: { child: Object3D };
+}
+
+/**
  * three's `Object3D`: a plain pixi-3d `Container3D`, with three's members
  *
  * Every pixi-3d node has three's `Object3D` surface once a root has loaded the support (see
