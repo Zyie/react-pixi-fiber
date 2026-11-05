@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsdown';
 
 export default defineConfig({
-  entry: { index: './src/index.tsx' },
+  entry: { index: './src/index.tsx', three: './src/three.ts', addons: './src/addons/index.ts' },
   format: ['esm'],
   // Oxc emits declarations per file, which needs explicit types on exports (isolatedDeclarations).
   dts: { generator: 'oxc' },

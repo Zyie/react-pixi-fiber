@@ -24,12 +24,14 @@ import type { ConstructorRepresentation } from './utils';
 export type MutableOrReadonlyParameters<T extends (...args: never[]) => unknown> = Props.MutableOrReadonlyParameters<T>;
 /** Anything with a numeric `set` */
 export type MathRepresentation = Elements.MathRepresentation;
+/** Anything with three's Euler `set` */
+export type EulerRepresentation = Elements.EulerRepresentation;
 /** A math object whose `set` also takes one number */
 export type VectorRepresentation = Props.VectorRepresentation;
 /** Every object a math prop can hold */
-export type MathTypes = Props.MathTypes;
+export type MathTypes = Elements.MathTypes;
 /** What a math prop accepts for a math object */
-export type MathType<T extends Elements.MathRepresentation> = Elements.MathType<T>;
+export type MathType<T extends Elements.MathTypes> = Elements.MathType<T>;
 /** The math props of `P`, widened to what they accept */
 export type MathProps<P> = Elements.MathProps<P>;
 /** What a `Vector2` prop takes */

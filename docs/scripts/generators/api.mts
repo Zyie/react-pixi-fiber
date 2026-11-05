@@ -55,6 +55,16 @@ const ENTRY_INFO: Readonly<Record<EntryName, { position: number; summary: string
     summary:
       "react-three-fiber's API on pixi-3d: `Canvas`, `createRoot`, the hooks, `extend` and the JSX elements under three's names.",
   },
+  three: {
+    position: 2,
+    summary:
+      "three.js's API on pixi-3d, for code that imports from `three`: the math classes, the catalog's classes under three's names, and three's constants.",
+  },
+  addons: {
+    position: 3,
+    summary:
+      'What r3f apps import from `three/addons`, on pixi-3d: the loaders and controls, as they land. Empty for now: `GLTFLoader` and `OrbitControls` come here.',
+  },
 };
 
 /** The names a newcomer reaches for first, listed on the index with their own summaries, when the entry exports them */

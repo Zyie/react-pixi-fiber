@@ -1,8 +1,11 @@
 import type { Container3D } from '@pixi/3d';
-import type { Color, ColorSource } from 'pixi.js';
+import type { Color as PixiColor, ColorSource } from 'pixi.js';
 import type * as React from 'react';
 
+import type { Color as ThreeColor } from '../math/Color';
+import type { EulerOrder } from '../math/Euler';
 import type { EventHandlers } from './events';
+import type { Color } from './math';
 import type { RootStore } from './state';
 import type { ConstructorRepresentation, IsAllOptional, Mutable, Overwrite } from './utils';
 
@@ -17,36 +20,54 @@ export interface MathRepresentation {
 }
 
 /**
+ * Anything with three's Euler `set`: angles and an optional axis order, as a node's `rotation`
+ * @category types
+ * @advanced
+ */
+export interface EulerRepresentation {
+  /** Sets the angles and, optionally, the order */
+  set(x?: number, y?: number, z?: number, order?: EulerOrder): unknown;
+}
+
+/**
+ * Every object a math prop can hold: anything with a numeric `set`, which covers pixi-3d's vectors,
+ * quaternions and matrices, and Euler angles
+ * @category types
+ * @advanced
+ */
+export type MathTypes = MathRepresentation | EulerRepresentation;
+
+/**
  * What a math prop accepts: the object, the arguments of its `set`, or one number for every
  * component when `set` takes it (`scale={2}`)
  * @category types
  * @advanced
  */
-export type MathType<T extends MathRepresentation> =
+export type MathType<T extends MathTypes> =
   | T
   | Parameters<T['set']>
   | Readonly<Parameters<T['set']>>
   | (IsAllOptional<Parameters<T['set']>> extends true ? number : never);
 
 /**
- * The math props of `P`, widened to {@link MathType}
+ * The math props of `P`, widened to {@link MathType}; colours are {@link ColorProps}
  * @category types
  * @advanced
  */
 export type MathProps<P> = {
-  [K in keyof P as P[K] extends MathRepresentation ? K : never]: P[K] extends MathRepresentation
+  [K in keyof P as P[K] extends ThreeColor ? never : P[K] extends MathTypes ? K : never]: P[K] extends MathTypes
     ? MathType<P[K]>
     : never;
 };
 
 /**
- * The colour props of `P`, which take any pixi `ColorSource` (`color="red"`), as three's take a
- * `ColorRepresentation`
+ * The colour props of `P`: a three `Color` field takes what three's colour props take (`color="red"`,
+ * `color={0xff0000}`, `color={[1, 0, 0]}`), and a pixi `Color` field any pixi `ColorSource`
  * @category types
  * @advanced
  */
 export type ColorProps<P> = {
-  [K in keyof P as P[K] extends Color ? K : never]: ColorSource;
+  [K in keyof P as P[K] extends ThreeColor | PixiColor ? K : never]: P[K] extends ThreeColor ? Color : ColorSource;
 };
 
 /**

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { playwright } from '@vitest/browser-playwright';
 import { configDefaults, defineConfig } from 'vitest/config';
 
-import { fiberAlias, sharedAliases } from './scripts/test/aliases.mts';
+import { fiberAliases, sharedAliases } from './scripts/test/aliases.mts';
 import BrowserCommands from './scripts/test/browser-commands.mts';
 import generateTestWrappers from './scripts/test/generate-test-wrappers.mts';
 import { ParityReporter } from './scripts/test/parity.mts';
@@ -73,7 +73,7 @@ export default defineConfig({
       // a reference this run has just checked (or rewritten, with --update).
       {
         extends: true,
-        resolve: { alias: [fiberAlias('three')] },
+        resolve: { alias: fiberAliases('three') },
         test: {
           name: 'three',
           include: SCENE_WRAPPERS,
@@ -84,7 +84,7 @@ export default defineConfig({
       },
       {
         extends: true,
-        resolve: { alias: [fiberAlias('pixi')] },
+        resolve: { alias: fiberAliases('pixi') },
         test: {
           name: 'scenes',
           include: SCENE_WRAPPERS,
@@ -97,7 +97,7 @@ export default defineConfig({
       // of these runs the real requestAnimationFrame loop, which stalls while other pages hold the GPU.
       {
         extends: true,
-        resolve: { alias: [fiberAlias('pixi')] },
+        resolve: { alias: fiberAliases('pixi') },
         test: {
           name: 'unit',
           include: ['tests/unit/**/*.test.{ts,tsx}', 'tests/harness/__tests__/**/*.test.{ts,tsx}'],

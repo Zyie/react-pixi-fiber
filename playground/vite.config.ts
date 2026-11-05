@@ -3,7 +3,7 @@ import path from 'node:path';
 import { defineConfig } from 'vite';
 import type { Plugin } from 'vite';
 
-import { FIBER_TARGETS, sharedAliases } from '../scripts/test/aliases.mts';
+import { FIBER_TARGETS, isFiberEntry, sharedAliases } from '../scripts/test/aliases.mts';
 
 const root = import.meta.dirname;
 const projectRoot = path.resolve(root, '..');
@@ -15,10 +15,11 @@ const THREE_MARK = 'fiber=three';
 const SCRIPT = /\.[cm]?[jt]sx?$/;
 
 /**
- * Resolves `react-pixi-fiber` per frame, as vitest's `scenes` and `three` projects resolve it per
+ * Resolves the package's entries per frame, as vitest's `scenes` and `three` projects resolve them per
  * project. A frame on the three renderer loads its entry with `?fiber=three`; every script that entry
  * reaches outside `node_modules` is loaded with the same query, so it is a module of its own in that
- * frame, and `react-pixi-fiber` resolves to r3f's own entry there and to this library everywhere else.
+ * frame, and `react-pixi-fiber`, `react-pixi-fiber/three` and `react-pixi-fiber/addons` resolve to r3f's
+ * own entry, three and three's addons there, and to this library everywhere else.
  */
 function fiberPerFrame(): Plugin {
   return {
@@ -27,10 +28,11 @@ function fiberPerFrame(): Plugin {
     async resolveId(source, importer, options) {
       const three = importer?.includes(THREE_MARK) ?? false;
 
-      if (source === 'react-pixi-fiber') return three ? `${FIBER_TARGETS.three}?${THREE_MARK}` : FIBER_TARGETS.pixi;
+      if (isFiberEntry(source) && !three) return FIBER_TARGETS.pixi[source];
       if (!three) return null;
 
-      const resolved = await this.resolve(source, importer, { ...options, skipSelf: true });
+      const target = isFiberEntry(source) ? FIBER_TARGETS.three[source] : source;
+      const resolved = await this.resolve(target, importer, { ...options, skipSelf: true });
 
       if (
         !resolved ||

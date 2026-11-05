@@ -8,7 +8,7 @@ import useMeasure from 'react-use-measure';
 
 import type { DomEvent, SetBlock } from '#types';
 
-import type { Scene } from '../catalog/Scene';
+import type { Scene } from '../catalog/scene/Scene';
 import { createPointerEvents } from '../r3f/src/core/events';
 import { notifyRootExtensionsHmr } from '../r3f/src/core/extensions';
 import { useStore } from '../r3f/src/core/hooks/useStore';

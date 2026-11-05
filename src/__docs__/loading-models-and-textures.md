@@ -8,7 +8,8 @@ Pass the loader and the address of the texture, and use what comes back as a map
 
 ```tsx
 import { Suspense } from 'react';
-import { Canvas, TextureLoader, useLoader } from 'react-pixi-fiber';
+import { Canvas, useLoader } from 'react-pixi-fiber';
+import { TextureLoader } from 'react-pixi-fiber/three';
 
 function Crate() {
   const colorMap = useLoader(TextureLoader, 'crate.png');
@@ -34,7 +35,7 @@ export default function App() {
 }
 ```
 
-`TextureLoader` comes from `react-pixi-fiber`, not from three. The component suspends until the texture has loaded, so it sits under a `<Suspense>`.
+`TextureLoader` comes from `react-pixi-fiber/three`, which has three's classes under three's names, in place of `three`. The component suspends until the texture has loaded, so it sits under a `<Suspense>`.
 
 Load several at once by passing an array, and get them back in the same order:
 

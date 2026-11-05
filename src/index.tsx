@@ -21,8 +21,8 @@ import * as React from 'react';
 import type Reconciler from 'react-reconciler';
 
 import type { PixiCatalog } from './catalog/catalog';
-import type { OrthographicCamera } from './catalog/OrthographicCamera';
-import type { Frustum } from './compat/Frustum';
+import type { OrthographicCamera } from './catalog/scene/OrthographicCamera';
+import type { Frustum } from './math/Frustum';
 import {
   createEvents as coreCreateEvents,
   createPointerEvents as coreEvents,
@@ -113,33 +113,9 @@ import type { Act, Bridge, ConstructorRepresentation, EquConfig, UnblockProps } 
 export { Canvas } from './root/Canvas';
 export { createRoot } from './root/createRoot';
 
-export { AmbientLight } from './catalog/AmbientLight';
-export { BoxGeometry } from './catalog/BoxGeometry';
 export { aliases, catalog, type AliasCatalog, type PixiCatalog } from './catalog/catalog';
-export * from './catalog/constants';
-export { DirectionalLight } from './catalog/DirectionalLight';
-export { Group } from './catalog/Group';
-export { Mesh } from './catalog/Mesh';
-export { MeshBasicMaterial, type MeshBasicMaterialParameters } from './catalog/MeshBasicMaterial';
-export { MeshStandardMaterial, type MeshStandardMaterialParameters } from './catalog/MeshStandardMaterial';
-export { Object3D } from './catalog/Object3D';
-export { OrthographicCamera } from './catalog/OrthographicCamera';
-export { PerspectiveCamera } from './catalog/PerspectiveCamera';
-export { PlaneGeometry } from './catalog/PlaneGeometry';
-export { PointLight } from './catalog/PointLight';
-export { Scene } from './catalog/Scene';
-export { SphereGeometry } from './catalog/SphereGeometry';
-export { TextureLoader } from './catalog/TextureLoader';
-export { Frustum } from './compat/Frustum';
 export type { CameraMembers, Object3DMembers } from './compat/installObject3DSurface';
-export {
-  Raycaster,
-  type Face,
-  type Intersection as RaycastIntersection,
-  type RaycasterParameters,
-} from './compat/Raycaster';
-export { ThreeVector2 } from './compat/ThreeVector2';
-export { ThreeVector3 } from './compat/ThreeVector3';
+export type { ThreeMatrix4Members, ThreeQuaternionMembers, ThreeVector3Members } from './compat/threeMembers';
 export { PixiRenderer, type PixiRendererParameters, type PixiShadowMap } from './renderer/PixiRenderer';
 export { pixiSupport, type PixiSupport } from './support/pixiSupport';
 export type * from './types/canvas';
@@ -362,7 +338,8 @@ export interface UseLoader {
  * Loads assets with a loader and suspends until they are ready; wrap the caller in `<Suspense>`
  * @example
  * ```tsx
- * import { TextureLoader, useLoader } from 'react-pixi-fiber';
+ * import { useLoader } from 'react-pixi-fiber';
+ * import { TextureLoader } from 'react-pixi-fiber/three';
  *
  * const texture = useLoader(TextureLoader, '/crate.png');
  * ```

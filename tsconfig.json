@@ -23,6 +23,8 @@
       "~/*": ["./src/*"],
       // Scenes, examples, the playground and docs import the library by its package name.
       "react-pixi-fiber": ["./src/index.tsx"],
+      "react-pixi-fiber/three": ["./src/three.ts"],
+      "react-pixi-fiber/addons": ["./src/addons/index.ts"],
       // r3f's alias for its types folder, used throughout the vendored source.
       "#types": ["./src/r3f/types/index.ts"],
       "#types/*": ["./src/r3f/types/*"],

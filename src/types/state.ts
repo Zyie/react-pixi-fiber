@@ -5,11 +5,11 @@ import type { RefObject } from 'react';
 import type { StoreApi } from 'zustand';
 import type { UseBoundStoreWithEqualityFn } from 'zustand/traditional';
 
-import type { Scene } from '../catalog/Scene';
-import type { Frustum } from '../compat/Frustum';
+import type { Scene } from '../catalog/scene/Scene';
 import type { Raycaster } from '../compat/Raycaster';
-import type { ThreeVector2 } from '../compat/ThreeVector2';
-import type { ThreeVector3 } from '../compat/ThreeVector3';
+import type { Frustum } from '../math/Frustum';
+import type { Vector2 as ThreeVector2 } from '../math/Vector2';
+import type { Vector3 as ThreeVector3 } from '../math/Vector3';
 import type { PixiRenderer } from '../renderer/PixiRenderer';
 import type { PixiSupport } from '../support/pixiSupport';
 import type { Camera, DomEvent, EventManager, PointerCaptureTarget, ThreeEvent } from './events';

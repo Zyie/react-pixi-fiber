@@ -3,7 +3,8 @@ import type { Container3D, ShadowFilter, ToneMapping } from '@pixi/3d';
 import { Color, Container, autoDetectRenderer } from 'pixi.js';
 import type { ColorSource, Renderer } from 'pixi.js';
 
-import { DirectionalLight } from '../catalog/DirectionalLight';
+import { DirectionalLight } from '../catalog/lights/DirectionalLight';
+import { Color as ThreeColor, toPixiColor } from '../math/Color';
 import { setShadowsEnabled } from './shadowViews';
 
 /**
@@ -68,6 +69,17 @@ const proxyPosition = new Vector3();
 const proxyQuaternion = new Quaternion();
 const proxyScale = new Vector3();
 
+type SceneBackground = ThreeColor | ColorSource | View3D['background'] | null | undefined;
+
+/** Whether a scene's background is a colour, which three clears the canvas to, untouched by tone mapping */
+const isColorBackground = (background: SceneBackground): background is ThreeColor | ColorSource =>
+  background instanceof ThreeColor ||
+  background instanceof Color ||
+  typeof background === 'string' ||
+  typeof background === 'number' ||
+  Array.isArray(background) ||
+  ArrayBuffer.isView(background);
+
 const isDescendant = (node: Container3D, root: Container3D): boolean => {
   for (let parent = node.parent; parent; parent = parent.parent) if (parent === root) return true;
   return false;
@@ -87,8 +99,10 @@ const isDescendant = (node: Container3D, root: Container3D): boolean => {
  *
  * three's renderer settings are forwarded to each view as it draws: `toneMapping` and
  * `toneMappingExposure` become the view's tone mapping and exposure, and `shadowMap.type` its shadow
- * filter. `shadowMap.enabled` gates which lights cast shadows. The background is transparent unless
- * `alpha` is `false`, as in three.
+ * filter. `shadowMap.enabled` gates which lights cast shadows. A scene whose `background` is a colour,
+ * a three `Color` or a pixi `ColorSource`, clears the canvas to it before it draws, as three's does,
+ * untouched by tone mapping; any other background, such as a pixi-3d `CubeTexture`, becomes its view's.
+ * The canvas is transparent unless `alpha` is `false`, as in three.
  * @example
  * ```tsx
  * import { Canvas, useThree } from 'react-pixi-fiber';
@@ -138,6 +152,9 @@ export class PixiRenderer {
   private readonly _empty = new Container();
   private readonly _clearColor = new Color(0x000000);
   private _clearAlpha: number;
+  /** The scene background pixi.js's background holds, or `null` while it holds the clear colour */
+  private _backgroundKey: unknown = null;
+  private readonly _backgroundRGB: [number, number, number] = [-1, -1, -1];
   private _width = 300;
   private _height = 150;
   private _pixelRatio = 1;
@@ -237,6 +254,7 @@ export class PixiRenderer {
   public setClearColor(color: ColorSource, alpha = 1): void {
     this._clearColor.setValue(color);
     this._clearAlpha = alpha;
+    this._backgroundKey = null;
     if (this.pixi) {
       this.pixi.background.color = this._clearColor;
       this.pixi.background.alpha = alpha;
@@ -300,13 +318,17 @@ export class PixiRenderer {
       view.camera = entry.proxy;
     }
 
-    this._applySettings(entry, scene);
-    pixi.render({ container: entry.stage, clear: this.autoClear });
+    const background = (scene as Container3D & { background?: SceneBackground }).background;
+    const clearToBackground = this._applyBackground(pixi, background);
+    this._applySettings(entry, background);
+    pixi.render({ container: entry.stage, clear: this.autoClear || clearToBackground });
   }
 
   /** Clears the canvas to the clear colour */
   public clear(): void {
-    this.pixi?.render({ container: this._empty, clear: true });
+    if (!this.pixi) return;
+    this._applyBackground(this.pixi, null);
+    this.pixi.render({ container: this._empty, clear: true });
   }
 
   /**
@@ -367,7 +389,43 @@ export class PixiRenderer {
     proxy.scale.copyFrom(proxyScale);
   }
 
-  private _applySettings(entry: SceneView, scene: Container3D): void {
+  /**
+   * Puts a colour background on pixi.js's background, which the canvas clears to before the scene draws,
+   * as three clears to a colour background whether `autoClear` is on or not; anything else leaves the
+   * clear colour there
+   * @returns Whether the scene has a colour background
+   */
+  private _applyBackground(pixi: Renderer, background: SceneBackground): boolean {
+    if (background instanceof ThreeColor) {
+      const rgb = toPixiColor(background);
+      const last = this._backgroundRGB;
+      if (this._backgroundKey !== background || last[0] !== rgb[0] || last[1] !== rgb[1] || last[2] !== rgb[2]) {
+        this._backgroundKey = background;
+        last[0] = rgb[0];
+        last[1] = rgb[1];
+        last[2] = rgb[2];
+        pixi.background.color = rgb;
+        pixi.background.alpha = 1;
+      }
+      return true;
+    }
+    if (isColorBackground(background)) {
+      if (this._backgroundKey !== background) {
+        this._backgroundKey = background;
+        pixi.background.color = background;
+        pixi.background.alpha = 1;
+      }
+      return true;
+    }
+    if (this._backgroundKey !== null) {
+      this._backgroundKey = null;
+      pixi.background.color = this._clearColor;
+      pixi.background.alpha = this._clearAlpha;
+    }
+    return false;
+  }
+
+  private _applySettings(entry: SceneView, background: SceneBackground): void {
     const { view } = entry;
     const toneMapping = TONE_MAPPINGS[this.toneMapping] ?? 'aces';
     if (view.toneMapping !== toneMapping) view.toneMapping = toneMapping;
@@ -376,10 +434,12 @@ export class PixiRenderer {
     if (view.shadowFilter !== shadowFilter) view.shadowFilter = shadowFilter;
     setShadowsEnabled(view, this.shadowMap.enabled);
 
-    const background = (scene as Container3D & { background?: ColorSource | null }).background;
-    if (background !== undefined && background !== entry.background) {
-      entry.background = background;
-      view.background = background;
+    if (background !== undefined) {
+      const viewBackground = isColorBackground(background) ? null : background;
+      if (viewBackground !== entry.background) {
+        entry.background = viewBackground;
+        view.background = viewBackground;
+      }
     }
 
     for (const light of view.lights) if (light instanceof DirectionalLight) light.aimAtTarget();

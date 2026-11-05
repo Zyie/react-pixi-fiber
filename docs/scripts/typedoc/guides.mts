@@ -56,6 +56,7 @@ export const GUIDES: readonly Guide[] = [
     file: 'src/__docs__/loading-models-and-textures.md',
     section: 'tutorials',
   },
+  { id: 'three-entry', title: 'The three entry', file: 'src/__docs__/three-entry.md', section: 'reference' },
   {
     id: DIFFERENCES_ID,
     title: 'Differences from react-three-fiber',

@@ -1,72 +1,40 @@
 import * as PIXI3D from '@pixi/3d';
 
-import { Frustum } from '../compat/Frustum';
-import { Raycaster } from '../compat/Raycaster';
-import { ThreeVector2 } from '../compat/ThreeVector2';
-import { ThreeVector3 } from '../compat/ThreeVector3';
-import { AmbientLight } from './AmbientLight';
-import { BoxGeometry } from './BoxGeometry';
+import * as animation from '../animation';
+import * as environment from '../environment';
+import * as events from '../events';
+import * as loaders from '../loaders';
+import * as math from '../math';
 import * as constants from './constants';
-import { DirectionalLight } from './DirectionalLight';
-import { Group } from './Group';
-import { Mesh } from './Mesh';
-import { MeshBasicMaterial } from './MeshBasicMaterial';
-import { MeshStandardMaterial } from './MeshStandardMaterial';
-import { Object3D } from './Object3D';
-import { OrthographicCamera } from './OrthographicCamera';
-import { PerspectiveCamera } from './PerspectiveCamera';
-import { PlaneGeometry } from './PlaneGeometry';
-import { PointLight } from './PointLight';
-import { Scene } from './Scene';
-import { SphereGeometry } from './SphereGeometry';
-import { TextureLoader } from './TextureLoader';
+import * as drawables from './drawables';
+import * as geometries from './geometries';
+import * as instancing from './instancing';
+import * as lights from './lights';
+import * as materials from './materials';
+import * as objects from './objects';
+import * as scene from './scene';
+import * as textures from './textures';
 
 /**
  * Classes under three's names: the JSX aliases (`<mesh>`, `<boxGeometry>`, ...) and the math classes
- * r3f's core builds by name (`Vector3`, `Raycaster`, `Frustum`, ...)
+ * r3f's core builds by name (`Vector3`, `Raycaster`, `Frustum`, ...). Each feature area's module
+ * (`src/catalog/<area>`, `src/math`, `src/events`, `src/loaders`, ...) adds to it by exporting a class.
  * @category catalog
  * @advanced
  */
-export interface AliasCatalog {
-  /** three's `Scene` */
-  Scene: typeof Scene;
-  /** three's `Object3D` */
-  Object3D: typeof Object3D;
-  /** three's `Group` */
-  Group: typeof Group;
-  /** three's `Mesh` */
-  Mesh: typeof Mesh;
-  /** three's `PerspectiveCamera` */
-  PerspectiveCamera: typeof PerspectiveCamera;
-  /** three's `OrthographicCamera` */
-  OrthographicCamera: typeof OrthographicCamera;
-  /** three's `BoxGeometry` */
-  BoxGeometry: typeof BoxGeometry;
-  /** three's `SphereGeometry` */
-  SphereGeometry: typeof SphereGeometry;
-  /** three's `PlaneGeometry` */
-  PlaneGeometry: typeof PlaneGeometry;
-  /** three's `MeshStandardMaterial` */
-  MeshStandardMaterial: typeof MeshStandardMaterial;
-  /** three's `MeshBasicMaterial` */
-  MeshBasicMaterial: typeof MeshBasicMaterial;
-  /** three's `AmbientLight` */
-  AmbientLight: typeof AmbientLight;
-  /** three's `DirectionalLight` */
-  DirectionalLight: typeof DirectionalLight;
-  /** three's `PointLight` */
-  PointLight: typeof PointLight;
-  /** three's `TextureLoader` */
-  TextureLoader: typeof TextureLoader;
-  /** three's `Vector2` */
-  Vector2: typeof ThreeVector2;
-  /** three's `Vector3` */
-  Vector3: typeof ThreeVector3;
-  /** three's `Frustum` */
-  Frustum: typeof Frustum;
-  /** three's `Raycaster` */
-  Raycaster: typeof Raycaster;
-}
+export type AliasCatalog = typeof math &
+  typeof objects &
+  typeof scene &
+  typeof lights &
+  typeof geometries &
+  typeof materials &
+  typeof drawables &
+  typeof instancing &
+  typeof textures &
+  typeof loaders &
+  typeof animation &
+  typeof events &
+  typeof environment;
 
 /**
  * Everything a root on this renderer resolves JSX names and core classes from: pixi-3d's exports
@@ -80,30 +48,25 @@ export type PixiCatalog = Omit<typeof PIXI3D, keyof AliasCatalog | keyof typeof 
 
 /**
  * The three-named classes; they win over pixi-3d's own classes of the same name (`SphereGeometry`,
- * `AmbientLight`, ...), whose options-object constructors would ignore three's positional `args`
+ * `AmbientLight`, `Vector3`, ...), whose options-object constructors would ignore three's positional
+ * `args`
  * @category catalog
  * @advanced
  */
 export const aliases: AliasCatalog = {
-  Scene,
-  Object3D,
-  Group,
-  Mesh,
-  PerspectiveCamera,
-  OrthographicCamera,
-  BoxGeometry,
-  SphereGeometry,
-  PlaneGeometry,
-  MeshStandardMaterial,
-  MeshBasicMaterial,
-  AmbientLight,
-  DirectionalLight,
-  PointLight,
-  TextureLoader,
-  Vector2: ThreeVector2,
-  Vector3: ThreeVector3,
-  Frustum,
-  Raycaster,
+  ...math,
+  ...objects,
+  ...scene,
+  ...lights,
+  ...geometries,
+  ...materials,
+  ...drawables,
+  ...instancing,
+  ...textures,
+  ...loaders,
+  ...animation,
+  ...events,
+  ...environment,
 };
 
 /**

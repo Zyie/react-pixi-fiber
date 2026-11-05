@@ -5,8 +5,9 @@ import type {
   Vector2 as PixiVector2,
   Vector4 as PixiVector4,
 } from '@pixi/3d';
-import type { ColorSource } from 'pixi.js';
 
+import type { Color as ThreeColor, ColorRepresentation } from '../math/Color';
+import type { Euler as ThreeEuler } from '../math/Euler';
 import type { MathRepresentation, MathType } from './elements';
 
 /**
@@ -27,14 +28,6 @@ export interface VectorRepresentation extends MathRepresentation {
   /** Sets every component to one value */
   setScalar(value: number): unknown;
 }
-
-/**
- * Every object a math prop can hold: anything with a numeric `set`, which covers pixi-3d's
- * vectors, quaternions and matrices
- * @category types
- * @advanced
- */
-export type MathTypes = MathRepresentation;
 
 /**
  * What a `Vector2` prop takes: a vector, `[x, y]`, or one number for both
@@ -67,12 +60,12 @@ export type Vector3 = MathType<Container3D['position']>;
 export type Vector4 = MathType<PixiVector4>;
 
 /**
- * What a `rotation` prop takes: Euler angles in radians as a vector, `[x, y, z]`, or one number
- * for all three. pixi-3d keeps rotation in a vector, so three's order argument has no slot.
+ * What a `rotation` prop takes: Euler angles in radians, `[x, y, z]` or `[x, y, z, order]`, an
+ * `Euler`, or one number for all three
  * @category math
  * @standard
  */
-export type Euler = MathType<Container3D['rotation']>;
+export type Euler = MathType<ThreeEuler>;
 
 /**
  * What a `quaternion` prop takes: a quaternion or `[x, y, z, w]`
@@ -96,9 +89,9 @@ export type Matrix3 = MathType<PixiMatrix3>;
 export type Matrix4 = MathType<PixiMatrix4>;
 
 /**
- * What a colour prop takes: any pixi `ColorSource`, such as `"red"`, `"#ff8800"`, `0xff8800` or
- * `[1, 0.5, 0]`, as three's take a `ColorRepresentation`
+ * What a colour prop takes, as in r3f: a CSS colour (`"red"`, `"#ff8800"`), an sRGB hex number
+ * (`0xff8800`), a three `Color`, or linear `[r, g, b]`
  * @category math
  * @standard
  */
-export type Color = ColorSource;
+export type Color = ColorRepresentation | ConstructorParameters<typeof ThreeColor>;

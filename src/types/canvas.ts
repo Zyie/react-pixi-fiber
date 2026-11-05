@@ -2,9 +2,9 @@ import type { ColorSource } from 'pixi.js';
 import type * as React from 'react';
 import type { Options as ResizeOptions } from 'react-use-measure';
 
-import type { OrthographicCamera } from '../catalog/OrthographicCamera';
-import type { PerspectiveCamera } from '../catalog/PerspectiveCamera';
-import type { Scene } from '../catalog/Scene';
+import type { OrthographicCamera } from '../catalog/scene/OrthographicCamera';
+import type { PerspectiveCamera } from '../catalog/scene/PerspectiveCamera';
+import type { Scene } from '../catalog/scene/Scene';
 import type { Raycaster } from '../compat/Raycaster';
 import type { PixiRenderer, PixiRendererParameters } from '../renderer/PixiRenderer';
 import type { ThreeElement } from './elements';

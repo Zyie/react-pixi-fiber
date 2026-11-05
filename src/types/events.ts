@@ -1,10 +1,10 @@
 import type { Container3D, Ray } from '@pixi/3d';
 
-import type { OrthographicCamera } from '../catalog/OrthographicCamera';
-import type { PerspectiveCamera } from '../catalog/PerspectiveCamera';
+import type { OrthographicCamera } from '../catalog/scene/OrthographicCamera';
+import type { PerspectiveCamera } from '../catalog/scene/PerspectiveCamera';
 import type { Intersection as RaycastIntersection } from '../compat/Raycaster';
-import type { ThreeVector2 } from '../compat/ThreeVector2';
-import type { ThreeVector3 } from '../compat/ThreeVector3';
+import type { Vector2 as ThreeVector2 } from '../math/Vector2';
+import type { Vector3 as ThreeVector3 } from '../math/Vector3';
 import type { RootState } from './state';
 import type { Properties } from './utils';
 

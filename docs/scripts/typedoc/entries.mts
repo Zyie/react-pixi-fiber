@@ -1,7 +1,8 @@
 /**
- * The entries of the package, each what a consumer imports by one name. react-pixi-fiber has one, the
- * main entry, `src/index.tsx` (or `src/index.ts`), which re-exports r3f's vendored core with the pixi-3d
- * support. A second entry is a line here; the API reference gets an overview and pages for it.
+ * The entries of the package, each what a consumer imports by one name: the main entry, `src/index.tsx`,
+ * which re-exports r3f's vendored core with the pixi-3d support; `react-pixi-fiber/three`, three's API
+ * over pixi-3d, `src/three.ts`; and `react-pixi-fiber/addons`, what r3f apps import from `three/addons`,
+ * `src/addons/index.ts`. Another entry is a line here; the API reference gets an overview and pages for it.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -17,7 +18,11 @@ export interface Entry {
 }
 
 /** Every package entry */
-export const ENTRIES = [{ name: 'react-pixi-fiber', subpath: '.', file: 'index' }] as const satisfies readonly Entry[];
+export const ENTRIES = [
+  { name: 'react-pixi-fiber', subpath: '.', file: 'index' },
+  { name: 'three', subpath: './three', file: 'three' },
+  { name: 'addons', subpath: './addons', file: 'addons/index' },
+] as const satisfies readonly Entry[];
 
 /** The name of a package entry */
 export type EntryName = (typeof ENTRIES)[number]['name'];

@@ -1,8 +1,9 @@
 import type { WebGLRenderer } from 'pixi.js';
 import { act, useState } from 'react';
 import type { ReactNode } from 'react';
-import { PerspectiveCamera, Scene, createPortal, createRoot, useFrame } from 'react-pixi-fiber';
+import { createPortal, createRoot, useFrame } from 'react-pixi-fiber';
 import type { ReconcilerRoot, RootState } from 'react-pixi-fiber';
+import { PerspectiveCamera, Scene } from 'react-pixi-fiber/three';
 import { afterEach, beforeAll, expect, it } from 'vitest';
 
 let root: ReconcilerRoot<HTMLCanvasElement> | undefined;
