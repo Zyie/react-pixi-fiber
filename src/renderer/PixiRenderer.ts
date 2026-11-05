@@ -124,6 +124,7 @@ export class PixiRenderer {
   private readonly _antialias: boolean;
   private readonly _powerPreference: PixiRendererParameters['powerPreference'];
   private readonly _views = new Map<Container3D, SceneView>();
+  private readonly _empty = new Container();
   private readonly _clearColor = new Color(0x000000);
   private _clearAlpha: number;
   private _width = 300;
@@ -282,7 +283,7 @@ export class PixiRenderer {
 
   /** Clears the canvas to the clear colour */
   public clear(): void {
-    this.pixi?.render({ container: new Container(), clear: true });
+    this.pixi?.render({ container: this._empty, clear: true });
   }
 
   /**
@@ -304,6 +305,7 @@ export class PixiRenderer {
   /** Frees every view and the pixi.js renderer; scenes keep their children */
   public dispose(): void {
     for (const scene of this._views.keys()) this.releaseView(scene);
+    this._empty.destroy();
     this.pixi?.destroy();
     this.pixi = null;
   }

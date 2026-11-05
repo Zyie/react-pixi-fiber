@@ -1,5 +1,5 @@
 /**
- * The spike's behaviours, kept passing while the library core is built. Temporary: the harness turns
+ * What the feasibility spike proved, kept passing while the library core is built. Temporary: the harness turns
  * each of these into a visual scene.
  */
 import { AmbientLight as PixiAmbientLight, CubeGeometry, Material3D, Mesh3D } from '@pixi/3d';

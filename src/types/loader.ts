@@ -1,3 +1,5 @@
+import type { Container3D } from '@pixi/3d';
+
 import type { ConstructorRepresentation } from './utils';
 
 /**
@@ -42,3 +44,14 @@ export type LoaderResult<T> =
  * @advanced
  */
 export type Extensions<T> = (loader: LoaderInstance<T>) => void;
+
+/**
+ * What `useGraph` returns: named nodes, materials and meshes
+ * @category types
+ * @standard
+ */
+export interface ObjectMap {
+  nodes: Record<string, Container3D>;
+  materials: Record<string, unknown>;
+  meshes: Record<string, Container3D>;
+}

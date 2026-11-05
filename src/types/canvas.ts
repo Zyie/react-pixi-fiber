@@ -1,4 +1,3 @@
-import type { Container3D } from '@pixi/3d';
 import type { ColorSource } from 'pixi.js';
 import type * as React from 'react';
 import type { Options as ResizeOptions } from 'react-use-measure';
@@ -172,14 +171,3 @@ export type InjectState = Partial<
     injectScene?: boolean;
   }
 >;
-
-/**
- * What `useGraph` returns: named nodes, materials and meshes
- * @category types
- * @standard
- */
-export interface ObjectMap {
-  nodes: Record<string, Container3D>;
-  materials: Record<string, unknown>;
-  meshes: Record<string, Container3D>;
-}

@@ -44,10 +44,10 @@ import {
   getRootState as coreGetRootState,
   once as coreOnce,
 } from './r3f/src/core/utils';
-import type { InjectState, ObjectMap } from './types/canvas';
+import type { InjectState } from './types/canvas';
 import type { ThreeElement, ThreeElementsOf, Instance } from './types/elements';
 import type { EventManager } from './types/events';
-import type { Extensions, InputLike, LoaderLike, LoaderResult } from './types/loader';
+import type { Extensions, InputLike, LoaderLike, LoaderResult, ObjectMap } from './types/loader';
 import type { RootState, RootStore } from './types/state';
 import type { Act, ConstructorRepresentation } from './types/utils';
 
