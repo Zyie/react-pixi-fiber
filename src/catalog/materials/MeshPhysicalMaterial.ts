@@ -108,7 +108,8 @@ let warned = false;
  * after that warns and does nothing until the material is built again; once on, a feature stays on
  * and follows its value. Transmission draws in pixi-3d's transmission pass, over a copy of the
  * opaque picture. The physical maps (`clearcoatMap`, `sheenColorMap`, `transmissionMap`, ...) and
- * `dispersion` aren't taken.
+ * `dispersion` aren't taken, nor, as on {@link MeshStandardMaterial}, are `displacementMap`, `bumpMap`,
+ * `lightMap` and `envMap`.
  * @example
  * ```tsx
  * <meshPhysicalMaterial color="crimson" clearcoat={1} clearcoatRoughness={0.1} metalness={0.2} />

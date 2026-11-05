@@ -60,6 +60,8 @@ const [colorMap, normalMap, roughnessMap, aoMap] = useLoader(TextureLoader, [
 ]);
 ```
 
+r3f's tutorial ends by adding a `displacementMap` and `displacementScale={0.2}` to a finely divided sphere. Both compile here and do nothing: pixi-3d's materials have no displacement, so the sphere keeps its shape (see [Differences](differences.md)).
+
 ## Using `useTexture`
 
 `useTexture` loads through `TextureLoader` without importing it. Pass one URL, or a list:

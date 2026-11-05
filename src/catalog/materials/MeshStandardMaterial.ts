@@ -46,6 +46,22 @@ export interface MeshStandardMaterialParameters extends MaterialParameters {
   alphaMap?: Texture | null;
   /** Kept for three's shape: the environment's strength is the scene's */
   envMapIntensity?: number;
+  /** Kept for three's shape: pixi-3d's PBR material has no displacement */
+  displacementMap?: Texture | null;
+  /** Kept for three's shape, with `displacementMap` */
+  displacementScale?: number;
+  /** Kept for three's shape, with `displacementMap` */
+  displacementBias?: number;
+  /** Kept for three's shape: pixi-3d's PBR material has no bump map */
+  bumpMap?: Texture | null;
+  /** Kept for three's shape, with `bumpMap` */
+  bumpScale?: number;
+  /** Kept for three's shape: the environment is the scene's */
+  envMap?: Texture | null;
+  /** Kept for three's shape: pixi-3d's PBR material has no light map */
+  lightMap?: Texture | null;
+  /** Kept for three's shape, with `lightMap` */
+  lightMapIntensity?: number;
   /** Whether each triangle is shaded with its face normal */
   flatShading?: boolean;
 }
@@ -66,8 +82,10 @@ const STANDARD_SWAPS: ReadonlyMap<ShaderBit, ShaderBit> = new Map([
  * `color` and `emissive` are three `Color`s, so `material.color.set('hotpink')`, `color="hotpink"`
  * and `color-r={1}` all work. It is built with pixi-3d's emissive feature on, black until you set
  * `emissive`, since pixi-3d can't turn a feature on later. `normalScale` bends both axes by its `x`:
- * pixi-3d takes one scale. `envMapIntensity` is kept and does nothing; the environment's strength is
- * the scene's.
+ * pixi-3d takes one scale. `envMap` and `envMapIntensity` are kept and do nothing: the environment and
+ * its strength are the scene's. So are `displacementMap`, `bumpMap` and `lightMap`, with their scales,
+ * bias and intensity, which pixi-3d's PBR material has no counterpart for: a displaced sphere draws
+ * as a plain one.
  * @example
  * ```tsx
  * <meshStandardMaterial color="hotpink" roughness={0.25} metalness={0.5} />
@@ -82,6 +100,22 @@ export class MeshStandardMaterial extends Material3D {
   public type = 'MeshStandardMaterial';
   /** Kept for three's shape: the environment's strength is the scene's */
   public envMapIntensity: number = 1;
+  /** Kept for three's shape: the environment is the scene's */
+  public envMap: Texture | null = null;
+  /** Kept for three's shape: pixi-3d's PBR material has no displacement */
+  public displacementMap: Texture | null = null;
+  /** Kept for three's shape, with `displacementMap` */
+  public displacementScale: number = 1;
+  /** Kept for three's shape, with `displacementMap` */
+  public displacementBias: number = 0;
+  /** Kept for three's shape: pixi-3d's PBR material has no bump map */
+  public bumpMap: Texture | null = null;
+  /** Kept for three's shape, with `bumpMap` */
+  public bumpScale: number = 1;
+  /** Kept for three's shape: pixi-3d's PBR material has no light map */
+  public lightMap: Texture | null = null;
+  /** Kept for three's shape, with `lightMap` */
+  public lightMapIntensity: number = 1;
   /**
    * Colour the surface gives off whatever the lighting, three's `emissive`; black for none. pixi-3d's
    * own `emissive` controls are kept inside, and `emissiveIntensity` scales it.
