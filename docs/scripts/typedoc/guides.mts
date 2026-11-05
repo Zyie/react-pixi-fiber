@@ -56,6 +56,13 @@ export const GUIDES: readonly Guide[] = [
     file: 'src/__docs__/loading-models-and-textures.md',
     section: 'tutorials',
   },
+  {
+    id: 'objects',
+    title: 'Objects, properties and arguments',
+    label: 'Objects',
+    file: 'src/__docs__/objects.md',
+    section: 'reference',
+  },
   { id: 'three-entry', title: 'The three entry', file: 'src/__docs__/three-entry.md', section: 'reference' },
   {
     id: DIFFERENCES_ID,

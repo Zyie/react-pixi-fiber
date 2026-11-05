@@ -2,6 +2,7 @@ import { Matrix4, Mesh3D, Ray, Vector3 as PixiVector3, createHitResult3D, inters
 import type { Camera3D, Container3D, PointData3D } from '@pixi/3d';
 import type { PointData } from 'pixi.js';
 
+import { BufferGeometry } from '../catalog/geometries/BufferGeometry';
 import { Vector2 } from '../math/Vector2';
 import { Vector3 } from '../math/Vector3';
 import { cameraProjectionInverse, cameraWorld } from './cameraMatrices';
@@ -237,7 +238,7 @@ export function raycastMesh(mesh: Mesh3D, raycaster: Raycaster, intersects: Inte
     object: mesh,
     face: { a: vertex(0), b: vertex(1), c: vertex(2), normal, materialIndex: 0 },
     faceIndex: triangle,
-    uv: new Vector2(hit.uv.x, hit.uv.y),
+    uv: new Vector2(hit.uv.x, geometry instanceof BufferGeometry ? 1 - hit.uv.y : hit.uv.y),
     normal: normal.clone(),
   });
 }
