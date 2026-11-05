@@ -30,7 +30,7 @@ Parity is measured, not assumed: every scene and example is a visual test that r
 
 ## Status
 
-Unreleased and local. `@pixi/3d` isn't on npm yet, so the library builds against its source in `.repos/pixi-3d`. The catalog covers the common r3f scene: meshes, groups, box, sphere and plane geometries, standard and basic materials with `map`, ambient, directional and point lights, directional shadows, perspective and orthographic cameras, and textures through `useLoader` and `useTexture`. Every node has three's `Object3D` surface, and `react-pixi-fiber/three` has three's math, `Color` with its colour management, the catalog's classes and three's constants. Events, `useFrame`, `useThree`, portals and Suspense are r3f's own.
+Unreleased and local. `@pixi/3d` isn't on npm yet, so the library builds against its source in `.repos/pixi-3d`. The catalog has three's geometries (but tube, extrude and shape), its standard, physical, basic, Phong, Lambert, toon, normal and matcap materials with their maps, lines, points, sprites, `instancedMesh`, every light but area lights and probes, shadows, fog, cameras, render targets and cube cameras. `react-pixi-fiber/three` has three's math, `Color` with its colour management, the catalog's classes, its loaders, `AnimationMixer` and three's constants, and `react-pixi-fiber/addons` has `GLTFLoader`, `OrbitControls`, `MapControls`, `HDRLoader` and `RGBELoader`. `<Environment>`, `useTexture` and `useRenderTarget` are r3f's API on pixi-3d. Every node has three's `Object3D` surface and three's picking. Events, `useFrame`, `useThree`, portals and Suspense are r3f's own.
 
 ## Develop
 

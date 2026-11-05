@@ -41,7 +41,7 @@ Core never imports `three` for a value. It reaches three through three seams, an
 - `resolveConstructor()` (`core/extend.ts`): an element name resolves through `extend()` registrations, then `support.three` of the root's renderer.
 - Duck typing: `isObject3D`, `isCamera`, `isScene`, `isBufferGeometry`, `isMaterial`, `uuid`, `add`/`remove`, `raycast`, `dispose`. Core never uses `instanceof`.
 
-We use core's modules (root, reconciler, store, loop, events, portal, hooks) through `src/index.tsx`. We don't use `core/components/Environment`, `core/hooks/useEnvironment` (three's addons) or `core/hooks/useRenderTarget` (it never disposes its target); `src/environment` has adapted copies of all three, r3f's entries (`index.tsx`, `legacy.tsx`, `webgpu/`), `web/Canvas.tsx` (it imports Environment) or `support/*` (three's renderers). They stay in the copy, unedited. `legacy.tsx` and `support/webgl.ts` matter: the parity harness renders scenes through them.
+We use core's modules (root, reconciler, store, loop, events, portal, hooks) through `src/index.tsx`. We don't use `core/components/Environment`, `core/hooks/useEnvironment` (three's addons) or `core/hooks/useRenderTarget` (it never disposes its target); `src/environment` has adapted copies of all three. Nor do we use r3f's entries (`index.tsx`, `legacy.tsx`, `webgpu/`), `web/Canvas.tsx` (it imports Environment; `src/root/Canvas.tsx` is its adapted copy) or `support/*` (three's renderers). They stay in the copy, unedited. `legacy.tsx` and `support/webgl.ts` matter: the parity harness renders scenes through them.
 
 ## The support
 
@@ -117,7 +117,7 @@ The classes live in area modules, each a folder with an `index.ts` that exports 
 | `src/catalog/textures`, `src/loaders`, `src/animation`                     | `Texture` and its kinds; three's core loaders; `AnimationMixer`, clips, tracks and `EventDispatcher`                                           |
 | `src/events`                                                               | the `Raycaster` (from `src/compat/Raycaster.ts`)                                                                                               |
 | `src/environment`                                                          | render targets, `CubeCamera` and `Controls`; the `<Environment>` components and the hooks live beside it and are exported from `src/index.tsx` |
-| `src/addons/loaders`, `src/addons/controls`, `src/addons/environment`      | `react-pixi-fiber/addons` only: `GLTFLoader`, `DRACOLoader`, `MeshoptDecoder`, `OrbitControls`, `MapControls`, `HDRLoader`                     |
+| `src/addons/loaders`, `src/addons/controls`, `src/addons/environment`      | `react-pixi-fiber/addons` only: `GLTFLoader`, `DRACOLoader`, `MeshoptDecoder`, `OrbitControls`, `MapControls`, `HDRLoader`, `RGBELoader`       |
 
 `ThreeElements` in `src/index.tsx` is the JSX element map over the catalog's type, and augments React's `JSX.IntrinsicElements`. A catalog class whose name HTML already uses is reachable with a `three` prefix: pixi-3d's `Track` is `<threeTrack>`.
 
