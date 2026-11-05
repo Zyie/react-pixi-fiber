@@ -222,6 +222,10 @@ export async function mountScene(
     const store = await commit(root, scene.render());
     const frames = async (count = 1, step = FRAME_STEP): Promise<void> => {
       for (let frame = 0; frame < count; frame++) {
+        // React schedules a state change made outside a DOM event, such as one `act` sets off through
+        // `events.update()`, from a microtask; it commits before the frame draws, as it would in an app.
+        await Promise.resolve();
+        await nextTask();
         store.getState().advance(clock.tick(step));
         // A React commit that the frame queued, such as a state change in `useFrame`, lands before the next one.
         await nextTask();

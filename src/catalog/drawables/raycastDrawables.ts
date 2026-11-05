@@ -11,9 +11,6 @@ import type { Vector2 } from '../../math/Vector2';
 import { Vector3 } from '../../math/Vector3';
 import type { BufferGeometry } from '../geometries/BufferGeometry';
 
-/** A hit on a point or a line, with three's extra `distanceToRay` */
-type DrawableHit = Intersection & { distanceToRay?: number };
-
 const inverse = new PixiMatrix4();
 const origin = new Vector3();
 const direction = new Vector3();
@@ -155,7 +152,7 @@ export function raycastPoints(
       index: vertex,
       face: null,
       object,
-    } as DrawableHit);
+    } as Intersection);
   }
 }
 

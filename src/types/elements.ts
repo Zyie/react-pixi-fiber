@@ -213,7 +213,8 @@ export type ThreeElementsOf<T extends object> = Omit<ThreeToJSXElements<T>, DomE
     key?: React.Key;
     children?: React.ReactNode;
     dispose?: null;
-    attach?: AttachType;
+    /** Where it attaches; any element's attach, since the object can be of any class */
+    attach?: AttachType<never>;
     [prop: string]: unknown;
   };
 } & {

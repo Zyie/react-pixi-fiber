@@ -36,6 +36,30 @@ export interface Intersection extends RaycastIntersection {
 }
 
 /**
+ * What `event.target` and `event.currentTarget` are in a handler: the pointer capture methods. Each
+ * takes the native event's `pointerId`; capturing makes the object whose handler is running part of
+ * every later hit for that pointer until it is released, and captures the pointer on the element the
+ * listeners are on.
+ * @example
+ * ```tsx
+ * <mesh
+ *   onPointerDown={(event) => event.target.setPointerCapture(event.pointerId)}
+ *   onPointerUp={(event) => event.target.releasePointerCapture(event.pointerId)}
+ * />
+ * ```
+ * @category events
+ * @standard
+ */
+export interface EventCaptureTarget {
+  /** Captures the pointer for the object whose handler is running */
+  setPointerCapture(pointerId: number): void;
+  /** Releases a pointer this object captured */
+  releasePointerCapture(pointerId: number): void;
+  /** Whether this object holds the pointer */
+  hasPointerCapture(pointerId: number): boolean;
+}
+
+/**
  * The fields r3f adds to every pointer event it hands a handler
  * @category events
  * @standard
@@ -63,6 +87,13 @@ export interface IntersectionEvent<TSourceEvent> extends Intersection {
   nativeEvent: TSourceEvent;
   /** Whether `stopPropagation` was called */
   stopped: boolean;
+  /**
+   * The pointer capture methods, in place of the native event's target. r3f types it as the DOM's
+   * `EventTarget`, so r3f code casts it; the cast still compiles here.
+   */
+  target: EventCaptureTarget;
+  /** The same as `target` */
+  currentTarget: EventCaptureTarget;
 }
 
 /**
@@ -159,11 +190,17 @@ export interface EventHandlers {
   onPointerMove?: (event: ThreeEvent<PointerEvent>) => void;
   /** Fires on a click that misses the object */
   onPointerMissed?: (event: MouseEvent) => void;
-  /** Fires when the browser cancels a pointer over the object */
+  /**
+   * Typed as in r3f, which never calls it: a pointer the browser cancels ends with `onPointerOut` and
+   * `onPointerLeave` on what it hovered
+   */
   onPointerCancel?: (event: ThreeEvent<PointerEvent>) => void;
   /** Fires on a wheel turn over the object */
   onWheel?: (event: ThreeEvent<WheelEvent>) => void;
-  /** Fires when the object loses a pointer it captured */
+  /**
+   * Typed as in r3f, which never calls it: when the canvas loses a capture, r3f drops every capture of
+   * that pointer on the next frame and ends its hovers with `onPointerOut` and `onPointerLeave`
+   */
   onLostPointerCapture?: (event: ThreeEvent<PointerEvent>) => void;
   /** Fires when the object enters or leaves the camera's frustum */
   onFramed?: (inView: boolean) => void;

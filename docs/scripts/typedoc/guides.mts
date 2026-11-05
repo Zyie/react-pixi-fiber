@@ -5,7 +5,7 @@
  */
 
 /** A section of the Docs sidebar, which is also the folder of its guides' pages: `/docs/<section>/<id>/` */
-export type GuideSection = 'getting-started' | 'tutorials' | 'reference';
+export type GuideSection = 'getting-started' | 'tutorials' | 'reference' | 'advanced';
 
 /** One guide of the docs site */
 export interface Guide {
@@ -25,6 +25,7 @@ export const SECTIONS: Readonly<Record<GuideSection, string>> = {
   'getting-started': 'Getting started',
   tutorials: 'Tutorials',
   reference: 'Reference',
+  advanced: 'Advanced',
 };
 
 /** The guide that is the introduction, the page at `/docs/` */
@@ -72,6 +73,7 @@ export const GUIDES: readonly Guide[] = [
     file: 'src/__docs__/objects.md',
     section: 'reference',
   },
+  { id: 'events', title: 'Events', file: 'src/__docs__/events.md', section: 'reference' },
   { id: 'three-entry', title: 'The three entry', file: 'src/__docs__/three-entry.md', section: 'reference' },
   {
     id: DIFFERENCES_ID,
@@ -79,6 +81,12 @@ export const GUIDES: readonly Guide[] = [
     label: 'Differences from r3f',
     file: 'src/__docs__/differences.md',
     section: 'reference',
+  },
+  {
+    id: 'scaling-performance',
+    title: 'Scaling performance',
+    file: 'src/__docs__/scaling-performance.md',
+    section: 'advanced',
   },
 ];
 

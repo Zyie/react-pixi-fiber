@@ -10,6 +10,8 @@ const EVENTS: Record<MouseAction, string> = {
   down: 'pointerdown',
   up: 'pointerup',
   wheel: 'wheel',
+  contextmenu: 'contextmenu',
+  dblclick: 'dblclick',
 };
 
 /** How many animation frames the page may take to handle an input Playwright has sent, before the test gives up on it */

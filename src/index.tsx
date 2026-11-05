@@ -22,10 +22,10 @@ import type Reconciler from 'react-reconciler';
 
 import type { PixiCatalog } from './catalog/catalog';
 import type { OrthographicCamera } from './catalog/scene/OrthographicCamera';
+import { createPointerEvents as createPointerEventLayer } from './events/pointerEvents';
 import type { Frustum } from './math/Frustum';
 import {
   createEvents as coreCreateEvents,
-  createPointerEvents as coreEvents,
   removeInteractivity as coreRemoveInteractivity,
   swapInteractivity as coreSwapInteractivity,
 } from './r3f/src/core/events';
@@ -533,13 +533,13 @@ export const once: <A extends unknown[]>(...args: A) => never = coreOnce as unkn
 ) => never;
 
 /**
- * The pointer event layer `<Canvas>` uses; pass it to `createRoot().configure({ events })`
+ * The pointer event layer `<Canvas>` uses; pass it to `createRoot().configure({ events })`. It is
+ * r3f's, with one fix: `onDoubleClick` fires, where r3f v10 drops Chrome's `dblclick` because the
+ * event has no `pointerId`.
  * @category events
  * @standard
  */
-export const events: (store: RootStore) => EventManager<HTMLElement> = coreEvents as unknown as (
-  store: RootStore,
-) => EventManager<HTMLElement>;
+export const events: (store: RootStore) => EventManager<HTMLElement> = createPointerEventLayer;
 
 /**
  * The same as {@link events}

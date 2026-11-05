@@ -66,7 +66,7 @@ We use core's modules (root, reconciler, store, loop, events, portal, hooks) thr
 - `matrix` is pixi-3d's `localTransform`, built from the components when read. `matrixAutoUpdate = false` gives the node an own `updateLocalTransform` that does nothing, so the transform pass keeps the matrix as set; reading `matrix` marks the node's transform changed (`_onUpdate()`), so an edit through it shows next frame. `updateMatrix` builds it from the components on demand. `matrixWorld` is worked out when read; `updateMatrixWorld` and `updateWorldMatrix` are no-ops.
 - `ObservableVector3` (a node's `position` and `scale`), `ObservableQuaternion` and pixi-3d's `Matrix4` get the members three's classes have and pixi-3d's lack, copied from the classes in `src/math` (the `*_MEMBERS` lists beside them), and typed by the interfaces in `src/compat/threeMembers.ts`. `ObservableQuaternion.setFromEuler` reads an Euler's order. The matrix members that take other arguments in three (`setPosition(x, y, z)`, `makeTranslation(vector)`, `toArray(array, offset)`) fall back to pixi-3d's for pixi-3d's arguments.
 - `dispatchEvent('added')`: core inserts before a sibling by splicing `parent.children` and setting `parent` itself. On that event the child is spliced back out and re-added through the public `addChildAt`, so the view attaches it and pixi-3d's own events fire.
-- `Mesh3D.raycast`: three's `Mesh.raycast` over pixi-3d's `intersectRayGeometry`, installed by `installRaycasting` in `src/compat/Raycaster.ts`.
+- `Mesh3D.raycast`: three's `Mesh.raycast`, ported over the geometry's attributes, installed by `installRaycasting` in `src/compat/Raycaster.ts`.
 - `Camera3D`: `isCamera`, `isPerspectiveCamera`, `isOrthographicCamera`, `type`, a `getWorldDirection` along -Z, and `projectionMatrix`, `projectionMatrixInverse`, `matrixWorldInverse` worked out when read (`cameraMatrices.ts`). pixi-3d fills `camera.projection` and `camera.view` only while drawing, so they're a frame old between frames and identity before the first one.
 - `Mesh3D`, `Sprite3D`, `Model3D` and `Light` get three's `is*` flags and `type`; pixi-3d's lights keep their own `type`, which their shaders read.
 - `Geometry3D.isBufferGeometry`, `BaseMaterial3D.isMaterial`, and `dispose` on both, so `<boxGeometry>` attaches to `geometry` and unmounting frees it.
@@ -77,7 +77,11 @@ The patches are typed: `PixiMixins.Container3D` and the `@pixi/3d` module are au
 
 The patches reach a few of pixi-3d's internals: `_onUpdate` (to mark a node changed and to follow its quaternion), `_localTransformDirty` and `rotationDirty`. Each is a candidate for a public pixi-3d API (`docs/feasibility.md`, section 6).
 
-The `Raycaster` (`src/compat/Raycaster.ts`) builds its ray from the camera's own matrices (any camera picks, not only one a view draws with), walks objects through their `raycast` method as three does, and returns three's intersection shape: `distance`, `point`, `object`, `face` (`a`, `b`, `c`, `normal`), `faceIndex`, `uv`, `normal`. As in three, hidden objects are hit, and a single-sided material isn't hit from behind.
+The `Raycaster` (`src/compat/Raycaster.ts`) builds its ray from the camera's own matrices (any camera picks, not only one a view draws with), walks objects through their `raycast` method as three does, and returns three's intersection shape: `distance`, `point`, `object`, `face` (`a`, `b`, `c`, `normal`), `faceIndex`, `barycoord`, `uv`, `normal`, `instanceId`. A mesh's `raycast` is three r187's `Mesh.raycast`: a bounding sphere and box test, then three's watertight triangle test on every triangle, read through the position attribute's stride and offset, so every triangle the ray crosses is a hit. The loop runs in `crossTriangles` over typed arrays and numbers, so it allocates nothing per triangle. As in three, hidden objects are hit, and the material's `side` (or pixi-3d's `doubleSided`) decides which faces count. There are no `layers`.
+
+`src/events/pointerEvents.ts` is the event layer `<Canvas>` and the `events` export use: core's `createPointerEvents`, with `onDoubleClick` given the last pointerdown's `pointerId`, since r3f v10 keys pointerdown hits by it and Chrome's `dblclick` has none. It isn't in the `src/events` area module, so it stays out of the catalog and `react-pixi-fiber/three`.
+
+`InstancedMesh` (`src/catalog/instancing`) extends pixi-3d's `BatchedMesh3D`, one slot per instance. `setMatrixAt` and `setColorAt` write the slot and three's arrays; `needsUpdate` copies the arrays after direct writes. Instance colours live in the batch's instance data, and a material can only read instance data through a shader bit fixed when it is built, so the slots draw with a twin of the material (`instanceColorMaterial.ts`): the same class with the colour bit in front of its bits, kept in step through the material's `update` and `_setTextureSlot`, and freed with the last mesh that uses it.
 
 ## The math
 
@@ -104,7 +108,7 @@ The classes live in area modules, each a folder with an `index.ts` that exports 
 | `src/catalog/scene`                                                        | `Scene` and the cameras; fog and backgrounds                  |
 | `src/catalog/lights`                                                       | lights                                                        |
 | `src/catalog/geometries`, `src/catalog/materials`, `src/catalog/drawables` | geometries, materials; lines, points and sprites              |
-| `src/catalog/instancing`                                                   | `InstancedMesh`                                               |
+| `src/catalog/instancing`                                                   | `InstancedMesh`, `InstancedBufferAttribute`                   |
 | `src/catalog/textures`, `src/loaders`, `src/animation`                     | textures, loaders (`TextureLoader`), animation                |
 | `src/events`                                                               | the `Raycaster` (from `src/compat/Raycaster.ts`)              |
 | `src/environment`                                                          | environments and render targets                               |
@@ -181,7 +185,7 @@ Left out, because they need what pixi-3d doesn't have yet or are typed against t
 2. `root.render(children)` mounts the tree with r3f's reconciler. Each element resolves to a catalog class, is constructed with `args`, gets its props through core's `applyProps`, and joins its parent through `add` (or `dispatchEvent('added')` when inserted before a sibling). Children with `isBufferGeometry` or `isMaterial` attach to the parent's `geometry` or `material`.
 3. Every frame, `@pmndrs/scheduler` runs the root's jobs: deferred pointer raycasts, `useFrame` callbacks by phase, then the frustum job (`updateFrustum`, reading the camera's fresh matrices) and the visibility job (`Frustum.intersectsObject` for `onFramed` and `onVisible`), then the render job.
 4. The render job calls `renderer.render(state.scene, state.camera)`. The facade finds or makes the scene's view, points it at the camera (or the proxy), puts a colour background on the canvas's clear colour, copies the tone mapping, exposure, shadow settings and any other background onto the view, aims each `DirectionalLight` at its target, and calls `pixi.render()` on the view's container. pixi-3d's `View3D` runs its transform pass and draws.
-5. A pointer event on the canvas reaches core's event layer, which sets `state.pointer`, calls `raycaster.setFromCamera(pointer, camera)`, and asks the raycaster to intersect each object that has a handler. Hits are sorted, bubbled up the tree and handed to the handlers as `ThreeEvent`s.
+5. A pointer event on the canvas reaches core's event layer (through `src/events/pointerEvents.ts`), which sets `state.pointer`, calls `raycaster.setFromCamera(pointer, camera)`, and asks the raycaster to intersect each object that has a handler. Hits are sorted, bubbled up the tree and handed to the handlers as `ThreeEvent`s.
 6. Unmounting removes each element through `remove` and calls `dispose` on it (`destroy` for nodes, geometries and materials). Unmounting the root releases the renderer, whose `dispose()` frees every view and the pixi.js renderer.
 
 ## Measuring parity against three
@@ -203,3 +207,4 @@ None of these block us; each would let the library run on published `@react-thre
 - `insertBefore` through a host hook in the shape of `addChildAt`.
 - `getThree()` resolved per root from `state.internal.support`, so different renderers can share a page.
 - A generic `RootState`, so a support can type it without re-declaring the hooks.
+- A click-type event matched to its pointerdown when it has no `pointerId` (Chrome's `dblclick`), so `onDoubleClick` fires; our event layer does it for now.

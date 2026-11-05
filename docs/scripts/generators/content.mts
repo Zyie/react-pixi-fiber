@@ -322,6 +322,7 @@ function sectionIndex(section: Exclude<GuideSection, 'getting-started'>, sources
       "Step by step through react-three-fiber's tutorials, each running on pixi-3d with the same code. Every one assumes you know some React.",
     reference:
       'What differs from react-three-fiber, item by item, and every name react-pixi-fiber exports, read from its source and JSDoc.',
+    advanced: 'Keeping scenes fast as they grow: rendering on demand, sharing resources and instancing, on pixi-3d.',
   };
 
   if (section === 'reference') {
@@ -377,6 +378,7 @@ export function docsPages(shared: Shared): readonly Page[] {
     ...GUIDES.map((guide) => guidePageOf(guide, sources, parity)),
     sectionIndex('tutorials', sources),
     sectionIndex('reference', sources),
+    sectionIndex('advanced', sources),
   ];
 }
 
