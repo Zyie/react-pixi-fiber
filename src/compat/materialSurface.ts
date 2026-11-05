@@ -122,6 +122,7 @@ interface ThreeMaterialState {
 interface MaterialInternals {
   doubleSided: boolean;
   _invalidateDescriptor(): void;
+  _meshes: { items: readonly { _view3d: { _invalidateDrawCaches(): void } | null }[] };
 }
 
 const states = new WeakMap<BaseMaterial3D, ThreeMaterialState>();
@@ -159,16 +160,27 @@ export function threeState(material: BaseMaterial3D): ThreeMaterialState {
 
 /**
  * Rebuilds the shaders and draws of the meshes drawing a material
+ *
+ * pixi-3d rebuilds the meshes' shaders and pass entries, but its default passes keep replaying the
+ * draws they recorded with the old shader and state, so each view drawing the material re-records
+ * its draws too, on the next frame.
  * @param material - The material
  * @internal
  */
 export function invalidateMaterial(material: BaseMaterial3D): void {
-  (material as unknown as MaterialInternals)._invalidateDescriptor();
+  const internals = material as unknown as MaterialInternals;
+  internals._invalidateDescriptor();
+  const meshes = internals._meshes.items;
+  for (let i = 0; i < meshes.length; i++) {
+    const view = meshes[i]._view3d;
+    if (view && (i === 0 || meshes[i - 1]._view3d !== view)) view._invalidateDrawCaches();
+  }
 }
 
 /**
  * Puts three's alpha, depth and blend settings on pixi-3d's: an invisible material discards every
- * fragment, a transparent one blends, one with an `alphaTest` discards below it
+ * fragment, a transparent one blends, one with an `alphaTest` discards below it. An opaque material
+ * ignores `opacity`, as three's does; pixi-3d would still scale its colour by it.
  */
 function applyAlpha(material: BaseMaterial3D): void {
   const three = threeState(material);
@@ -181,7 +193,7 @@ function applyAlpha(material: BaseMaterial3D): void {
     return;
   }
 
-  material.alpha = three.opacity;
+  material.alpha = three.transparent || three.alphaTest > 0 ? three.opacity : 1;
   material.alphaMode = three.transparent ? 'blend' : three.alphaTest > 0 ? 'mask' : 'opaque';
   if (three.alphaTest > 0) material.alphaCutoff = three.alphaTest;
   state.depthMask = three.depthWrite;
@@ -198,11 +210,11 @@ function applyAlpha(material: BaseMaterial3D): void {
 }
 
 /**
- * A field kept in three's settings that changes pixi-3d's state when set
+ * A field kept in three's settings that changes pixi-3d's state when set; the meshes' draws are
+ * recorded again, since WebGPU bakes the state into them
  * @param key - The field
- * @param shaderChange - Whether the change needs the meshes' shaders rebuilt
  */
-function stateField<K extends keyof ThreeMaterialState>(key: K, shaderChange = false): PropertyDescriptor {
+function stateField<K extends keyof ThreeMaterialState>(key: K): PropertyDescriptor {
   return {
     configurable: true,
     enumerable: true,
@@ -214,7 +226,7 @@ function stateField<K extends keyof ThreeMaterialState>(key: K, shaderChange = f
       if (three[key] === value) return;
       three[key] = value;
       applyAlpha(this);
-      if (shaderChange) invalidateMaterial(this);
+      invalidateMaterial(this);
     },
   };
 }
