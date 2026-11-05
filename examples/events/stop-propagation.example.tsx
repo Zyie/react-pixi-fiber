@@ -21,12 +21,12 @@ function Plane({
   const onPointerOver = useCallback((e: ThreeEvent<PointerEvent>) => {
     if (stop) e.stopPropagation();
     setHovered(true);
-  }, []);
+  }, [stop]);
 
   const onPointerOut = useCallback((e: ThreeEvent<PointerEvent>) => {
     if (stop) e.stopPropagation();
     setHovered(false);
-  }, []);
+  }, [stop]);
 
   return (
     <mesh name={color} position={position} onPointerOver={onPointerOver} onPointerOut={onPointerOut}>
