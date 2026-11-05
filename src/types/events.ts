@@ -36,6 +36,30 @@ export interface Intersection extends RaycastIntersection {
 }
 
 /**
+ * What `event.target` and `event.currentTarget` are in a handler: the pointer capture methods. Each
+ * takes the native event's `pointerId`; capturing makes the object whose handler is running part of
+ * every later hit for that pointer until it is released, and captures the pointer on the element the
+ * listeners are on.
+ * @example
+ * ```tsx
+ * <mesh
+ *   onPointerDown={(event) => event.target.setPointerCapture(event.pointerId)}
+ *   onPointerUp={(event) => event.target.releasePointerCapture(event.pointerId)}
+ * />
+ * ```
+ * @category events
+ * @standard
+ */
+export interface EventCaptureTarget {
+  /** Captures the pointer for the object whose handler is running */
+  setPointerCapture(pointerId: number): void;
+  /** Releases a pointer this object captured */
+  releasePointerCapture(pointerId: number): void;
+  /** Whether this object holds the pointer */
+  hasPointerCapture(pointerId: number): boolean;
+}
+
+/**
  * The fields r3f adds to every pointer event it hands a handler
  * @category events
  * @standard
@@ -63,6 +87,13 @@ export interface IntersectionEvent<TSourceEvent> extends Intersection {
   nativeEvent: TSourceEvent;
   /** Whether `stopPropagation` was called */
   stopped: boolean;
+  /**
+   * The pointer capture methods, in place of the native event's target. r3f types it as the DOM's
+   * `EventTarget`, so r3f code casts it; the cast still compiles here.
+   */
+  target: EventCaptureTarget;
+  /** The same as `target` */
+  currentTarget: EventCaptureTarget;
 }
 
 /**

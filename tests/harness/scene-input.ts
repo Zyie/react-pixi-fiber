@@ -141,7 +141,7 @@ export function dispatchPointer(
  * @param canvas - The scene's canvas
  */
 export const syntheticPointers: PointerSource = (canvas) => {
-  let pressedAt: string | null = null;
+  let pressed = false;
   let inside = false;
   const mouse = { pointerId: 1, pointerType: 'mouse', isPrimary: true };
   const press = (x: number, y: number, button: number, buttons: number, release: number): void => {
@@ -174,7 +174,7 @@ export const syntheticPointers: PointerSource = (canvas) => {
     }
 
     const pointer = { ...mouse, button: action === 'move' ? -1 : 0 };
-    const buttons = action === 'down' || (action === 'move' && pressedAt !== null) ? 1 : 0;
+    const buttons = action === 'down' || (action === 'move' && pressed) ? 1 : 0;
 
     if (action === 'move') {
       const { width, height } = canvas.getBoundingClientRect();
@@ -182,14 +182,15 @@ export const syntheticPointers: PointerSource = (canvas) => {
 
       if (inside && !over) dispatchPointer(canvas, 'pointerleave', x, y, { ...pointer, buttons });
       inside = over;
-      if (!over && pressedAt === null) return;
+      if (!over && !pressed) return;
     }
 
     dispatchPointer(canvas, `pointer${action}`, x, y, { ...pointer, buttons });
-    if (action === 'down') pressedAt = `${x},${y}`;
+    if (action === 'down') pressed = true;
     if (action === 'up') {
-      if (pressedAt === `${x},${y}`) dispatchPointer(canvas, 'click', x, y, { ...pointer, buttons: 0 });
-      pressedAt = null;
+      // Chrome clicks when the press and the release land on the same element, however far apart.
+      if (pressed && inside) dispatchPointer(canvas, 'click', x, y, { ...pointer, buttons: 0 });
+      pressed = false;
     }
   });
 };
