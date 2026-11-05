@@ -92,8 +92,6 @@ export type * from './types/utils';
 export { getScheduler, Scheduler } from '@pmndrs/scheduler';
 export type { FrameNextControls, FrameTimingState, UseFrameNextOptions, UseFrameOptions } from '@pmndrs/scheduler';
 
-//* Build flags ==============================
-
 /**
  * Whether this entry builds three's WebGL renderer: never, it renders with pixi-3d
  * @category core
@@ -107,8 +105,6 @@ export const R3F_BUILD_LEGACY = false;
  * @advanced
  */
 export const R3F_BUILD_WEBGPU = false;
-
-//* Hooks ==============================
 
 /**
  * The callback `useFrame` runs every frame: the root's state with the frame's timing, and the
@@ -279,8 +275,6 @@ export const useGraph: (object: Container3D) => ObjectMap = coreUseGraph as unkn
 export const useInstanceHandle: <T>(ref: React.RefObject<T>) => React.RefObject<Instance<T>> =
   coreUseInstanceHandle as unknown as <T>(ref: React.RefObject<T>) => React.RefObject<Instance<T>>;
 
-//* Elements ==============================
-
 /**
  * The type of {@link extend}
  * @category core
@@ -382,8 +376,6 @@ export const fromRef: <T, R = T>(ref: React.RefObject<T | null>, selector?: (val
 export const once: <A extends unknown[]>(...args: A) => never = coreOnce as unknown as <A extends unknown[]>(
   ...args: A
 ) => never;
-
-//* Roots and frames ==============================
 
 /**
  * The pointer event layer `<Canvas>` uses; pass it to `createRoot().configure({ events })`
@@ -522,8 +514,6 @@ export const registerRootExtension: (extension: RootExtension) => () => void = c
  */
 export const setRenderOverride: (store: RootStore, render: (() => void) | null) => void =
   coreSetRenderOverride as unknown as (store: RootStore, render: (() => void) | null) => void;
-
-//* JSX elements ==============================
 
 /**
  * Every element a scene can use: pixi-3d's classes (`<mesh3D>`, `<cubeGeometry>`) and three's names
