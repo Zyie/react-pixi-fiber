@@ -196,7 +196,7 @@ export class EnvironmentMaps {
     if (isTexture(environment)) {
       this._lit.add(view);
       view.environment = this._lighting(pixi, environment, scene.environmentIntensity ?? 1, scene.environmentRotation);
-    } else if (view.environment instanceof CubeTexture && environment === null) {
+    } else if (this._lit.delete(view)) {
       view.environment = null;
     }
 
