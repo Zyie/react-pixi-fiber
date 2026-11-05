@@ -11,9 +11,15 @@ import type { Mesh } from 'react-pixi-fiber/three';
 ## What it covers
 
 - **Math.** `Vector2`, `Vector3`, `Vector4`, `Euler`, `Quaternion`, `Matrix3`, `Matrix4`, `Color`, `ColorManagement`, `MathUtils`, `Box3`, `Sphere`, `Ray`, `Plane`, `Spherical`, `Frustum` and `Clock`, with the surface three code calls: `set`, `copy`, `clone`, `add`, `sub`, `multiplyScalar`, `lerp`, `normalize`, `length`, `distanceTo`, `applyMatrix4`, `applyQuaternion`, `setFromEuler`, `slerp`, `compose`, `decompose`, `makeRotationFromEuler`, `invert` and the rest. Each extends pixi-3d's class of the same kind, so pixi-3d takes them wherever it takes its own.
-- **Classes.** The catalog's classes under three's names: `Object3D`, `Group`, `Mesh`, `Scene`, `Fog`, `FogExp2`, `PerspectiveCamera`, `OrthographicCamera`, `AmbientLight`, `HemisphereLight`, `DirectionalLight`, `PointLight`, `SpotLight`, the `LightShadow` classes, `BoxGeometry`, `SphereGeometry`, `PlaneGeometry`, `MeshStandardMaterial`, `MeshBasicMaterial`, `InstancedMesh`, `InstancedBufferAttribute`, `TextureLoader` and `Raycaster`. They are the classes the JSX elements build, so `useRef<Mesh>(null!)` types a `<mesh>` ref.
-- **Textures, loaders and animation.** `Texture`, `CanvasTexture`, `DataTexture`, `VideoTexture` and `CubeTexture` over pixi's textures; `Loader`, `LoadingManager`, `DefaultLoadingManager`, `LoaderUtils`, `Cache`, `ImageLoader`, `FileLoader`, `TextureLoader` and `CubeTextureLoader`; `AnimationMixer`, `AnimationAction`, `AnimationClip`, `PropertyBinding`, `EventDispatcher` and the keyframe tracks; `SkinnedMesh`, `Skeleton` and `Bone`. [Loading models](loading-models.md) and [Loading textures](loading-textures.md) show them at work.
-- **Render targets and environments.** `WebGLRenderTarget`, `RenderTarget`, `WebGLCubeRenderTarget`, `CubeCamera` and `Controls` (see [Render targets](render-targets.md) and [Environment](environment.md)).
+- **Classes.** The catalog's classes under three's names, the classes the JSX elements build, so `useRef<Mesh>(null!)` types a `<mesh>` ref:
+  - objects: `Object3D`, `Group`, `Mesh`, `SkinnedMesh`, `Skeleton`, `Bone`, `InstancedMesh`, `Points`, `Line`, `LineSegments`, `LineLoop`, `Sprite`, and the helpers `GridHelper`, `AxesHelper`, `BoxHelper` and `ArrowHelper`;
+  - the scene: `Scene`, `Fog`, `FogExp2`, `PerspectiveCamera`, `OrthographicCamera` and `CubeCamera`;
+  - lights: `AmbientLight`, `HemisphereLight`, `DirectionalLight`, `PointLight`, `SpotLight` and the `LightShadow` classes;
+  - geometries: `BufferGeometry`, `BufferAttribute` and its typed variants, `InstancedBufferAttribute`, and three's generators from `BoxGeometry` to `TorusKnotGeometry`, `LatheGeometry`, `EdgesGeometry` and `WireframeGeometry` ([Objects, properties and arguments](objects.md) lists them);
+  - materials: `MeshBasicMaterial`, `MeshLambertMaterial`, `MeshPhongMaterial`, `MeshToonMaterial`, `MeshStandardMaterial`, `MeshPhysicalMaterial`, `MeshNormalMaterial`, `MeshMatcapMaterial`, `PointsMaterial`, `LineBasicMaterial` and `SpriteMaterial`;
+  - picking: `Raycaster`.
+- **Textures, loaders and animation.** `Texture`, `CanvasTexture`, `DataTexture`, `VideoTexture` and `CubeTexture` over pixi's textures; `Loader`, `LoadingManager`, `DefaultLoadingManager`, `LoaderUtils`, `Cache`, `ImageLoader`, `FileLoader`, `TextureLoader` and `CubeTextureLoader`; `AnimationMixer`, `AnimationAction`, `AnimationClip`, `PropertyBinding`, `EventDispatcher` and the keyframe tracks. [Loading models](loading-models.md) and [Loading textures](loading-textures.md) show them at work.
+- **Render targets.** `RenderTarget`, `WebGLRenderTarget` and `WebGLCubeRenderTarget`, which `useRenderTarget` and `CubeCamera` make, and `Controls`, the base of the camera controls (see [Render targets](render-targets.md) and [Environment](environment.md)).
 - **Constants.** Every constant three r187 exports but the legacy `MipMap` spellings of the mipmap filters (use `LinearMipmapLinearFilter` and its siblings), with three's values: `DoubleSide`, `AdditiveBlending`, `RepeatWrapping`, `SRGBColorSpace`, `ACESFilmicToneMapping`, `MOUSE` and the rest. The renderer and the catalog map the ones pixi-3d has a counterpart for.
 
 ## Nodes
@@ -71,20 +77,22 @@ And for TypeScript, in `tsconfig.json`:
 
 Import `react-pixi-fiber` in place of `@react-three/fiber` as well. Only the alias reaches packages that import `three` themselves, and those, such as `@react-three/drei`, also import `@react-three/fiber`, so they aren't covered.
 
-What three's addons provide comes from `react-pixi-fiber/addons` as it lands: `GLTFLoader`, `DRACOLoader` and `MeshoptDecoder` are there.
+What three's addons provide comes from `react-pixi-fiber/addons`: `GLTFLoader`, `DRACOLoader`, `MeshoptDecoder`, `HDRLoader`, `RGBELoader`, `OrbitControls` and `MapControls`.
 
 ## What's missing
 
 An import of a class this entry doesn't have fails to build, which is better than one that half works. Not here yet:
 
-- `BufferGeometry`, `BufferAttribute`, and geometries other than box, sphere and plane.
-- `Material` and materials other than standard and basic.
-- `SpotLight`, `HemisphereLight`, `RectAreaLight`, `Fog`, `Points`, `Line`, `Sprite`, `InstancedMesh`, `Layers`, three's renderers and render targets, and loaders other than three's core loaders and `GLTFLoader`.
+- `ShapeGeometry`, `ExtrudeGeometry`, `TubeGeometry` and the `Curve` and `Shape` classes they need; `InterleavedBufferAttribute`.
+- The `Material` base class, `ShaderMaterial`, `RawShaderMaterial`, `LineDashedMaterial`, `MeshDepthMaterial` and `MeshDistanceMaterial`.
+- `RectAreaLight`, `LightProbe`, `Layers`, `LOD`, `StringKeyframeTrack`, `AnimationObjectGroup`, three's renderers, and loaders other than three's core loaders and those in `react-pixi-fiber/addons`.
 - `Object3D.clone` and `copy`.
+
+A few names are this entry's own: the shadow classes `DirectionalLightShadow`, `SpotLightShadow` and `PointLightShadow`, which three keeps internal, `HttpError`, `SRGBToLinear` and `LinearToSRGB`, and `RenderTargetCubeTexture`. A scene that should render through three too leaves them out.
 
 And what differs from three:
 
 - Matrices hold their elements in a `Float32Array`, where three's are numbers, as the GPU reads them.
 - `renderOrder` and `frustumCulled` are kept and do nothing: pixi-3d orders draws by pipeline and depth, and its view culls every mesh by its own setting.
-- pixi-3d's lights keep their own `type` (`'directional'`, `'point'`), which their shaders read, where three's is the class name.
+- pixi-3d's lights keep their own `type` (`'directional'`, `'point'`, `'spot'`), which their shaders read, where three's is the class name.
 - A mesh under an unevenly scaled parent is lit as if its surface weren't sheared; see [Differences from react-three-fiber](differences.md).

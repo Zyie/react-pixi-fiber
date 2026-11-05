@@ -164,7 +164,7 @@ What the docs site can rely on:
 - **Live.** `runExample(example, renderer, host)` mounts the example in a `<Canvas>` that fills `host`, on r3f's default frameloop, as an app would run it, on `webgl`, `webgpu` or `three`. It returns a function that unmounts it.
 - **Playground.** `/scene-frame.html?kind=example&id=<topic>/<name>&renderer=webgl|webgpu|three&live` runs it live on one renderer.
 
-`examples/your-first-scene/first-scene.example.tsx` is r3f's "Your first scene" tutorial with the import swapped. It uses `meshStandardMaterial`, from the tutorial's first step, where the tutorial ends on `meshPhongMaterial`, which the catalog doesn't have yet.
+`examples/your-first-scene/first-scene.example.tsx` is r3f's "Your first scene" tutorial with the import swapped, ending on `meshPhongMaterial` as the tutorial does.
 
 ## Parity with three.js
 
@@ -183,8 +183,8 @@ Parity with three.js: the share of drawn pixels that differ (pixelmatch threshol
 scene                              webgl  webgpu  maxDiff  parity
 ---------------------------------  -----  ------  -------  --------------
 assets/use-texture                 2.4%   2.4%    5.0%     within maxDiff
-core/alias-catalog                 34.4%  34.4%   2.0%     over maxDiff
 docs/your-first-scene/first-scene  0.0%   0.0%    2.0%     within maxDiff
+object/sheared-normals             27.5%  27.2%   2.0%     over maxDiff
 ```
 
 ### Reading a parity composite
@@ -198,7 +198,7 @@ Each scene that ran on pixi-3d gets `.temp/parity/<key>.png`, four panels, left 
 
 Read it in that order. A red patch where both pictures draw the same shape is shading or colour: lighting calibration, tone mapping, colour management. A red outline or a red shape that is in one picture only is geometry, a transform, or something not drawn at all: a missing alias, prop or feature.
 
-A scene whose pixi pictures can't match three.js yet because of a known gap marks its pixi renderers `fails`, with the gap in a comment, as `tests/scenes/core/alias-catalog.scene.tsx` does for metalness, which pixi-3d's PBR shades without three's energy compensation. The day the gap closes, its reference comparison fails, and the references are updated and the mark removed. A scene that comes close but can't match exactly sets its own `maxDiff`, as `tests/scenes/assets/use-texture.scene.tsx` does for texture filtering.
+A scene whose pixi pictures can't match three.js yet because of a known gap marks its pixi renderers `fails`, with the gap in a comment, as `tests/scenes/object/sheared-normals.scene.tsx` does for lighting under a sheared transform, which pixi-3d's normal transform gets wrong. The day the gap closes, its reference comparison fails, and the references are updated and the mark removed. A scene that comes close but can't match exactly sets its own `maxDiff`, as `tests/scenes/assets/use-texture.scene.tsx` does for texture filtering.
 
 ## Running tests
 
