@@ -55,3 +55,21 @@ it('updates a mesh in place on re-render, and disposes it with its geometry and 
   expect(geometry._destroyed).toBe(true);
   expect(material.destroyed).toBe(true);
 });
+
+// A light's shadow camera and default target are nodes of their own, outside the scene.
+it('frees a light with its shadow camera and its default target', async () => {
+  const spot: RefObject<ElementRef<'spotLight'> | null> = { current: null };
+  const sun: RefObject<ElementRef<'directionalLight'> | null> = { current: null };
+  await mount(
+    <>
+      <spotLight ref={spot} castShadow />
+      <directionalLight ref={sun} castShadow />
+    </>,
+  );
+  const lights = [spot.current!, sun.current!];
+  const parts = lights.flatMap((light) => [light.shadow.camera, light.target]);
+
+  await act(async () => root!.render(null));
+  for (const light of lights) expect(light.destroyed).toBe(true);
+  for (const part of parts) expect(part.destroyed).toBe(true);
+});

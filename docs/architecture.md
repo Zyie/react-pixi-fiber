@@ -93,7 +93,7 @@ The `Raycaster` (`src/compat/Raycaster.ts`) builds its ray from the camera's own
 - Every geometry is a `BufferGeometry` (`src/catalog/geometries`), a `Geometry3D` built by three's own generator. It keeps three's attributes beside pixi-3d's: `attributes` is a proxy that reads and writes three's names and iterates pixi-3d's. `position`, `normal`, `uv` (as `1 - v`, since three flips images on load), `color` and `tangent` are drawn. A change packs the geometry into pixi-3d's shared buffers again, or, under `DynamicDrawUsage`, it draws from its own. Points and lines set its draw mode: a camera-facing quad per point, or vertex pairs as lines.
 - The standard and physical materials swap pixi-3d's PBR material and lighting bits for three's (`threeStandardBits.ts`) in `getPrimaryDescriptor`; each catalog material also adds a normal flip for `BackSide` and, with `toneMapped` off, pixi-3d's sRGB encode (`threeDescriptor`). `MeshPhysicalMaterial` lays pixi-3d's features out again when one is first set before the first draw.
 - `DirectionalLight` starts one unit up and shines at its `target`, as three's does; the renderer turns it toward the target before each frame, since pixi-3d's light shines along its local -Z.
-- `OrthographicCamera` turns three's frustum bounds into pixi-3d's `orthographicSize` (half the width) in `updateProjectionMatrix`, which core calls on every resize.
+- `PerspectiveCamera` and `OrthographicCamera` override pixi-3d's `computeProjection` with three's projection, built from the settings `updateProjectionMatrix` last saw (core calls it on every resize): a camera's own `aspect`, `zoom`, film offset, view offset and off-centre orthographic bounds. Lights carry three's `LightShadow` classes and three `Color`s.
 
 The classes live in area modules, each a folder with an `index.ts` that exports its classes by name. `catalog.ts` spreads every area module into the namespace, and `src/three.ts` re-exports each with `export *`, so a class an area module exports is in the catalog, has a JSX element and is exported from `react-pixi-fiber/three` at once:
 
@@ -132,18 +132,22 @@ The classes live in area modules, each a folder with an `index.ts` that exports 
 
 three's renderer settings reach each view as it draws:
 
-| three                                                                                  | pixi-3d                                                                                                                                    |
-| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `toneMapping`: `NoToneMapping`, `LinearToneMapping`                                    | `view.toneMapping = 'none'`                                                                                                                |
-| `ReinhardToneMapping`                                                                  | `'reinhard'`                                                                                                                               |
-| `CineonToneMapping`                                                                    | `'uncharted2'` (closest filmic curve)                                                                                                      |
-| `ACESFilmicToneMapping` (r3f's default)                                                | `'aces'`                                                                                                                                   |
-| `AgXToneMapping`, `NeutralToneMapping`                                                 | `'aces'` (pixi-3d has neither)                                                                                                             |
-| `toneMappingExposure`                                                                  | `view.exposure`                                                                                                                            |
-| `shadowMap.type`: `BasicShadowMap`, `PCFShadowMap`, `PCFSoftShadowMap`, `VSMShadowMap` | `view.shadowFilter`: `'hard'`, `'pcf'`, `'pcf-high'`, `'pcf-high'`                                                                         |
-| `shadowMap.enabled`                                                                    | Lights cast shadows only while it's on (`DirectionalLight.canCastShadow`)                                                                  |
-| `scene.background`: a three `Color` or a colour                                        | The canvas clears to it before the scene draws, untouched by tone mapping, as three's does; any other background goes to `view.background` |
-| `outputColorSpace`                                                                     | Kept, inert: pixi-3d always writes sRGB                                                                                                    |
+| three                                                                                  | pixi-3d                                                                                                                                                    |
+| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `toneMapping`, every curve three has, and `outputColorSpace`                           | The view's tone mapping bit is swapped for three's own curve and sRGB transfer function (none for `LinearSRGBColorSpace`), `src/renderer/toneMapping.ts`   |
+| `toneMappingExposure`                                                                  | `view.exposure`; 1 with `NoToneMapping`, as three ignores it there                                                                                         |
+| `shadowMap.type`: `BasicShadowMap`, `PCFShadowMap`, `PCFSoftShadowMap`, `VSMShadowMap` | `view.shadowFilter`: `'hard'`, `'pcf'`, `'pcf-high'`, `'pcf-high'`                                                                                         |
+| `shadowMap.enabled`                                                                    | Lights cast shadows only while it's on (`canCastShadow` on the directional and spot aliases)                                                               |
+| `light.shadow` (`mapSize`, `camera`, `bias`, `normalBias`)                             | Swapped for pixi-3d's own shadow settings while the view draws (`_prepareRender`); the largest `mapSize` sets `view.shadowQuality`                         |
+| A hemisphere light                                                                     | `view.environment`, a pixi-3d `Hemisphere`, unless the scene has an `environment` (`src/renderer/sceneLights.ts`)                                          |
+| `scene.background`: a three `Color` or a colour                                        | The canvas clears to it before the scene draws, untouched by tone mapping, as three's does                                                                 |
+| `scene.background`: a pixi `Texture`                                                   | A sprite behind the view, stretched over the canvas, tinted by `backgroundIntensity` (`src/renderer/backdrop.ts`)                                          |
+| `scene.background`: anything else                                                      | `view.background`                                                                                                                                          |
+| `scene.fog`: `Fog`, `FogExp2`                                                          | `view.fog`, with the view's fog bit swapped for one that mixes in after the tone curve, in a slot the tone mapping bit leaves (`src/renderer/sceneFog.ts`) |
+
+Each frame the renderer also aims directional and spot lights at their targets and, for a soft-edged spot, moves pixi-3d's cone edges so its penumbra ramp follows three's, putting the lights' own values back once the view has drawn. A camera outside the drawn scene is copied onto a `ProxyCamera` that projects with the source's `computeProjection`; the catalog's cameras override `computeProjection` with three's projection.
+
+The swaps reach two more pixi-3d internals, `View3D._toneMappingBit` and `View3D._fogBit`, set right after the public `toneMapping` and `fog` setters so pixi-3d queues its materials to rebuild.
 
 ## The entries and their types
 

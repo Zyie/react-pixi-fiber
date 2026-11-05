@@ -57,6 +57,15 @@ export const GUIDES: readonly Guide[] = [
     section: 'tutorials',
   },
   {
+    id: 'lights-and-shadows',
+    title: 'Lights and shadows',
+    file: 'src/__docs__/lights-and-shadows.md',
+    section: 'tutorials',
+  },
+  { id: 'canvas', title: 'Canvas', file: 'src/__docs__/canvas.md', section: 'reference' },
+  { id: 'camera-parenting', title: 'Camera parenting', file: 'src/__docs__/camera-parenting.md', section: 'reference' },
+  { id: 'visibility', title: 'Visibility', file: 'src/__docs__/visibility.md', section: 'reference' },
+  {
     id: 'objects',
     title: 'Objects, properties and arguments',
     label: 'Objects',

@@ -1,11 +1,15 @@
-import { Camera3D, Matrix4, Quaternion, Vector3, View3D } from '@pixi/3d';
-import type { Container3D, ShadowFilter, ToneMapping } from '@pixi/3d';
-import { Color, Container, autoDetectRenderer } from 'pixi.js';
+import { Matrix4, Quaternion, Vector3, View3D } from '@pixi/3d';
+import type { Container3D, ShadowFilter, Camera3D } from '@pixi/3d';
+import { Color, Container, Texture, autoDetectRenderer } from 'pixi.js';
 import type { ColorSource, Renderer } from 'pixi.js';
 
-import { DirectionalLight } from '../catalog/lights/DirectionalLight';
 import { Color as ThreeColor, toPixiColor } from '../math/Color';
+import { releaseBackdrop, updateBackdrop } from './backdrop';
+import { ProxyCamera } from './ProxyCamera';
+import { applyFog } from './sceneFog';
+import { finishLights, prepareLights } from './sceneLights';
 import { setShadowsEnabled } from './shadowViews';
+import { applyToneMapping } from './toneMapping';
 
 /**
  * What the renderer is built with; r3f passes `canvas` and `antialias`, and the `renderer` (or
@@ -46,21 +50,11 @@ interface SceneView {
   readonly view: View3D;
   readonly stage: Container;
   readonly release: () => void;
-  proxy: Camera3D | null;
+  proxy: ProxyCamera | null;
   background: unknown;
   drawnAt: number;
 }
 
-const TONE_MAPPINGS: readonly ToneMapping[] = [
-  'none',
-  'none',
-  'reinhard',
-  'uncharted2',
-  'aces',
-  'custom',
-  'aces',
-  'aces',
-];
 const SHADOW_FILTERS: readonly ShadowFilter[] = ['hard', 'pcf', 'pcf-high', 'pcf-high'];
 
 const sceneWorld = new Matrix4();
@@ -97,9 +91,11 @@ const isDescendant = (node: Container3D, root: Container3D): boolean => {
  * {@link PixiRenderer#viewMaxIdleFrames | viewMaxIdleFrames} frames undrawn, and is made again if
  * the scene is drawn after that.
  *
- * three's renderer settings are forwarded to each view as it draws: `toneMapping` and
- * `toneMappingExposure` become the view's tone mapping and exposure, and `shadowMap.type` its shadow
- * filter. `shadowMap.enabled` gates which lights cast shadows. A scene whose `background` is a colour,
+ * three's renderer settings are forwarded to each view as it draws: `toneMapping`,
+ * `toneMappingExposure` and `outputColorSpace` become three's own tone curve, exposure and output
+ * transform at the end of every material, and `shadowMap.type` the view's shadow filter.
+ * `shadowMap.enabled` gates which lights cast shadows. The scene's lights, `fog` and a texture
+ * `background` are read as three reads them. A scene whose `background` is a colour,
  * a three `Color` or a pixi `ColorSource`, clears the canvas to it before it draws, as three's does,
  * untouched by tone mapping; any other background, such as a pixi-3d `CubeTexture`, becomes its view's.
  * The canvas is transparent unless `alpha` is `false`, as in three.
@@ -135,7 +131,7 @@ export class PixiRenderer {
   public toneMapping = 0;
   /** Brightness before tone mapping, pixi-3d's `exposure` @default 1 */
   public toneMappingExposure = 1;
-  /** Kept for three's shape; pixi-3d always writes sRGB @default 'srgb' */
+  /** three's output colour space: `'srgb'` encodes what the materials draw with the sRGB curve, `'srgb-linear'` leaves it linear @default 'srgb' */
   public outputColorSpace = 'srgb';
   /** three's shadow map settings */
   public readonly shadowMap: PixiShadowMap = { enabled: false, type: 1, autoUpdate: true, needsUpdate: false };
@@ -313,7 +309,7 @@ export class PixiRenderer {
     if (camera.view3d === view) {
       view.camera = camera;
     } else {
-      entry.proxy ??= new Camera3D();
+      entry.proxy ??= new ProxyCamera();
       this._syncProxy(entry.proxy, camera, scene);
       view.camera = entry.proxy;
     }
@@ -321,7 +317,12 @@ export class PixiRenderer {
     const background = (scene as Container3D & { background?: SceneBackground }).background;
     const clearToBackground = this._applyBackground(pixi, background);
     this._applySettings(entry, background);
-    pixi.render({ container: entry.stage, clear: this.autoClear || clearToBackground });
+    this._applySceneSettings(entry, scene);
+    try {
+      pixi.render({ container: entry.stage, clear: this.autoClear || clearToBackground });
+    } finally {
+      finishLights(view);
+    }
   }
 
   /** Clears the canvas to the clear colour */
@@ -342,6 +343,7 @@ export class PixiRenderer {
     scene.off('destroyed', entry.release);
     if (entry.proxy) scene.removeChild(entry.proxy);
     entry.proxy?.destroy();
+    releaseBackdrop(entry.stage);
     const children = scene.children.slice();
     entry.view.destroy();
     if (!scene.destroyed) for (const child of children) if (!child.destroyed) scene.addChild(child);
@@ -358,7 +360,7 @@ export class PixiRenderer {
 
   private _createView(scene: Container3D, camera: Camera3D): SceneView {
     const inScene = isDescendant(camera, scene);
-    const proxy = inScene ? null : new Camera3D();
+    const proxy = inScene ? null : new ProxyCamera();
     const view = new View3D({ root: scene, camera: proxy ?? camera, autoResize: true });
     const stage = new Container();
     stage.addChild(view);
@@ -375,7 +377,8 @@ export class PixiRenderer {
     return entry;
   }
 
-  private _syncProxy(proxy: Camera3D, camera: Camera3D, scene: Container3D): void {
+  private _syncProxy(proxy: ProxyCamera, camera: Camera3D, scene: Container3D): void {
+    proxy.source = camera;
     proxy.mode = camera.mode;
     proxy.fov = camera.fov;
     proxy.zoom = camera.zoom;
@@ -425,23 +428,31 @@ export class PixiRenderer {
     return false;
   }
 
+  /**
+   * What three reads off the scene itself: its lights, its fog, and a texture background, which is
+   * drawn behind the view
+   */
+  private _applySceneSettings(entry: SceneView, scene: Container3D): void {
+    const { view } = entry;
+    const settings = scene as Container3D & { background?: unknown; backgroundIntensity?: number };
+    prepareLights(view, scene);
+    applyFog(view, scene);
+    updateBackdrop(entry.stage, settings.background, this._width, this._height, settings.backgroundIntensity ?? 1);
+  }
+
   private _applySettings(entry: SceneView, background: SceneBackground): void {
     const { view } = entry;
-    const toneMapping = TONE_MAPPINGS[this.toneMapping] ?? 'aces';
-    if (view.toneMapping !== toneMapping) view.toneMapping = toneMapping;
-    view.exposure = this.toneMappingExposure;
+    applyToneMapping(view, this.toneMapping, this.toneMappingExposure, this.outputColorSpace);
     const shadowFilter = SHADOW_FILTERS[this.shadowMap.type] ?? 'pcf';
     if (view.shadowFilter !== shadowFilter) view.shadowFilter = shadowFilter;
     setShadowsEnabled(view, this.shadowMap.enabled);
 
     if (background !== undefined) {
-      const viewBackground = isColorBackground(background) ? null : background;
+      const viewBackground = isColorBackground(background) || background instanceof Texture ? null : background;
       if (viewBackground !== entry.background) {
         entry.background = viewBackground;
         view.background = viewBackground;
       }
     }
-
-    for (const light of view.lights) if (light instanceof DirectionalLight) light.aimAtTarget();
   }
 }

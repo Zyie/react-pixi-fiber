@@ -1,41 +1,68 @@
-import { Container3D, DirectionalLight as PixiDirectionalLight, Vector3 } from '@pixi/3d';
-import type { PointData3D } from '@pixi/3d';
-import type { ColorSource } from 'pixi.js';
+import { DirectionalLight as PixiDirectionalLight } from '@pixi/3d';
+import type { Destroy3DOptions, PointData3D, Container3D } from '@pixi/3d';
 
-import { lookAtPoint } from '../../compat/installObject3DSurface';
+import { DEFAULT_UP, lookAtPoint } from '../../compat/installObject3DSurface';
+import type { Color, ColorRepresentation } from '../../math/Color';
 import type { Euler } from '../../math/Euler';
 import { areShadowsEnabled } from '../../renderer/shadowViews';
-
-const lightPosition = new Vector3();
-const targetPosition = new Vector3();
+import { OrthographicCamera } from '../scene/OrthographicCamera';
+import { LightColor } from './lightColors';
+import { DirectionalLightShadow } from './LightShadow';
+import { LightTarget } from './LightTarget';
+import { aimAtTarget, swapInPixiShadow } from './renderHooks';
+import type { RenderedLight } from './renderHooks';
 
 /**
  * three's `DirectionalLight` over pixi-3d's, with three's positional constructor
  *
  * In three the light shines from its position toward `target`, which starts at the origin, and the
  * light starts one unit up. pixi-3d's light shines along its local -Z, so the renderer turns it
- * toward the target before each frame. It casts shadows only while the renderer's
- * `shadowMap.enabled` is on (`<Canvas renderer={{ shadows: true }}>`), as in three.
+ * toward the target before each frame. `color` is a three `Color`, so `light.color.set('orange')` and
+ * `color-g={0.5}` work. It casts shadows only while the renderer's `shadowMap.enabled` is on
+ * (`<Canvas renderer={{ shadows: true }}>`), as in three, over the box its `shadow.camera` covers.
  * @example
  * ```tsx
- * <directionalLight position={[5, 5, 5]} intensity={2} castShadow />
+ * <directionalLight position={[5, 5, 5]} intensity={2} castShadow shadow-mapSize={[1024, 1024]} />
  * ```
  * @category catalog
  * @standard
  */
-export class DirectionalLight extends PixiDirectionalLight {
+export class DirectionalLight extends PixiDirectionalLight implements RenderedLight {
   /** Always `true`, as on three's lights */
   public readonly isLight = true;
-  /** What the light points at; a node outside the scene at the origin until you move or replace it */
-  public target: Container3D = new Container3D();
+  /** Always `true`, as on three's directional lights */
+  public readonly isDirectionalLight = true;
+  /**
+   * What the light points at, as in three: a node at the origin, which takes effect from its
+   * `position` once it is added to the scene or its `updateMatrixWorld()` is called, or any node in the scene
+   */
+  public target: Container3D = new LightTarget();
+  private readonly _defaultTarget = this.target;
+  /** The shadow's settings, three's `DirectionalLightShadow`, with pixi-3d's shadow options beside them */
+  declare public shadow: DirectionalLightShadow;
+  private readonly _threeColor: LightColor;
+  private _ownShadow: DirectionalLightShadow | null = null;
 
   /**
    * @param color - Light colour
    * @param intensity - Brightness
    */
-  constructor(color: ColorSource = 0xffffff, intensity = 1) {
-    super({ color, intensity });
-    this.position.set(0, 1, 0);
+  constructor(color: ColorRepresentation = 0xffffff, intensity = 1) {
+    super({ intensity });
+    this._threeColor = new LightColor(color);
+    this.shadow = new DirectionalLightShadow(new OrthographicCamera(-5, 5, 5, -5, 0.5, 500));
+    this.position.copyFrom(DEFAULT_UP);
+  }
+
+  /** The light's colour, a three `Color` in the working colour space */
+  // @ts-expect-error -- three's `color` is a three Color where pixi-3d's light has a pixi Color; pixi-3d reads it through LightColor's display channels
+  public override get color(): Color {
+    return this._threeColor;
+  }
+
+  // @ts-expect-error -- takes what three's colour props take, where pixi-3d's takes a ColorSource
+  public override set color(value: ColorRepresentation) {
+    this._threeColor.set(value);
   }
 
   /** Casts shadows only while `castShadow` is on and the renderer has shadows enabled */
@@ -44,14 +71,35 @@ export class DirectionalLight extends PixiDirectionalLight {
   }
 
   /**
-   * Turns the light toward `target`; the renderer calls it before each frame
+   * Turns the light toward `target` and hands pixi-3d its shadow settings; the renderer calls it before each frame
    * @internal
    */
-  public aimAtTarget(): void {
-    this.getGlobalPosition(lightPosition);
-    this.target.getGlobalPosition(targetPosition);
-    if (lightPosition.distanceToSquared(targetPosition) === 0) return;
-    this.lookAt(targetPosition);
+  public _prepareRender(): void {
+    aimAtTarget(this, this.target);
+    if (!this.castShadow) return;
+    this._ownShadow = this.shadow;
+    swapInPixiShadow(this, this.shadow);
+  }
+
+  /**
+   * Puts the three shadow back after the frame
+   * @internal
+   */
+  public _finishRender(): void {
+    if (this._ownShadow) this.shadow = this._ownShadow;
+    this._ownShadow = null;
+  }
+
+  /**
+   * Frees the light, its shadow camera, its default target unless that was added to a scene, and its pixi-3d shadow state
+   * @param options - pixi-3d's destroy options
+   */
+  public override destroy(options?: Destroy3DOptions): void {
+    if (this.destroyed) return;
+    this._finishRender();
+    this.shadow.dispose();
+    if (!this._defaultTarget.parent) this._defaultTarget.destroy();
+    super.destroy(options);
   }
 
   /** Local rotation in radians, three's `Euler`: its `order` sets how the angles combine, and it stays in step with `quaternion` */

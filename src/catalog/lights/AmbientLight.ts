@@ -1,11 +1,15 @@
 import { AmbientLight as PixiAmbientLight } from '@pixi/3d';
 import type { PointData3D } from '@pixi/3d';
-import type { ColorSource } from 'pixi.js';
 
 import { lookAtPoint } from '../../compat/installObject3DSurface';
+import type { Color, ColorRepresentation } from '../../math/Color';
 import type { Euler } from '../../math/Euler';
+import { LightColor } from './lightColors';
+
 /**
  * three's `AmbientLight` over pixi-3d's, with three's positional constructor
+ *
+ * `color` is a three `Color`, so `light.color.set('orange')` works.
  * @example
  * ```tsx
  * <ambientLight intensity={0.5} />
@@ -16,13 +20,28 @@ import type { Euler } from '../../math/Euler';
 export class AmbientLight extends PixiAmbientLight {
   /** Always `true`, as on three's lights */
   public readonly isLight = true;
+  /** Always `true`, as on three's ambient lights */
+  public readonly isAmbientLight = true;
+  private readonly _threeColor: LightColor;
 
   /**
    * @param color - Light colour
    * @param intensity - Brightness
    */
-  constructor(color: ColorSource = 0xffffff, intensity = 1) {
-    super({ color, intensity });
+  constructor(color: ColorRepresentation = 0xffffff, intensity = 1) {
+    super({ intensity });
+    this._threeColor = new LightColor(color);
+  }
+
+  /** The light's colour, a three `Color` in the working colour space */
+  // @ts-expect-error -- three's `color` is a three Color where pixi-3d's light has a pixi Color; pixi-3d reads it through LightColor's display channels
+  public override get color(): Color {
+    return this._threeColor;
+  }
+
+  // @ts-expect-error -- takes what three's colour props take, where pixi-3d's takes a ColorSource
+  public override set color(value: ColorRepresentation) {
+    this._threeColor.set(value);
   }
 
   /** Local rotation in radians, three's `Euler`: its `order` sets how the angles combine, and it stays in step with `quaternion` */
