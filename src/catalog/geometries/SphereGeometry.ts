@@ -40,9 +40,9 @@ export class SphereGeometry extends BufferGeometry {
     widthSegments = 32,
     heightSegments = 16,
     phiStart = 0,
-    phiLength = Math.PI * 2,
+    phiLength: number = Math.PI * 2,
     thetaStart = 0,
-    thetaLength = Math.PI,
+    thetaLength: number = Math.PI,
   ) {
     super();
     this.type = 'SphereGeometry';

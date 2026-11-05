@@ -105,7 +105,7 @@ export class BufferAttribute {
   /** Called after the data is uploaded; kept for three's shape */
   public onUploadCallback: () => void = () => {};
   /** @internal */
-  public readonly _owners = new Set<BufferAttributeOwner>();
+  public readonly _owners: Set<BufferAttributeOwner> = new Set();
 
   /**
    * @param array - The data

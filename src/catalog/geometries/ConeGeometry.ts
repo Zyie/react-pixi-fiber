@@ -33,7 +33,7 @@ export class ConeGeometry extends CylinderGeometry {
     heightSegments = 1,
     openEnded = false,
     thetaStart = 0,
-    thetaLength = Math.PI * 2,
+    thetaLength: number = Math.PI * 2,
   ) {
     super(0, radius, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength);
     this.type = 'ConeGeometry';

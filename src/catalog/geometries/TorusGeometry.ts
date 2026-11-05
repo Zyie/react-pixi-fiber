@@ -39,9 +39,9 @@ export class TorusGeometry extends BufferGeometry {
     tube = 0.4,
     radialSegments = 12,
     tubularSegments = 48,
-    arc = Math.PI * 2,
+    arc: number = Math.PI * 2,
     thetaStart = 0,
-    thetaLength = Math.PI * 2,
+    thetaLength: number = Math.PI * 2,
   ) {
     super();
     this.type = 'TorusGeometry';

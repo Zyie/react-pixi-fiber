@@ -175,7 +175,7 @@ export class BufferGeometry extends Geometry3D implements BufferAttributeOwner {
   /** Ranges of indices drawn with one of a mesh's materials each; kept, a mesh draws them with one */
   public groups: GeometryGroup[] = [];
   /** The part of the indices (or vertices) drawn: `start` and `count` */
-  public readonly drawRange = { start: 0, count: Infinity };
+  public readonly drawRange: { start: number; count: number } = { start: 0, count: Infinity };
   /** The box around `position`, or `null` until `computeBoundingBox()` */
   public boundingBox: Box3 | null = null;
   /** The sphere around `position`, or `null` until `computeBoundingSphere()` */

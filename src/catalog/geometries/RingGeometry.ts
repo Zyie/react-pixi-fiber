@@ -38,7 +38,7 @@ export class RingGeometry extends BufferGeometry {
     thetaSegments = 32,
     phiSegments = 1,
     thetaStart = 0,
-    thetaLength = Math.PI * 2,
+    thetaLength: number = Math.PI * 2,
   ) {
     super();
     this.type = 'RingGeometry';

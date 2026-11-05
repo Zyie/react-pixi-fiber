@@ -47,8 +47,8 @@ export class ArrowHelper extends Object3D {
     origin: PointData3D = new Vector3(0, 0, 0),
     length = 1,
     color: ColorRepresentation = 0xffff00,
-    headLength = length * 0.2,
-    headWidth = headLength * 0.2,
+    headLength: number = length * 0.2,
+    headWidth: number = headLength * 0.2,
   ) {
     super();
     const shaft = new BufferGeometry();
@@ -78,7 +78,7 @@ export class ArrowHelper extends Object3D {
    * @param headLength - Length of the head
    * @param headWidth - Width of the head
    */
-  public setLength(length: number, headLength = length * 0.2, headWidth = headLength * 0.2): void {
+  public setLength(length: number, headLength: number = length * 0.2, headWidth: number = headLength * 0.2): void {
     this.line.scale.set(1, Math.max(0.0001, length - headLength), 1);
     this.cone.scale.set(headWidth, headLength, headWidth);
     this.cone.position.y = length;

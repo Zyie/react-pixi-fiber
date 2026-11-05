@@ -24,7 +24,7 @@ export class CircleGeometry extends BufferGeometry {
    * @param thetaStart - Where the sweep starts, in radians
    * @param thetaLength - How far the sweep goes, in radians
    */
-  constructor(radius = 1, segments = 32, thetaStart = 0, thetaLength = Math.PI * 2) {
+  constructor(radius = 1, segments = 32, thetaStart = 0, thetaLength: number = Math.PI * 2) {
     super();
     this.type = 'CircleGeometry';
     this.parameters = { radius, segments, thetaStart, thetaLength };

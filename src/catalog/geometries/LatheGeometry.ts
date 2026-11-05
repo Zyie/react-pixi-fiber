@@ -37,7 +37,7 @@ export class LatheGeometry extends BufferGeometry {
     points: LathePoint[] = [new Vector2(0, -0.5), new Vector2(0.5, 0), new Vector2(0, 0.5)],
     segments = 12,
     phiStart = 0,
-    phiLength = Math.PI * 2,
+    phiLength: number = Math.PI * 2,
   ) {
     super();
     this.type = 'LatheGeometry';
