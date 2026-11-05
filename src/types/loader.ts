@@ -17,7 +17,7 @@ export type InputLike = string | string[] | string[][] | Readonly<string | strin
 export interface LoaderLike {
   /** Loads a URL and calls back with the result, its progress, or an error */
   load(
-    url: string,
+    url: InputLike,
     onLoad?: Callback<unknown>,
     onProgress?: Callback<ProgressEvent>,
     onError?: Callback<unknown>,
@@ -35,7 +35,7 @@ type LoaderInstance<T> = T extends ConstructorRepresentation<infer L> ? L : T;
  * @advanced
  */
 export type LoaderResult<T> =
-  LoaderInstance<T> extends { load(url: string, onLoad?: (result: infer R) => void, ...rest: never[]): unknown }
+  LoaderInstance<T> extends { load(url: never, onLoad?: (result: infer R) => void, ...rest: never[]): unknown }
     ? R
     : unknown;
 
