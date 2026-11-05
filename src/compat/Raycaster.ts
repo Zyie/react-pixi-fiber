@@ -211,8 +211,6 @@ export class Raycaster {
 /** Reads one vertex attribute of a geometry, whatever its format, stride and offset */
 interface AttributeReader {
   readonly components: number;
-  /** How many vertices the attribute's buffer holds */
-  readonly count: number;
   /** Reads a vertex's components into `out`, decoding normalised integers to -1 to 1 or 0 to 1 */
   read(vertex: number, out: number[]): void;
 }
@@ -236,7 +234,6 @@ function attributeReader(attribute: Attribute | undefined): AttributeReader | nu
 
   return {
     components,
-    count: Math.floor((data.length - offset) / stride),
     read(vertex, out) {
       const start = offset + vertex * stride;
       for (let i = 0; i < components; i++) {
@@ -263,156 +260,6 @@ const edge2 = new Vector3();
 const lanesA: number[] = [0, 0, 0, 0];
 const lanesB: number[] = [0, 0, 0, 0];
 const lanesC: number[] = [0, 0, 0, 0];
-
-/**
- * Where a ray crosses a triangle, by three's watertight test (`Ray.intersectTriangle`), into `out`
- * @param ray - The ray, in the triangle's space
- * @param a - The first corner
- * @param b - The second corner
- * @param c - The third corner
- * @param backfaceCulling - Miss a triangle that faces away from the ray
- * @param out - Where the crossing goes
- * @returns `out`, or `null` for a miss
- */
-function intersectTriangle(
-  ray: Ray,
-  a: Vector3,
-  b: Vector3,
-  c: Vector3,
-  backfaceCulling: boolean,
-  out: Vector3,
-): Vector3 | null {
-  const { origin, direction } = ray;
-  const dx = direction.x;
-  const dy = direction.y;
-  const dz = direction.z;
-  const aox = a.x - origin.x;
-  const aoy = a.y - origin.y;
-  const aoz = a.z - origin.z;
-  const box = b.x - origin.x;
-  const boy = b.y - origin.y;
-  const boz = b.z - origin.z;
-  const cox = c.x - origin.x;
-  const coy = c.y - origin.y;
-  const coz = c.z - origin.z;
-  const adx = Math.abs(dx);
-  const ady = Math.abs(dy);
-  const adz = Math.abs(dz);
-
-  let dkx: number;
-  let dky: number;
-  let dkz: number;
-  let akx: number;
-  let aky: number;
-  let akz: number;
-  let bkx: number;
-  let bky: number;
-  let bkz: number;
-  let ckx: number;
-  let cky: number;
-  let ckz: number;
-
-  if (adx >= ady && adx >= adz) {
-    dkz = dx;
-    akz = aox;
-    bkz = box;
-    ckz = cox;
-    if (dx >= 0) {
-      dkx = dy;
-      dky = dz;
-      akx = aoy;
-      aky = aoz;
-      bkx = boy;
-      bky = boz;
-      ckx = coy;
-      cky = coz;
-    } else {
-      dkx = dz;
-      dky = dy;
-      akx = aoz;
-      aky = aoy;
-      bkx = boz;
-      bky = boy;
-      ckx = coz;
-      cky = coy;
-    }
-  } else if (ady >= adz) {
-    dkz = dy;
-    akz = aoy;
-    bkz = boy;
-    ckz = coy;
-    if (dy >= 0) {
-      dkx = dz;
-      dky = dx;
-      akx = aoz;
-      aky = aox;
-      bkx = boz;
-      bky = box;
-      ckx = coz;
-      cky = cox;
-    } else {
-      dkx = dx;
-      dky = dz;
-      akx = aox;
-      aky = aoz;
-      bkx = box;
-      bky = boz;
-      ckx = cox;
-      cky = coz;
-    }
-  } else {
-    dkz = dz;
-    akz = aoz;
-    bkz = boz;
-    ckz = coz;
-    if (dz >= 0) {
-      dkx = dx;
-      dky = dy;
-      akx = aox;
-      aky = aoy;
-      bkx = box;
-      bky = boy;
-      ckx = cox;
-      cky = coy;
-    } else {
-      dkx = dy;
-      dky = dx;
-      akx = aoy;
-      aky = aox;
-      bkx = boy;
-      bky = box;
-      ckx = coy;
-      cky = cox;
-    }
-  }
-
-  if (dkz === 0) return null;
-
-  const sx = dkx / dkz;
-  const sy = dky / dkz;
-  const sz = 1 / dkz;
-  const ax = akx - sx * akz;
-  const ay = aky - sy * akz;
-  const bx = bkx - sx * bkz;
-  const by = bky - sy * bkz;
-  const cx = ckx - sx * ckz;
-  const cy = cky - sy * ckz;
-  const u = cx * by - cy * bx;
-  const v = ax * cy - ay * cx;
-  const w = bx * ay - by * ax;
-
-  if (backfaceCulling) {
-    if (u < 0 || v < 0 || w < 0) return null;
-  } else if ((u < 0 || v < 0 || w < 0) && (u > 0 || v > 0 || w > 0)) return null;
-
-  const det = u + v + w;
-  if (det === 0) return null;
-
-  const tScaled = sz * (u * akz + v * bkz + w * ckz);
-  if (det > 0 ? tScaled < 0 : tScaled > 0) return null;
-
-  return ray.at(tScaled / det, out) as Vector3;
-}
 
 /**
  * The weights of a triangle's corners at a point in its plane, as three's `Triangle.getBarycoord`
@@ -466,6 +313,90 @@ function blend(reader: AttributeReader, a: number, b: number, c: number, weights
 const sideOf = (material: BaseMaterial3D): number =>
   (material as { side?: number }).side ?? (material.doubleSided ? DoubleSide : FrontSide);
 
+/** The ray's shear for `crossTriangles`: its origin along kx, ky and kz, then sx, sy and sz */
+const shear = new Float64Array(6);
+/** What `crossTriangles` found: a triangle's number and the distance along the local ray, for each crossing */
+let crossed = new Float64Array(64);
+
+/**
+ * Finds every triangle a ray crosses, by three's watertight test, the ray already sheared into
+ * `shear`. Kept to typed arrays and numbers, so the loop over every triangle allocates nothing.
+ * @param data - The positions
+ * @param indices - The triangles' corners, or `null` when every three positions are one
+ * @param corners - How many corners to read
+ * @param stride - Floats from one position to the next
+ * @param offset - The float the first position starts at
+ * @param kx - The axis the ray's shear maps to x
+ * @param ky - The axis it maps to y
+ * @param kz - The ray's largest axis
+ * @param side - three's material side
+ * @returns How many crossings `crossed` holds
+ */
+function crossTriangles(
+  data: Float32Array,
+  indices: Uint16Array | Uint32Array | null,
+  corners: number,
+  stride: number,
+  offset: number,
+  kx: number,
+  ky: number,
+  kz: number,
+  side: number,
+): number {
+  const okx = shear[0];
+  const oky = shear[1];
+  const okz = shear[2];
+  const sx = shear[3];
+  const sy = shear[4];
+  const sz = shear[5];
+  const cull = side !== DoubleSide;
+  const back = side === BackSide;
+  let count = 0;
+
+  for (let i = 0; i + 2 < corners; i += 3) {
+    const a = indices ? indices[i] : i;
+    const b = indices ? indices[i + 1] : i + 1;
+    const c = indices ? indices[i + 2] : i + 2;
+    const first = (back ? c : a) * stride + offset;
+    const second = b * stride + offset;
+    const third = (back ? a : c) * stride + offset;
+    const bkz = data[second + kz] - okz;
+    const ckz = data[third + kz] - okz;
+    const pbx = data[second + kx] - okx - sx * bkz;
+    const pby = data[second + ky] - oky - sy * bkz;
+    const pcx = data[third + kx] - okx - sx * ckz;
+    const pcy = data[third + ky] - oky - sy * ckz;
+    const u = pcx * pby - pcy * pbx;
+
+    if (cull && u < 0) continue;
+
+    const akz = data[first + kz] - okz;
+    const pax = data[first + kx] - okx - sx * akz;
+    const pay = data[first + ky] - oky - sy * akz;
+    const v = pax * pcy - pay * pcx;
+    const w = pbx * pay - pby * pax;
+
+    if (cull ? v < 0 || w < 0 : (u < 0 || v < 0 || w < 0) && (u > 0 || v > 0 || w > 0)) continue;
+
+    const det = u + v + w;
+    if (det === 0) continue;
+
+    const tScaled = sz * (u * akz + v * bkz + w * ckz);
+    if (det > 0 ? tScaled < 0 : tScaled > 0) continue;
+
+    if (count * 2 + 2 > crossed.length) {
+      const grown = new Float64Array(crossed.length * 2);
+      grown.set(crossed);
+      crossed = grown;
+    }
+    crossed[count * 2] = i / 3;
+    crossed[count * 2 + 1] = tScaled / det;
+    count++;
+  }
+
+  return count;
+}
+
 /**
  * Tests a ray against every triangle of a geometry placed by a world matrix, as three's
  * `Mesh.raycast` does, and adds a hit for each triangle it crosses
@@ -500,37 +431,56 @@ export function raycastGeometry(
   localRay.copy(raycaster.ray).applyMatrix4(inverse.getInverse(world));
   if (!localRay.intersectsBox(geometry.bounds3D)) return 0;
 
-  const positions = attributeReader(geometry.attributes.aPosition);
-  if (!positions) return 0;
+  const position = geometry.attributes.aPosition;
+  const data = position.buffer.data;
+  if (!(data instanceof Float32Array) || !position.format?.startsWith('float32')) return 0;
 
+  const stride = position.stride ? position.stride / 4 : 3;
+  const offset = (position.offset ?? 0) / 4;
   const uvs = attributeReader(geometry.attributes.aUV);
   const normals = attributeReader(geometry.attributes.aNormal);
   const indices = geometry.indexBuffer?.data as Uint16Array | Uint32Array | undefined;
   const side = sideOf(material);
-  const corners = indices ? indices.length : positions.count;
+  const corners = indices ? indices.length : Math.floor((data.length - offset) / stride);
   const before = intersects.length;
 
-  for (let i = 0; i + 2 < corners; i += 3) {
+  // three's watertight test (`Ray.intersectTriangle`): the ray's largest axis is kz, and kx and ky
+  // swap when it points down kz, which keeps the winding; the shear is the same for every triangle.
+  const o = localRay.origin;
+  const d = localRay.direction;
+  const ax = Math.abs(d.x);
+  const ay = Math.abs(d.y);
+  const az = Math.abs(d.z);
+  const kz = ax >= ay && ax >= az ? 0 : ay >= az ? 1 : 2;
+  const dz = kz === 0 ? d.x : kz === 1 ? d.y : d.z;
+  if (dz === 0) return 0;
+  const kx = kz === 0 ? (dz >= 0 ? 1 : 2) : kz === 1 ? (dz >= 0 ? 2 : 0) : dz >= 0 ? 0 : 1;
+  const ky = kz === 0 ? (dz >= 0 ? 2 : 1) : kz === 1 ? (dz >= 0 ? 0 : 2) : dz >= 0 ? 1 : 0;
+
+  shear[0] = kx === 0 ? o.x : kx === 1 ? o.y : o.z;
+  shear[1] = ky === 0 ? o.x : ky === 1 ? o.y : o.z;
+  shear[2] = kz === 0 ? o.x : kz === 1 ? o.y : o.z;
+  shear[3] = (kx === 0 ? d.x : kx === 1 ? d.y : d.z) / dz;
+  shear[4] = (ky === 0 ? d.x : ky === 1 ? d.y : d.z) / dz;
+  shear[5] = 1 / dz;
+
+  const crossings = crossTriangles(data, indices ?? null, corners, stride, offset, kx, ky, kz, side);
+
+  for (let n = 0; n < crossings; n++) {
+    const i = crossed[n * 2] * 3;
     const a = indices ? indices[i] : i;
     const b = indices ? indices[i + 1] : i + 1;
     const c = indices ? indices[i + 2] : i + 2;
 
-    positions.read(a, lanesA);
-    vA.set(lanesA[0], lanesA[1], lanesA[2]);
-    positions.read(b, lanesB);
-    vB.set(lanesB[0], lanesB[1], lanesB[2]);
-    positions.read(c, lanesC);
-    vC.set(lanesC[0], lanesC[1], lanesC[2]);
-
-    const crossed =
-      side === BackSide
-        ? intersectTriangle(localRay, vC, vB, vA, true, hitPoint)
-        : intersectTriangle(localRay, vA, vB, vC, side === FrontSide, hitPoint);
-    if (!crossed) continue;
+    localRay.at(crossed[n * 2 + 1], hitPoint);
 
     const point = new Vector3().copyFrom(hitPoint).applyMatrix4(world);
     const distance = raycaster.ray.origin.distanceTo(point);
     if (distance < near || distance > far) continue;
+
+    vA.fromArray(data, a * stride + offset);
+    vB.fromArray(data, b * stride + offset);
+    vC.fromArray(data, c * stride + offset);
 
     const barycoord = barycoordOf(hitPoint, vA, vB, vC);
     const faceNormal = new Vector3().copyFrom(vC).subtract(vB).cross(edge0.copyFrom(vA).subtract(vB));
@@ -549,8 +499,8 @@ export function raycastGeometry(
     };
 
     if (uvs) {
-      const [u, v] = blend(uvs, a, b, c, barycoord);
-      intersection.uv = new Vector2(u, v);
+      const [x, y] = blend(uvs, a, b, c, barycoord);
+      intersection.uv = new Vector2(x, y);
     }
 
     if (normals) {
