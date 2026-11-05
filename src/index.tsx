@@ -22,6 +22,7 @@ import type Reconciler from 'react-reconciler';
 
 import type { PixiCatalog } from './catalog/catalog';
 import type { OrthographicCamera } from './catalog/scene/OrthographicCamera';
+import type { Texture as ThreeTexture } from './catalog/textures/Texture';
 import type { Frustum } from './math/Frustum';
 import {
   createEvents as coreCreateEvents,
@@ -118,6 +119,13 @@ export type { CameraMembers, Object3DMembers } from './compat/installObject3DSur
 export type { ThreeMatrix4Members, ThreeQuaternionMembers, ThreeVector3Members } from './compat/threeMembers';
 export { PixiRenderer, type PixiRendererParameters, type PixiShadowMap } from './renderer/PixiRenderer';
 export { pixiSupport, type PixiSupport } from './support/pixiSupport';
+export {
+  useTextures,
+  type DisposeOptions,
+  type TextureInput,
+  type TextureResult,
+  type UseTexturesReturn,
+} from './loaders/useTextures';
 export type * from './types/canvas';
 export type * from './types/elements';
 export type * from './types/events';
@@ -332,6 +340,10 @@ export interface UseLoader {
     input: I,
     cacheKey?: InputLike,
   ): void;
+  /** The loader instance `useLoader` made for a loader class, or the instance it was given, to reach `abort()` */
+  loader<L extends LoaderLike | ConstructorRepresentation<LoaderLike>>(
+    loader: L,
+  ): L extends ConstructorRepresentation<infer T> ? T : L;
 }
 
 /**
@@ -354,10 +366,10 @@ export const useLoader: UseLoader = coreUseLoader as unknown as UseLoader;
  * @advanced
  */
 export type MappedTextures<Url> = Url extends string
-  ? PixiTexture
+  ? ThreeTexture
   : Url extends string[]
-    ? PixiTexture[]
-    : { [K in keyof Url]: PixiTexture };
+    ? ThreeTexture[]
+    : { [K in keyof Url]: ThreeTexture };
 
 /**
  * r3f's name for {@link MappedTextures}
@@ -396,7 +408,8 @@ export interface UseTexture {
 }
 
 /**
- * Loads pixi textures by URL and suspends until they are ready
+ * Loads three {@link ThreeTexture | textures} by URL with `TextureLoader` and suspends until they
+ * are ready: one URL, a list, or a record whose result spreads into a material
  * @example
  * ```tsx
  * const { map, normal } = useTexture({ map: '/color.png', normal: '/normal.png' });

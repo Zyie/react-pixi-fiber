@@ -1,9 +1,25 @@
-import { Assets } from 'pixi.js';
-import type { Texture } from 'pixi.js';
+import { Texture } from '../catalog/textures/Texture';
+import { ImageLoader } from './ImageLoader';
+import { Loader } from './Loader';
 
 /**
- * three's `TextureLoader` over pixi's `Assets`, so `useLoader(TextureLoader, url)` and `useTexture`
- * load pixi textures
+ * The image as a bitmap, which pixi uploads on WebGPU as it is, where it would copy an image element
+ * into a canvas first; the image itself when the browser can't make one
+ * @param image - A loaded image
+ * @internal
+ */
+export function toBitmap(image: HTMLImageElement): Promise<ImageBitmap | HTMLImageElement> {
+  return createImageBitmap(image).catch(() => image);
+}
+
+/**
+ * three's `TextureLoader`: loads an image as a three {@link Texture}, which any pixi-3d material slot
+ * takes
+ *
+ * As in three, `load` returns the texture at once and fills it when the image arrives; `loadAsync`
+ * and r3f's `useLoader` wait for it. `image` is the loaded `HTMLImageElement`, and pixi uploads a
+ * bitmap of it. Each load makes its own texture with its own GPU copy, so
+ * setting `wrapS` or `repeat` on one leaves another load of the same image alone.
  * @example
  * ```tsx
  * import { useLoader } from 'react-pixi-fiber';
@@ -14,29 +30,40 @@ import type { Texture } from 'pixi.js';
  * @category catalog
  * @standard
  */
-export class TextureLoader {
+export class TextureLoader extends Loader<Texture> {
   /**
-   * Loads a texture
-   * @param url - Where the image is
-   * @returns The loaded texture
+   * Loads an image into a texture
+   * @param url - The image, after `path`
+   * @param onLoad - Called with the texture once its image has loaded
+   * @param onProgress - Not called, as in three
+   * @param onError - Called when the image fails to load
+   * @returns The texture, empty until the image loads
    */
-  public loadAsync(url: string): Promise<Texture> {
-    return Assets.load<Texture>(url);
-  }
-
-  /**
-   * Loads a texture with three's callback signature
-   * @param url - Where the image is
-   * @param onLoad - Called with the texture
-   * @param _onProgress - Not called: pixi's `Assets` reports no progress per file
-   * @param onError - Called when the load fails
-   */
-  public load(
+  public override load(
     url: string,
     onLoad?: (texture: Texture) => void,
-    _onProgress?: (event: ProgressEvent) => void,
+    onProgress?: (event: ProgressEvent) => void,
     onError?: (error: unknown) => void,
-  ): void {
-    void this.loadAsync(url).then(onLoad, onError);
+  ): Texture {
+    const texture = new Texture();
+
+    new ImageLoader(this.manager)
+      .setCrossOrigin(this.crossOrigin)
+      .setPath(this.path)
+      .load(
+        url,
+        (image) => {
+          texture.image = image;
+          void toBitmap(image).then((bitmap) => {
+            texture.source.resource = bitmap;
+            texture.needsUpdate = true;
+            onLoad?.(texture);
+          });
+        },
+        onProgress,
+        onError,
+      );
+
+    return texture;
   }
 }
