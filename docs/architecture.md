@@ -127,7 +127,7 @@ Scenes, examples and docs import the library only as `react-pixi-fiber`. `tsconf
 Two rules follow:
 
 - A parity scene uses only names both entries export: r3f's API (`Canvas`, `useFrame`, `useThree`, ...) and JSX elements. The catalog classes, constants and `PixiRenderer` are exports of this package only.
-- One renderer per page. Core keeps the registered namespace (`getThree()`) in a module variable, and the `extend()` registry and React context on `globalThis` under `Symbol.for` keys, so a pixi root and a three root in the same page would share them. Render each side in its own page or iframe.
+- One renderer per page. Core keeps the registered namespace (`getThree()`) in a module variable, and the `extend()` registry and React context on `globalThis` under `Symbol.for` keys, so a pixi root and a three root in the same page would share them. Render each side in its own page or iframe: the harness runs the three.js pictures in a vitest project of their own and the playground builds each renderer in its own frame, both reading the two targets from `FIBER_TARGETS` in `scripts/test/aliases.mts` (`tests/README.md`).
 
 ## Upstream asks
 
