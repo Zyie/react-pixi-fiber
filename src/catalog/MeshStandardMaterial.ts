@@ -1,4 +1,5 @@
 import { Material3D } from '@pixi/3d';
+import { Texture } from 'pixi.js';
 import type { ColorSource } from 'pixi.js';
 
 /**
@@ -13,6 +14,8 @@ export interface MeshStandardMaterialParameters {
   roughness?: number;
   /** 0 for a dielectric, 1 for a metal; pixi-3d's `metallic` */
   metalness?: number;
+  /** Colour texture, multiplied by `color`; pixi-3d's `baseColorTexture` */
+  map?: Texture | null;
   /** 0 for clear, 1 for solid; pixi-3d's `alpha` */
   opacity?: number;
   /** Blend with what is behind, using `opacity`; pixi-3d's `alphaMode: 'blend'` */
@@ -36,9 +39,10 @@ export class MeshStandardMaterial extends Material3D {
   public readonly isMeshStandardMaterial = true;
 
   /** @param parameters - three's material parameters */
-  constructor({ color, roughness = 1, metalness = 0, opacity, transparent }: MeshStandardMaterialParameters = {}) {
+  constructor({ color, map, roughness = 1, metalness = 0, opacity, transparent }: MeshStandardMaterialParameters = {}) {
     super({
       baseColor: color,
+      baseColorTexture: map ?? undefined,
       roughness,
       metallic: metalness,
       alpha: opacity,
@@ -53,6 +57,17 @@ export class MeshStandardMaterial extends Material3D {
 
   public set color(value: ColorSource) {
     this.baseColor = value;
+  }
+
+  /** Colour texture, multiplied by `color`, or `null` for none; pixi-3d's `textures.baseColor` */
+  public get map(): Texture | null {
+    const texture = this.textures.baseColor;
+
+    return !texture || texture === Texture.WHITE ? null : texture;
+  }
+
+  public set map(value: Texture | null) {
+    this.textures.baseColor = value ?? Texture.WHITE;
   }
 
   /** 0 for a dielectric, 1 for a metal; pixi-3d's `metallic` */

@@ -1,4 +1,5 @@
 import type { Container3D } from '@pixi/3d';
+import type { Color, ColorSource } from 'pixi.js';
 import type * as React from 'react';
 
 import type { EventHandlers } from './events';
@@ -35,6 +36,16 @@ export type MathProps<P> = {
   [K in keyof P as P[K] extends MathRepresentation ? K : never]: P[K] extends MathRepresentation
     ? MathType<P[K]>
     : never;
+};
+
+/**
+ * The colour props of `P`, which take any pixi `ColorSource` (`color="red"`), as three's take a
+ * `ColorRepresentation`
+ * @category types
+ * @advanced
+ */
+export type ColorProps<P> = {
+  [K in keyof P as P[K] extends Color ? K : never]: ColorSource;
 };
 
 /**
@@ -91,12 +102,12 @@ export type InstanceProps<T = unknown, P = unknown> = ArgsProp<P> & {
 };
 
 /**
- * The props of an element for class `T`: its fields, math props, React props and events
+ * The props of an element for class `T`: its fields, math and colour props, React props and events
  * @category types
  * @advanced
  */
 export type ElementProps<T extends ConstructorRepresentation, P = InstanceType<T>> = Partial<
-  Overwrite<P, MathProps<P> & ReactProps<P> & EventProps<P>>
+  Overwrite<P, MathProps<P> & ColorProps<P> & ReactProps<P> & EventProps<P>>
 >;
 
 /**

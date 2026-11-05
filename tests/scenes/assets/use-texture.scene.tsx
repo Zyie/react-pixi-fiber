@@ -19,7 +19,6 @@ function Quadrants() {
  */
 export const scene: TestScene = {
   render: () => <Quadrants />,
-  parity: { maxDiff: 0.1 },
-  // pixi-3d draws the plane white: `map` isn't aliased to pixi-3d's `textures.baseColor` yet.
-  fails: { webgl: 'differ from three.js', webgpu: 'differ from three.js' },
+  // Only the quadrants' edges differ: pixi-3d filters the texture before its sRGB decode, three after.
+  parity: { maxDiff: 0.05 },
 };
