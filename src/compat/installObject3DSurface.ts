@@ -1,5 +1,6 @@
 import { BaseMaterial3D, Camera3D, Container3D, Geometry3D, Matrix4, Mesh3D } from '@pixi/3d';
 import type { PointData3D, Vector3 } from '@pixi/3d';
+import { Container, FederatedEvent } from 'pixi.js';
 
 import { cameraProjection, cameraProjectionInverse, cameraWorldInverse } from './cameraMatrices';
 import { placeholderGeometry, placeholderMaterial } from './placeholders';
@@ -32,11 +33,13 @@ export interface Object3DMembers {
   /** Removes children, three's name for `removeChild` */
   remove(...objects: Container3D[]): this;
   /**
-   * Finishes an insert r3f made by splicing `parent.children` directly
+   * Dispatches a pixi federated event as a pixi.js `Container` does, and handles the plain event
+   * objects r3f sends as three's `EventDispatcher` would
    *
    * r3f inserts before a sibling by splicing the child into `parent.children`, setting `parent`
-   * itself, then dispatching `'added'`. On that event the child is spliced back out and re-added
-   * through `addChildAt`, so the view attaches it and pixi-3d's own events fire as for any add.
+   * itself, then dispatching `{ type: 'added' }`. On that event the child is spliced back out and
+   * re-added through `addChildAt`, so the view attaches it and pixi-3d's own events fire as for any
+   * add. Other plain events, such as r3f's `childadded`, have no listeners here and do nothing.
    */
   dispatchEvent(event: { type: string }): void;
   /** Writes this node's world position into `target` */
@@ -154,6 +157,7 @@ const object3D: Members<Object3DMembers & Container3D> = {
   },
   dispatchEvent: {
     value(this: Container3D, event: { type: string }) {
+      if (event instanceof FederatedEvent) return Container.prototype.dispatchEvent.call(this, event);
       const parent = this.parent;
       if (event.type !== 'added' || !parent) return;
       const index = parent.children.indexOf(this);
