@@ -1,0 +1,80 @@
+{
+  "name": "react-pixi-fiber",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A React renderer for pixi-3d, ported from react-three-fiber v10",
+  "license": "MIT",
+  "author": "PixiJS",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "prepare": "husky",
+    "build": "tsdown",
+    "watch": "tsdown --watch",
+    "sync:repos": "node scripts/repos/sync.mts",
+    "setup": "npm ci --prefer-offline --no-audit --no-fund && npm run sync:repos",
+    "test": "npm run test:lint && npm run test:types && vitest run --browser.headless",
+    "test:unit": "vitest run --browser.headless",
+    "test:types": "tsc --noEmit -p tsconfig.json",
+    "test:lint": "oxlint --deny-warnings && oxfmt --check",
+    "lint": "oxlint --fix && oxfmt --write"
+  },
+  "dependencies": {
+    "@pmndrs/scheduler": "^0.3.0",
+    "dequal": "^2.0.3",
+    "its-fine": "^2.1.1",
+    "react-reconciler": "^0.34.0",
+    "react-use-measure": "^2.1.7",
+    "scheduler": "^0.28.0",
+    "suspend-react": "^0.1.3",
+    "use-sync-external-store": "^1.6.0",
+    "zustand": "^5.0.10"
+  },
+  "devDependencies": {
+    "@types/node": "^26.3.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/react-reconciler": "^0.33.0",
+    "@types/three": "^0.187.0",
+    "@types/web": "^0.0.356",
+    "@vitest/browser-playwright": "^5.1.0",
+    "@webgpu/types": "^0.1.72",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.3.0",
+    "meshoptimizer": "^1.2.0",
+    "oxfmt": "^0.76.0",
+    "oxlint": "^1.91.0",
+    "oxlint-tsgolint": "^7.0.2005",
+    "pixi.js": "8.22.0-dev.50a266e",
+    "playwright": "^1.62.1",
+    "react": "~19.3.1",
+    "react-dom": "~19.3.1",
+    "three": "^0.187.0",
+    "tsdown": "^0.23.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  },
+  "peerDependencies": {
+    "pixi.js": "^8.22.0-dev.50a266e",
+    "react": ">=19.0 <19.4",
+    "react-dom": ">=19.0 <19.4"
+  },
+  "peerDependenciesMeta": {
+    "react-dom": {
+      "optional": true
+    }
+  },
+  "lint-staged": {
+    "*": [
+      "oxlint --fix --no-error-on-unmatched-pattern",
+      "oxfmt --write --no-error-on-unmatched-pattern"
+    ]
+  }
+}

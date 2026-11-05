@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    // DOM and WebGPU types come from `@types/web`, matching pixi-3d. Adding "DOM" here clashes with it.
+    "lib": ["ESNext"],
+    "moduleDetection": "force",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "types": ["node", "@types/web", "vite/client"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "~/*": ["./src/*"],
+      // pixi-3d isn't on npm; we build against its source in .repos (npm run sync:repos).
+      "@pixi/3d": ["./.repos/pixi-3d/src/index.ts"],
+      "@pixi/3d/extras": ["./.repos/pixi-3d/src/extras/index.ts"]
+    }
+  },
+  "include": ["src", "tests", "scripts", "*.config.ts"],
+  "exclude": ["node_modules", "dist", ".repos/**/*.worker.ts"]
+}

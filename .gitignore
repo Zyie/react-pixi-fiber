@@ -1,0 +1,14 @@
+node_modules
+dist
+*.log
+.DS_Store
+
+# Scratch files: screenshots, diffs, spike output
+.temp
+
+# Read-only source of the libraries this repo builds on and ports from, checked out by
+# `npm run sync:repos` (scripts/repos/manifest.mts).
+/.repos
+
+# Vitest browser-mode screenshots and attachments
+.vitest

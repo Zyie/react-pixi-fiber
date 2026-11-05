@@ -1,0 +1,17 @@
+{
+  // r3f's source is written without verbatimModuleSyntax, so the spike drops it to keep the vendored files unchanged.
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "verbatimModuleSyntax": false,
+    "noUnusedLocals": false,
+    "lib": ["ESNext"],
+    "types": ["node", "@types/web", "vite/client", "@webgpu/types"],
+    "paths": {
+      "@pixi/3d": ["../.repos/pixi-3d/src/index.ts"],
+      "@pixi/3d/extras": ["../.repos/pixi-3d/src/extras/index.ts"],
+      "#types": ["./r3f/types/index.ts"],
+      "#types/*": ["./r3f/types/*"]
+    }
+  },
+  "include": ["."]
+}
