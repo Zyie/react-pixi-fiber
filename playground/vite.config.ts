@@ -79,6 +79,8 @@ export default defineConfig({
       'parse-svg-path',
       '@xmldom/xmldom',
       'three',
+      'three/addons/controls/OrbitControls.js',
+      'three/addons/loaders/GLTFLoader.js',
       'react',
       'react/jsx-dev-runtime',
       'react-dom/client',
