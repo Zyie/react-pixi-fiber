@@ -5,13 +5,20 @@ import path from 'node:path';
 import { test } from 'node:test';
 
 import { ROOT } from '../../../paths.mts';
-import { classesOf, FEASIBILITY, readParity } from '../parity.mts';
+import { classesOf, FEASIBILITY, qualifiersOf, readParity } from '../parity.mts';
 
 await test('a cell of the Class column names its classes in the order it writes them', () => {
   assert.deepEqual(classesOf('adapter (vendor) ✓; r3f-core-change to upstream'), ['adapter', 'r3f-core-change']);
   assert.deepEqual(classesOf('as-is at runtime; r3f-core-change for types'), ['as-is', 'r3f-core-change']);
   assert.deepEqual(classesOf('not-feasible'), ['not-feasible']);
   assert.deepEqual(classesOf('unknown'), []);
+});
+
+await test('a cell of the Class column qualifies each class with what it writes after it', () => {
+  assert.deepEqual(qualifiersOf('adapter ✓ but tube/extrude/shape'), ['but tube/extrude/shape']);
+  assert.deepEqual(qualifiersOf('adapter ✓; pixi3d-change for per-slot bits'), ['', 'for per-slot bits']);
+  assert.deepEqual(qualifiersOf('adapter (flipY ✓); pixi3d-change (colorSpace)'), ['(flipY)', '(colorSpace)']);
+  assert.deepEqual(qualifiersOf('as-is ✓'), ['']);
 });
 
 await test('the findings give the levels, every group of the matrix with a class per row, and the major blockers', () => {

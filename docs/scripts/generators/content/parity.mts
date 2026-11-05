@@ -55,6 +55,8 @@ export interface ParityRow {
   readonly item: PhrasingContent[];
   /** Its classes, the first being how it works today */
   readonly classes: readonly ParityClass[];
+  /** What the cell writes after each class, such as `but tube/extrude/shape`; empty where nothing */
+  readonly qualifiers: readonly string[];
   /** Whether the spike already implements it (`✓`) */
   readonly done: boolean;
   /** The level of parity it belongs to: `L1`, `L2`, `L3` or `L2/L3` */
@@ -137,6 +139,27 @@ export function classesOf(text: string): ParityClass[] {
 }
 
 /**
+ * What a cell of the Class column writes after each class it names, up to the next one, without the
+ * `✓` and the punctuation that joins them: `adapter ✓ but tube/extrude/shape` qualifies `adapter` with
+ * `but tube/extrude/shape`
+ * @param text - The cell's text
+ */
+export function qualifiersOf(text: string): string[] {
+  const found = PARITY_CLASSES.map(({ id }) => ({ id, at: text.indexOf(id) }))
+    .filter(({ at }) => at >= 0)
+    .sort((a, b) => a.at - b.at);
+
+  return found.map(({ id, at }, index) =>
+    text
+      .slice(at + id.length, found[index + 1]?.at ?? text.length)
+      .replaceAll('✓', '')
+      .replace(/\s+/g, ' ')
+      .replace(/\s+\)/g, ')')
+      .replace(/^[\s;,]+|[\s;,]+$/g, ''),
+  );
+}
+
+/**
  * Reads the parity findings
  * @param root - The repo root
  * @throws When the findings no longer have a section or a column the page reads, or a row has no class
@@ -176,6 +199,7 @@ export function readParity(root: string): Parity {
         return {
           item: cells.Item!,
           classes,
+          qualifiers: qualifiersOf(text),
           done: text.includes('✓'),
           level: toString({ type: 'paragraph', children: cells.Level! }).trim(),
           notes: cells.Notes!,

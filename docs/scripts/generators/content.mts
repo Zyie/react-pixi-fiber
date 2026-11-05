@@ -226,6 +226,7 @@ function parityNodes(parity: Parity): Flow[] {
           row.classes.flatMap((kind, index) => [
             ...(index > 0 ? [text(' ')] : []),
             Status({ kind, label: label.get(kind)! }),
+            ...(row.qualifiers[index] ? [text(` ${row.qualifiers[index]}`)] : []),
           ]),
           [text(row.level)],
           row.notes,
