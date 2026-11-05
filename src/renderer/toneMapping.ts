@@ -135,7 +135,12 @@ const NO_CURVE = {
  */
 export const FOG_SLOT = 'threeFog';
 
-const bits = new Map<string, ShaderBit>();
+const ENCODINGS = ['srgb', 'linear', 'gamma'] as const;
+const ACES = CURVES.indexOf('aces');
+
+const bitsByName = new Map<string, ShaderBit>();
+/** Each bit by `curve * 3 + encoding`, so a frame finds its bit without building its name */
+const bitsByIndex: (ShaderBit | undefined)[] = [];
 
 /**
  * The shader bit that ends a material's shader as three's renderer does: three's tone curve, then
@@ -149,11 +154,21 @@ const bits = new Map<string, ShaderBit>();
  * {@link TARGET_OUTPUT} encodes it for a render target
  */
 function toneMappingBit(toneMapping: number, outputColorSpace: string): ShaderBit {
-  const curve: Curve = CURVES[toneMapping] ?? 'aces';
-  const encoding =
-    outputColorSpace === TARGET_OUTPUT ? 'gamma' : outputColorSpace === 'srgb-linear' ? 'linear' : 'srgb';
+  const curveIndex = CURVES[toneMapping] === undefined ? ACES : toneMapping;
+  const encodingIndex = outputColorSpace === TARGET_OUTPUT ? 2 : outputColorSpace === 'srgb-linear' ? 1 : 0;
+  return (bitsByIndex[curveIndex * ENCODINGS.length + encodingIndex] ??= createToneMappingBit(
+    CURVES[curveIndex]!,
+    ENCODINGS[encodingIndex]!,
+  ));
+}
+
+/**
+ * Builds the bit for a curve and an encoding, once per name: three's `NoToneMapping` and
+ * `CustomToneMapping` share one
+ */
+function createToneMappingBit(curve: Curve, encoding: (typeof ENCODINGS)[number]): ShaderBit {
   const name = `threeToneMapping:${curve}:${encoding}`;
-  let bit = bits.get(name);
+  let bit = bitsByName.get(name);
   if (bit) return bit;
 
   const code = curve === 'none' ? NO_CURVE : CURVE_CODE[curve];
@@ -166,7 +181,7 @@ function toneMappingBit(toneMapping: number, outputColorSpace: string): ShaderBi
     gl: { header: `${code.gl}\n${output.gl}`, fragment: { end: `${end}\n{{${FOG_SLOT}}}` } },
     gpu: { header: `${code.gpu}\n${output.gpu}`, fragment: { end: `${end}\n{{${gpuSlot}}}` } },
   };
-  bits.set(name, bit);
+  bitsByName.set(name, bit);
   return bit;
 }
 

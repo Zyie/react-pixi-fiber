@@ -58,12 +58,24 @@ interface BakedSource {
   version: number;
   /** The source turned and scaled for pixi-3d's lighting, which decodes it with its 2.2 gamma */
   lighting: CubeTexture | null;
-  lightingKey: string;
+  /** The version, intensity and rotation `lighting` was baked with */
+  readonly lightingInputs: LightingInputs;
   /** `canonical` prefiltered into three's PMREM mips, for a blurry background */
   pmrem: CubeTexture | null;
   pmremVersion: number;
   usedAt: number;
   readonly release: () => void;
+}
+
+/** What a lighting cube is baked from, compared field by field each frame */
+interface LightingInputs {
+  version: number;
+  intensity: number;
+  rotated: boolean;
+  x: number;
+  y: number;
+  z: number;
+  order: EulerOrder | undefined;
 }
 
 /** A scene's background cube drawn behind its view */
@@ -166,6 +178,9 @@ export class EnvironmentMaps {
   });
   private _frame = -1;
   private _floatFormat: TEXTURE_FORMATS | null = null;
+  private readonly _releaseIdle = (baked: BakedSource, source: EnvironmentTexture): void => {
+    if (this._frame - baked.usedAt > MAX_IDLE_FRAMES) this._release(source);
+  };
 
   constructor() {
     const mesh = (programs: ReturnType<typeof bakePrograms>): Mesh<MeshGeometry, Shader> =>
@@ -211,7 +226,7 @@ export class EnvironmentMaps {
   ): boolean {
     if (frame !== this._frame) {
       this._frame = frame;
-      for (const [source, baked] of this._baked) if (frame - baked.usedAt > MAX_IDLE_FRAMES) this._release(source);
+      this._baked.forEach(this._releaseIdle);
     }
 
     const { environment, background } = scene;
@@ -273,7 +288,7 @@ export class EnvironmentMaps {
         canonical: null,
         version: -1,
         lighting: null,
-        lightingKey: '',
+        lightingInputs: { version: -1, intensity: 0, rotated: false, x: 0, y: 0, z: 0, order: undefined },
         pmrem: null,
         pmremVersion: -1,
         usedAt: this._frame,
@@ -324,11 +339,28 @@ export class EnvironmentMaps {
   ): CubeTexture | null {
     const baked = this._entry(source);
     const version = versionOf(source);
-    const key = rotation
-      ? `${version}:${intensity}:${rotation.x}:${rotation.y}:${rotation.z}:${rotation.order}`
-      : `${version}:${intensity}`;
-    if (baked.lighting && baked.lightingKey === key) return baked.lighting;
-    baked.lightingKey = key;
+    const inputs = baked.lightingInputs;
+    const rotated = rotation !== undefined;
+    if (
+      baked.lighting &&
+      inputs.version === version &&
+      inputs.intensity === intensity &&
+      inputs.rotated === rotated &&
+      (!rotated ||
+        (inputs.x === rotation.x &&
+          inputs.y === rotation.y &&
+          inputs.z === rotation.z &&
+          inputs.order === rotation.order))
+    ) {
+      return baked.lighting;
+    }
+    inputs.version = version;
+    inputs.intensity = intensity;
+    inputs.rotated = rotated;
+    inputs.x = rotation?.x ?? 0;
+    inputs.y = rotation?.y ?? 0;
+    inputs.z = rotation?.z ?? 0;
+    inputs.order = rotation?.order;
     baked.lighting?.destroy(true);
     baked.lighting = this._createCube(pixi, LIGHTING_SIZE, true);
     this._bake(pixi, source, baked.lighting, rotation, intensity, GAMMA);
