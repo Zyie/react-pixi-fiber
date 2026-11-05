@@ -105,7 +105,7 @@ it('takes three renderer settings through the renderer prop', async () => {
 });
 
 it('calls onPointerMissed for a click that hits nothing', async () => {
-  const missed = vi.fn();
+  const missed = vi.fn<(event: MouseEvent) => void>();
   const state = await mount({ onPointerMissed: missed });
   const canvas = state.gl.domElement as HTMLCanvasElement;
   const init = { bubbles: true, clientX: 32, clientY: 24, pointerId: 1, button: 0 };
