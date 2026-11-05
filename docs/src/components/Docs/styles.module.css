@@ -1,0 +1,145 @@
+.lead p {
+  margin-bottom: var(--layout-space-5);
+  color: var(--layout-text-muted);
+  font-size: 1.25rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+/* Tucked under the code block before it, which keeps its own bottom margin */
+.run {
+  margin-top: calc(var(--ifm-leading) * -1 + var(--layout-space-2));
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+.run a {
+  font-weight: 500;
+}
+
+.run code {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font-size: 0.95em;
+}
+
+.cards {
+  margin-bottom: var(--ifm-leading);
+}
+
+.cards ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: var(--layout-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A card per item; its first link covers the card, and the links after it sit above that */
+.cards li {
+  position: relative;
+  margin: 0;
+  padding: var(--layout-space-4) var(--layout-space-5);
+  border: 1px solid var(--layout-border);
+  border-radius: var(--layout-radius-lg);
+  background: var(--layout-surface);
+  color: var(--layout-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  transition: border-color var(--layout-duration) var(--layout-ease);
+}
+
+.cards li:hover,
+.cards li:focus-within {
+  border-color: var(--layout-accent);
+}
+
+/* Doubled to outweigh the underline of links in running text */
+.cards.cards li > a:first-child {
+  display: block;
+  margin-bottom: var(--layout-space-1);
+  color: var(--layout-text);
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.cards li > a:first-child::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  content: '';
+}
+
+.cards li > a:first-child:focus-visible {
+  outline: none;
+}
+
+.cards li:has(> a:first-child:focus-visible) {
+  outline: 2px solid var(--layout-focus);
+  outline-offset: 2px;
+}
+
+.cards li > a:not(:first-child) {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: fit-content;
+  margin-top: var(--layout-space-2);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.cards li > a:not(:first-child)::after {
+  content: ' →';
+}
+
+@media (max-width: 996px) {
+  .lead p {
+    font-size: 1.125rem;
+  }
+}
+
+/* A deviation's code stops clear of the sticky navbar when a link jumps to it */
+/* How an item of r3f's surface carries over: a pill in its hue, as text and a tint */
+.status {
+  --status-hue: var(--layout-note);
+
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding-inline: 8px;
+  border: 1px solid color-mix(in srgb, var(--status-hue) 45%, transparent);
+  border-radius: var(--layout-radius-pill);
+  background: color-mix(in srgb, var(--status-hue) 12%, transparent);
+  color: var(--status-hue);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  margin-block: 2px;
+  margin-inline-end: var(--layout-space-1);
+}
+
+.status--as-is {
+  --status-hue: var(--layout-tip);
+}
+
+.status--adapter {
+  --status-hue: var(--layout-info);
+}
+
+.status--pixi3d-change {
+  --status-hue: var(--layout-warning);
+}
+
+.status--r3f-core-change {
+  --status-hue: var(--layout-violet-text);
+}
+
+.status--not-feasible {
+  --status-hue: var(--layout-danger);
+}

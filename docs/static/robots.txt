@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /search/
+
+Sitemap: https://react-pixi-fiber.pixijs.io/sitemap.xml

@@ -1,0 +1,50 @@
+.install {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 0 0 0 var(--layout-space-4);
+  border: 1px solid var(--layout-border);
+  border-radius: var(--layout-radius-md);
+  background: var(--layout-surface);
+}
+
+.command {
+  overflow-x: auto;
+  padding: 0.7rem 0;
+  border: 0;
+  background: none;
+  color: var(--layout-text);
+  font-size: 0.88rem;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+
+.prompt {
+  margin-right: 0.7em;
+  color: var(--layout-accent);
+  user-select: none;
+}
+
+.copy {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-left: var(--layout-space-2);
+  padding: 0;
+  border: 0;
+  border-left: 1px solid var(--layout-border);
+  border-radius: 0 var(--layout-radius-md) var(--layout-radius-md) 0;
+  background: none;
+  color: var(--layout-text-muted);
+  cursor: pointer;
+  transition:
+    color var(--layout-duration) var(--layout-ease),
+    background-color var(--layout-duration) var(--layout-ease);
+}
+
+.copy:hover {
+  background: color-mix(in srgb, var(--layout-text) 6%, transparent);
+  color: var(--layout-text);
+}

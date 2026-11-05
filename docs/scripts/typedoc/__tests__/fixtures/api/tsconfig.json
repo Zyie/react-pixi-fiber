@@ -1,0 +1,9 @@
+{
+  // The repo's own paths are followed; one into another package is not
+  "compilerOptions": {
+    "paths": {
+      "#types": ["./src/types/index.ts"],
+      "@pixi/3d": ["./.repos/pixi-3d/src/index.ts"]
+    }
+  }
+}

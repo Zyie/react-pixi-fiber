@@ -1,0 +1,105 @@
+.runner {
+  position: relative;
+  overflow: hidden;
+  background: var(--layout-stage);
+}
+
+.host {
+  position: absolute;
+  inset: 0;
+}
+
+.frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--layout-stage);
+  color-scheme: dark;
+}
+
+.frame[data-pending] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The spinner (custom.css) of a run that hasn't drawn yet */
+.loading {
+  position: absolute;
+  top: var(--layout-space-3);
+  right: var(--layout-space-3);
+  pointer-events: none;
+}
+
+/* An error, over the frame: dark in both modes, like the stage it covers */
+.error {
+  position: absolute;
+  right: var(--layout-space-3);
+  bottom: var(--layout-space-3);
+  left: var(--layout-space-3);
+  max-height: calc(100% - 2 * var(--layout-space-3));
+  overflow: auto;
+  padding: var(--layout-space-3) var(--layout-space-4);
+  border: 1px solid rgb(248 113 113 / 45%);
+  border-left: 3px solid #f87171;
+  border-radius: var(--layout-radius-md);
+  background: rgb(24 12 16 / 94%);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 45%);
+  color: #fde8e8;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  text-align: left;
+  backdrop-filter: blur(6px);
+}
+
+.errorHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--layout-space-2);
+}
+
+.errorName {
+  color: #fca5a5;
+  font-family: var(--layout-font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.errorWhere {
+  color: rgb(253 232 232 / 65%);
+  font-family: var(--layout-font-mono);
+  font-size: 0.75rem;
+}
+
+.errorMessage {
+  margin: var(--layout-space-1) 0 0;
+  font-family: var(--layout-font-mono);
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.errorToggle {
+  margin-top: var(--layout-space-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #fca5a5;
+  font: inherit;
+  font-size: 0.78rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.errorStack {
+  margin: var(--layout-space-2) 0 0;
+  padding: 0;
+  background: none;
+  color: rgb(253 232 232 / 70%);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}

@@ -1,0 +1,193 @@
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: var(--layout-space-7) 0 var(--layout-space-8);
+  border-bottom: 1px solid var(--layout-border);
+}
+
+@media (min-width: 1200px) {
+  .hero {
+    padding: var(--layout-space-8) 0 var(--layout-space-9);
+  }
+}
+
+/* Two soft lights behind the hero, in the brand's colours */
+.glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(40rem 26rem at 78% 18%, var(--layout-glow-violet), transparent 70%),
+    radial-gradient(36rem 24rem at 12% 0%, var(--layout-glow), transparent 70%);
+  pointer-events: none;
+}
+
+.glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--layout-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--layout-border) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black, transparent 75%);
+  opacity: 0.45;
+}
+
+.inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--layout-space-7);
+  align-items: center;
+}
+
+@media (min-width: 1200px) {
+  .inner {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: var(--layout-space-7);
+  }
+}
+
+/* A phone's first screen reaches the top of the demo */
+@media (max-width: 639px) {
+  .hero {
+    padding-top: var(--layout-space-6);
+  }
+
+  .inner {
+    gap: var(--layout-space-6);
+  }
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+@media (min-width: 640px) and (max-width: 1199px) {
+  .copy {
+    align-items: center;
+    text-align: center;
+  }
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--layout-space-2);
+  margin: 0 0 var(--layout-space-5);
+  padding: 4px 14px 4px 4px;
+  border: 1px solid var(--layout-border);
+  border-radius: var(--layout-radius-pill);
+  background: color-mix(in srgb, var(--layout-surface) 80%, transparent);
+  color: var(--layout-text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.version {
+  padding: 1px 9px;
+  border-radius: var(--layout-radius-pill);
+  background: var(--layout-gradient);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.9rem, 7.6vw, 3.4rem);
+  font-weight: 750;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+/* A name that breaks at its hyphens otherwise */
+.nowrap {
+  white-space: nowrap;
+}
+
+.brand {
+  background: var(--layout-gradient);
+  background-clip: text;
+  color: transparent;
+}
+
+.lead {
+  max-width: 34rem;
+  margin: var(--layout-space-5) 0 0;
+  color: var(--layout-text-muted);
+  font-size: clamp(1.05rem, 1.6vw, 1.2rem);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.lead code {
+  color: var(--layout-text);
+  font-size: 0.9em;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--layout-space-3);
+  margin-top: var(--layout-space-6);
+}
+
+@media (min-width: 640px) and (max-width: 1199px) {
+  .actions {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 639px) {
+  .actions {
+    width: 100%;
+  }
+
+  .actions > * {
+    flex: 1 1 100%;
+  }
+}
+
+.install {
+  margin-top: var(--layout-space-5);
+}
+
+@media (max-width: 639px) {
+  .install {
+    width: 100%;
+  }
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--layout-space-2) var(--layout-space-5);
+  margin: var(--layout-space-5) 0 0;
+  padding: 0;
+  color: var(--layout-text-muted);
+  font-size: 0.85rem;
+  list-style: none;
+}
+
+.facts li {
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-2);
+}
+
+.facts li::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  background: var(--layout-accent);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+.demo {
+  min-width: 0;
+}

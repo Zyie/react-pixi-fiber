@@ -1,0 +1,415 @@
+/* The gallery */
+.gallery {
+  margin-top: var(--layout-space-5);
+}
+
+/* One row of controls, the only part that stays in view as the cards scroll */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--layout-space-2) var(--layout-space-3);
+  padding-block: var(--layout-space-2);
+  background: var(--layout-bg);
+}
+
+@media (min-width: 997px) {
+  .toolbar {
+    position: sticky;
+    top: var(--ifm-navbar-height);
+    z-index: 2;
+    border-bottom: 1px solid var(--layout-border);
+  }
+}
+
+.search {
+  display: flex;
+  flex: 1 1 140px;
+  align-items: center;
+  gap: var(--layout-space-2);
+  min-width: 0;
+  height: 40px;
+  padding-inline: var(--layout-space-3);
+  border: 1px solid var(--layout-border-strong);
+  border-radius: var(--layout-radius-pill);
+  background: var(--layout-surface);
+  color: var(--layout-text-muted);
+  transition: border-color var(--layout-duration) var(--layout-ease);
+}
+
+.search svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+.search:focus-within {
+  border-color: var(--layout-accent);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--layout-text);
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+.search input::placeholder {
+  color: var(--layout-text-muted);
+  opacity: 1;
+}
+
+.topic {
+  flex: none;
+}
+
+.topic select {
+  height: 40px;
+  max-width: 190px;
+  padding: 0 36px 0 var(--layout-space-4);
+  border: 1px solid var(--layout-border-strong);
+  border-radius: var(--layout-radius-pill);
+  background: var(--layout-surface)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23888' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")
+    no-repeat right 14px center;
+  color: var(--layout-text);
+  font: inherit;
+  font-size: 0.875rem;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  appearance: none;
+  transition: border-color var(--layout-duration) var(--layout-ease);
+}
+
+.topic select:hover,
+.topic select:focus-visible {
+  border-color: var(--layout-text-muted);
+}
+
+/* A phone: the search beside the topic */
+@media (max-width: 600px) {
+  .search {
+    flex-basis: 0;
+  }
+
+  .topic select {
+    max-width: 150px;
+  }
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-3);
+  margin: var(--layout-space-3) 0 0;
+  color: var(--layout-text-muted);
+  font-size: 0.875rem;
+}
+
+.clear {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--layout-accent);
+  font: inherit;
+  cursor: pointer;
+}
+
+.clear:hover {
+  text-decoration: underline;
+}
+
+.group {
+  margin-top: var(--layout-space-6);
+}
+
+.groupHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--layout-space-2) var(--layout-space-4);
+  margin-bottom: var(--layout-space-4);
+}
+
+.groupTitle {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.groupLink {
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: var(--layout-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cardItem {
+  display: flex;
+  margin: 0;
+}
+
+.card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--layout-border);
+  border-radius: var(--layout-radius-lg);
+  background: var(--layout-surface);
+  color: var(--layout-text);
+  text-decoration: none;
+  transition:
+    border-color var(--layout-duration) var(--layout-ease),
+    transform var(--layout-duration) var(--layout-ease),
+    box-shadow var(--layout-duration) var(--layout-ease);
+}
+
+.card:hover {
+  border-color: var(--layout-border-strong);
+  box-shadow: var(--layout-shadow);
+  color: var(--layout-text);
+  text-decoration: none;
+  transform: translateY(-2px);
+}
+
+.card:hover .cardTitle {
+  color: var(--layout-accent);
+}
+
+.thumb {
+  display: block;
+  aspect-ratio: 4 / 3;
+  border-bottom: 1px solid var(--layout-border);
+  background: var(--layout-stage);
+}
+
+.thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cardBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--layout-space-3);
+  padding: var(--layout-space-3) var(--layout-space-4) var(--layout-space-4);
+}
+
+.cardTitle {
+  font-family: var(--layout-font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  transition: color var(--layout-duration) var(--layout-ease);
+}
+
+/* The small card of a list beside other things, such as the examples an API page names */
+.cardSmall {
+  border-radius: var(--layout-radius-md);
+}
+
+.cardSmall:hover {
+  box-shadow: none;
+}
+
+.cardSmall .cardBody {
+  padding: var(--layout-space-2) var(--layout-space-3);
+}
+
+.cardSmall .cardTitle {
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--layout-space-3);
+  margin-top: var(--layout-space-6);
+  padding: var(--layout-space-7) var(--layout-space-4);
+  border: 1px dashed var(--layout-border-strong);
+  border-radius: var(--layout-radius-lg);
+  color: var(--layout-text-muted);
+}
+
+.empty p {
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--layout-space-3);
+  }
+
+  .cardBody {
+    padding: var(--layout-space-2) var(--layout-space-3) var(--layout-space-3);
+  }
+
+  .cardTitle {
+    font-size: 0.9rem;
+  }
+}
+
+/* The docs underline the links of running text, list items among them; these links are controls */
+.gallery .cardItem > a.card,
+.guide .guideList a.guideLink,
+.gallery a.groupLink,
+.header a.badge,
+.header a.source,
+.guide a.guideMore {
+  text-decoration: none;
+}
+
+/* Badges, on cards and example pages */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding-inline: 8px;
+  border: 1px solid var(--layout-border-strong);
+  border-radius: var(--layout-radius-pill);
+  color: var(--layout-text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+a.badge:hover {
+  border-color: var(--layout-text-muted);
+  color: var(--layout-text);
+  text-decoration: none;
+}
+
+/* What a card's example shows, two lines at most */
+.cardDescription {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--layout-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* An example page */
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--layout-space-2);
+  margin: calc(-1 * var(--layout-space-2)) 0 var(--layout-space-5);
+}
+
+.header .badge {
+  height: 26px;
+  padding-inline: 10px;
+  font-size: 0.8rem;
+}
+
+.headerLabel {
+  color: var(--layout-text-muted);
+  font-size: 0.875rem;
+}
+
+.source {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  color: var(--layout-text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.source:hover {
+  color: var(--layout-text);
+  text-decoration: none;
+}
+
+.guide {
+  margin-top: var(--layout-space-6);
+  padding: var(--layout-space-4) var(--layout-space-5);
+  border: 1px solid var(--layout-border);
+  border-radius: var(--layout-radius-lg);
+  background: var(--layout-surface);
+}
+
+.guideTitle {
+  margin: 0 0 var(--layout-space-2);
+  color: var(--layout-text-muted);
+  font-size: 0.875rem;
+}
+
+.guideTitle a {
+  color: var(--layout-text);
+  font-weight: 600;
+}
+
+.guideMore {
+  display: inline-block;
+  margin-top: var(--layout-space-3);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.guideMore::after {
+  content: ' →';
+}
+
+.guideList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guideList li + li {
+  border-top: 1px solid var(--layout-border);
+}
+
+.guideLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--layout-space-3);
+  padding-block: var(--layout-space-2);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.guideLink:hover {
+  text-decoration: none;
+}
+
+.guideLink:hover span:first-child {
+  text-decoration: underline;
+}
