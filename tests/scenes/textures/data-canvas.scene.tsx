@@ -6,8 +6,8 @@ import { CanvasTexture, DataTexture } from 'react-pixi-fiber/three';
 function DataPanel() {
   const texture = useMemo(() => {
     const data = new Uint8Array([
-      ...[255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 255, 255],
-      ...[0, 0, 0, 255, 60, 60, 60, 255, 120, 120, 120, 255, 180, 180, 180, 255],
+      255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 255, 255, 0, 0, 0, 255, 60, 60, 60, 255, 120, 120, 120,
+      255, 180, 180, 180, 255,
     ]);
     const map = new DataTexture(data, 4, 2);
 

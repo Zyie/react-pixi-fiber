@@ -1,14 +1,15 @@
 import type { TestScene } from '@test-scene';
-import { useLoader, useThree } from 'react-pixi-fiber';
+import { useFrame, useLoader } from 'react-pixi-fiber';
 import { CubeTextureLoader, NoToneMapping } from 'react-pixi-fiber/three';
 
 const FACES = ['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png'];
 
 function Sky() {
-  const gl = useThree((state) => state.gl);
   const [texture] = useLoader(CubeTextureLoader, [FACES], (loader) => loader.setPath('/textures/cube/'));
 
-  gl.toneMapping = NoToneMapping;
+  useFrame((state) => {
+    state.gl.toneMapping = NoToneMapping;
+  });
 
   return (
     <>
