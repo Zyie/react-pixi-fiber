@@ -2,8 +2,7 @@ import type { Matrix4 } from '@pixi/3d';
 
 /**
  * three's camera `view`: the part of a larger image a camera draws, set with `setViewOffset`
- * @category catalog
- * @advanced
+ * @internal
  */
 export interface CameraView {
   /** Whether the offset applies */
