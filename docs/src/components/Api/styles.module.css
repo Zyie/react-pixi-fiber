@@ -1,0 +1,487 @@
+/* The lines under a name's title: kind, tier and source, then the import */
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--layout-space-3);
+  margin: calc(-1 * var(--layout-space-2)) 0 var(--layout-space-5);
+}
+
+.badges {
+  display: flex;
+  flex: 1 0 auto;
+  gap: var(--layout-space-2);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding-inline: 10px;
+  border-radius: var(--layout-radius-pill);
+  background: var(--layout-accent-soft);
+  color: var(--layout-accent);
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.advanced {
+  border: 1px solid color-mix(in srgb, var(--layout-violet-text) 40%, transparent);
+  background: transparent;
+  color: var(--layout-violet-text);
+}
+
+/* A name r3f's vendored core declares */
+.vendored {
+  border: 1px solid var(--layout-border-strong);
+  background: transparent;
+  color: var(--layout-text-muted);
+}
+
+/* An Advanced badge inside a table cell or a sentence */
+td .badge,
+p .badge {
+  height: 20px;
+  margin-right: var(--layout-space-1);
+  padding-inline: 7px;
+  font-size: 0.7rem;
+  vertical-align: 1px;
+}
+
+.import {
+  display: inline-flex;
+  order: 1;
+  align-items: center;
+  gap: var(--layout-space-2);
+  min-width: 0;
+  max-width: 100%;
+  padding: 3px 4px 3px 10px;
+  border: 1px solid var(--layout-border);
+  border-radius: var(--layout-radius-pill);
+  background: var(--layout-surface);
+  color: var(--layout-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--layout-duration) var(--layout-ease);
+}
+
+.import:hover {
+  border-color: var(--layout-border-strong);
+}
+
+.import .type {
+  overflow: hidden;
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 600px) {
+  .import {
+    border-radius: var(--layout-radius-md);
+  }
+
+  .import .type {
+    white-space: normal;
+  }
+}
+
+.copy {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: var(--layout-radius-pill);
+  background: var(--layout-surface-raised);
+  color: var(--layout-text-muted);
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.import:hover .copy {
+  color: var(--layout-text);
+}
+
+/* The site underlines the links of a page's prose, which these controls aren't */
+div.meta a.source,
+div.fieldHead a.fieldName,
+ul.entries a.entry,
+div.usage a.usageGuide,
+div.usage a.usageSection,
+div.usage a.usageExample,
+div.usage a.usageMore {
+  text-decoration: none !important;
+}
+
+div.meta a.source {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  color: var(--layout-text-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+div.meta a.source:hover {
+  color: var(--layout-text);
+}
+
+/* The import takes a line of its own, after the badges and the source */
+.meta::after {
+  content: '';
+  order: 0;
+  flex-basis: 100%;
+}
+
+.sourceLabel {
+  overflow: hidden;
+  font-family: var(--layout-font-mono);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* A signature */
+.signature {
+  margin-bottom: var(--layout-space-5);
+  border-left: 3px solid var(--layout-accent);
+}
+
+.pre {
+  margin: 0;
+  padding: var(--layout-space-3) var(--layout-space-4);
+  background: none;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.pre:focus-visible {
+  outline-offset: -2px;
+}
+
+.ref {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  text-underline-offset: 3px;
+}
+
+.ref:hover {
+  color: var(--layout-accent);
+  text-decoration-color: currentColor;
+}
+
+/* A type in a line of text */
+.type {
+  padding: 1px 6px;
+  border: 1px solid var(--layout-border);
+  background: var(--layout-surface);
+  font-size: 0.82rem;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+/* Parameters, properties, return values and exceptions */
+.fields {
+  margin: 0 0 var(--layout-space-5);
+}
+
+.fieldsTitle {
+  padding: var(--layout-space-3) 0 var(--layout-space-1);
+  color: var(--layout-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.field {
+  padding: var(--layout-space-3) 0;
+}
+
+/* A rule between fields */
+.field ~ .field {
+  border-top: 1px solid var(--layout-border);
+}
+
+.anchored {
+  scroll-margin-top: calc(var(--ifm-navbar-height) + var(--layout-space-3));
+}
+
+.anchored:target {
+  margin-inline: calc(-1 * var(--layout-space-3));
+  padding-inline: var(--layout-space-3);
+  border-radius: var(--layout-radius-sm);
+  background: var(--layout-accent-soft);
+}
+
+.fieldHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--layout-space-1) var(--layout-space-2);
+}
+
+.fieldName {
+  color: var(--layout-text);
+  font-family: var(--layout-font-mono);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+div.fieldHead a.fieldName {
+  color: var(--layout-text);
+}
+
+div.fieldHead a.fieldName:hover {
+  color: var(--layout-accent);
+}
+
+.optional {
+  color: var(--layout-text-muted);
+  font-weight: 400;
+  text-decoration: none;
+  cursor: help;
+}
+
+.flag {
+  color: var(--layout-text-muted);
+  font-size: 0.75rem;
+  font-style: italic;
+}
+
+.value {
+  color: var(--layout-text-muted);
+  font-size: 0.82rem;
+}
+
+.fieldBody {
+  margin-top: var(--layout-space-1);
+  color: var(--layout-text);
+  font-size: 0.94rem;
+}
+
+.fieldBody > :last-child {
+  margin-bottom: 0;
+}
+
+/* The index of entries */
+.entries {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--layout-space-4);
+  margin: var(--layout-space-5) 0 var(--layout-space-6);
+  padding: 0;
+  list-style: none;
+}
+
+.entries > li {
+  margin: 0;
+}
+
+ul.entries a.entry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--layout-space-2);
+  height: 100%;
+  padding: var(--layout-space-4) var(--layout-space-5);
+  border: 1px solid var(--layout-border);
+  border-radius: var(--layout-radius-lg);
+  background: var(--layout-surface);
+  color: var(--layout-text);
+  transition:
+    border-color var(--layout-duration) var(--layout-ease),
+    transform var(--layout-duration) var(--layout-ease);
+}
+
+ul.entries a.entry:hover {
+  border-color: var(--layout-accent);
+  color: var(--layout-text);
+  transform: translateY(-2px);
+}
+
+.entryName {
+  color: var(--layout-accent);
+  font-family: var(--layout-font-mono);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.entrySummary {
+  flex: 1;
+  color: var(--layout-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.entrySummary code {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--layout-text);
+  font-size: 0.85em;
+}
+
+.entryCount {
+  color: var(--layout-text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Where the guides and the examples use a name */
+.usage {
+  display: grid;
+  gap: var(--layout-space-5);
+  margin: 0 0 var(--layout-space-6);
+}
+
+.usageGroup > .fieldsTitle {
+  padding-top: 0;
+  padding-bottom: var(--layout-space-2);
+}
+
+.usageGuides,
+.usageSections {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.usageGuides > li + li {
+  margin-top: var(--layout-space-3);
+}
+
+div.usage a.usageGuide {
+  color: var(--layout-text);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.usageSections {
+  margin-top: var(--layout-space-1);
+  padding-left: var(--layout-space-4);
+  border-left: 2px solid var(--layout-border);
+}
+
+.usageSections > li {
+  margin: 0;
+}
+
+div.usage a.usageSection {
+  display: inline-block;
+  padding: 2px 0;
+  color: var(--layout-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+div.usage a.usageGuide:hover,
+div.usage a.usageSection:hover {
+  color: var(--layout-accent);
+}
+
+.usageExamples {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: var(--layout-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.usageExamples > li {
+  display: flex;
+  margin: 0;
+}
+
+div.usage a.usageMore {
+  display: inline-block;
+  margin-top: var(--layout-space-3);
+  color: var(--layout-accent);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+div.usage a.usageMore::after {
+  content: ' →';
+}
+
+@media (max-width: 600px) {
+  .usageExamples {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 576px) {
+  .filtered > h3 {
+    --ifm-h3-font-size: 1.25rem;
+  }
+}
+
+/* Guides listed without sections, as an entry's overview lists them */
+.usageGuidesInline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--layout-space-2);
+}
+
+.usageGuides.usageGuidesInline > li + li {
+  margin-top: 0;
+}
+
+.usageGuidesInline a.usageGuide {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 4px 12px;
+  border: 1px solid var(--layout-border);
+  border-radius: var(--layout-radius-pill);
+  background: var(--layout-surface);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.usageGuidesInline a.usageGuide:hover {
+  border-color: var(--layout-accent);
+}
+
+/* Guides whose sections fold, in columns */
+.usageGuidesFolded {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--layout-space-3) var(--layout-space-5);
+}
+
+.usageGuides.usageGuidesFolded > li + li {
+  margin-top: 0;
+}
+
+/* A plain disclosure, not the boxed one the site gives the details of a page's prose */
+:global(.markdown) details.usageFold {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.usageFold > summary {
+  width: fit-content;
+  color: var(--layout-text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.usageFold > summary:hover {
+  color: var(--layout-text);
+}
+
+.usageFold[open] > summary {
+  margin-bottom: var(--layout-space-1);
+}

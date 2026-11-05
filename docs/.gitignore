@@ -1,0 +1,5 @@
+# What `docs/scripts/site.mts` writes: the default build and Docusaurus files, and every named copy.
+# The folders of generated content ignore themselves: `docs/scripts/sync.mts` writes a .gitignore into each.
+/build
+/.docusaurus
+/.sites

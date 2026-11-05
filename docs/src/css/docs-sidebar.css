@@ -1,0 +1,79 @@
+/*
+ * The Docs sidebar (docs/scripts/generators/content/sidebar.mts): a section is a heading over its
+ * pages and is always open, and the guides are listed under a label per group. The heading links the
+ * section's overview, so it reads as a label until it is hovered or is the page you are on.
+ */
+
+.sidebar-section + .sidebar-section {
+  margin-top: var(--layout-space-4);
+}
+
+.sidebar-section > .menu__list-item-collapsible,
+.sidebar-section > .menu__list-item-collapsible:hover {
+  background: none;
+}
+
+.theme-doc-sidebar-item-category-level-1.sidebar-section > .menu__list-item-collapsible > .menu__link {
+  padding-block: var(--layout-space-1);
+  background: none;
+  color: var(--layout-text-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.theme-doc-sidebar-item-category-level-1.sidebar-section > .menu__list-item-collapsible > .menu__link:hover {
+  color: var(--layout-text);
+}
+
+.theme-doc-sidebar-item-category-level-1.sidebar-section
+  > .menu__list-item-collapsible
+  > .menu__link[aria-current='page'] {
+  color: var(--layout-accent);
+}
+
+/* The pages sit flush under their heading, without the indent and rule of a nested list */
+.sidebar-section > .menu__list {
+  margin: 2px 0 0;
+  padding-left: 0;
+  border-left: 0;
+}
+
+/* Tight enough on a wide screen that every page of the sidebar fits a laptop's height */
+@media (min-width: 997px) {
+  .sidebar-section + .sidebar-section {
+    margin-top: var(--layout-space-3);
+  }
+
+  .sidebar-section .menu__link {
+    padding-block: 0.2rem;
+  }
+
+  .sidebar-section .menu__list-item:not(:first-child) {
+    margin-top: 1px;
+  }
+}
+
+/* A group of guides: its label, and a rule to the edge */
+.sidebar-group {
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-2);
+  margin: var(--layout-space-2) 0 1px;
+  padding: 0 var(--ifm-menu-link-padding-horizontal);
+  color: var(--layout-text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.sidebar-group:first-child {
+  margin-top: var(--layout-space-1);
+}
+
+.sidebar-group::after {
+  flex: 1;
+  height: 1px;
+  background: var(--layout-border);
+  content: '';
+}

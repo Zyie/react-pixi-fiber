@@ -1,0 +1,1133 @@
+/* Infima's variables, from the tokens in tokens.css */
+:root {
+  --ifm-font-family-base: var(--layout-font-sans);
+  --ifm-heading-font-family: var(--layout-font-display);
+  --ifm-font-family-monospace: var(--layout-font-mono);
+  --ifm-line-height-base: 1.7;
+  --ifm-heading-font-weight: 650;
+  --ifm-heading-line-height: 1.2;
+  --ifm-h1-font-size: 2.5rem;
+  --ifm-h2-font-size: 1.75rem;
+  --ifm-h3-font-size: 1.3rem;
+  --ifm-h4-font-size: 1.1rem;
+  --ifm-code-font-size: 88%;
+  --ifm-global-radius: var(--layout-radius-md);
+  --ifm-code-border-radius: var(--layout-radius-sm);
+  --ifm-pre-border-radius: var(--layout-radius-lg);
+  /* One length: Docusaurus places a block's buttons, line numbers and highlighted lines with it */
+  --ifm-pre-padding: 1.2rem;
+  --ifm-pre-line-height: 1.65;
+  --ifm-container-width-xl: 1360px;
+  --ifm-navbar-height: 64px;
+  --ifm-navbar-padding-horizontal: var(--layout-space-5);
+  --ifm-navbar-item-padding-horizontal: 0.7rem;
+  --ifm-transition-fast: var(--layout-duration);
+  --ifm-global-shadow-lw: none;
+  --ifm-global-shadow-md: var(--layout-shadow);
+  --ifm-global-shadow-tl: var(--layout-shadow-lg);
+
+  --ifm-color-primary: var(--layout-accent);
+  --ifm-color-primary-dark: color-mix(in srgb, var(--layout-accent) 88%, black);
+  --ifm-color-primary-darker: color-mix(in srgb, var(--layout-accent) 80%, black);
+  --ifm-color-primary-darkest: color-mix(in srgb, var(--layout-accent) 66%, black);
+  --ifm-color-primary-light: color-mix(in srgb, var(--layout-accent) 88%, white);
+  --ifm-color-primary-lighter: color-mix(in srgb, var(--layout-accent) 80%, white);
+  --ifm-color-primary-lightest: color-mix(in srgb, var(--layout-accent) 66%, white);
+  --ifm-color-primary-contrast-foreground: var(--layout-accent-on-fill);
+
+  --ifm-background-color: var(--layout-bg);
+  --ifm-background-surface-color: var(--layout-surface);
+  --ifm-color-content: var(--layout-text);
+  --ifm-color-content-secondary: var(--layout-text-muted);
+  --ifm-font-color-base: var(--layout-text);
+  --ifm-heading-color: var(--layout-text);
+  --ifm-hr-background-color: var(--layout-border);
+  --ifm-toc-border-color: var(--layout-border);
+  --ifm-table-border-color: var(--layout-border);
+  --ifm-table-stripe-background: transparent;
+  --ifm-table-head-background: var(--layout-surface);
+  --ifm-table-cell-padding: 0.6rem 0.9rem;
+  --ifm-code-background: var(--layout-surface-raised);
+  --ifm-code-padding-horizontal: 0.35rem;
+  --ifm-code-padding-vertical: 0.1rem;
+  --ifm-card-background-color: var(--layout-surface);
+  --ifm-dropdown-background-color: var(--layout-surface-raised);
+  --ifm-dropdown-link-color: var(--layout-text);
+  --ifm-dropdown-hover-background-color: var(--layout-accent-soft);
+  --ifm-navbar-background-color: color-mix(in srgb, var(--layout-bg) 82%, transparent);
+  --ifm-navbar-link-color: var(--layout-text-muted);
+  --ifm-navbar-link-hover-color: var(--layout-text);
+  --ifm-navbar-link-active-color: var(--layout-text);
+  --ifm-navbar-shadow: none;
+  --ifm-navbar-search-input-background-color: var(--layout-surface);
+  --ifm-navbar-search-input-color: var(--layout-text);
+  --ifm-navbar-search-input-placeholder-color: var(--layout-text-muted);
+  --ifm-menu-color: var(--layout-text-muted);
+  --ifm-menu-color-active: var(--layout-accent);
+  --ifm-menu-color-background-active: var(--layout-accent-soft);
+  --ifm-menu-color-background-hover: color-mix(in srgb, var(--layout-text) 6%, transparent);
+  --ifm-menu-link-padding-vertical: 0.4rem;
+  --ifm-menu-link-padding-horizontal: 0.75rem;
+  --ifm-toc-link-color: var(--layout-text-muted);
+  --ifm-breadcrumb-item-background-active: var(--layout-accent-soft);
+  --ifm-breadcrumb-color-active: var(--layout-accent);
+  --ifm-tabs-color: var(--layout-text-muted);
+  --ifm-tabs-color-active: var(--layout-text);
+  --ifm-tabs-color-active-border: var(--layout-accent);
+  --ifm-tabs-padding-vertical: 0.6rem;
+  --ifm-tabs-padding-horizontal: 0.9rem;
+  --ifm-footer-background-color: var(--layout-surface);
+  --ifm-footer-title-color: var(--layout-text);
+  --ifm-footer-link-color: var(--layout-text-muted);
+  --ifm-footer-link-hover-color: var(--layout-accent);
+  --ifm-footer-color: var(--layout-text-muted);
+  --ifm-blockquote-border-color: var(--layout-border-strong);
+  --ifm-blockquote-color: var(--layout-text-muted);
+  --ifm-scrollbar-size: 10px;
+  --docusaurus-highlighted-code-line-bg: var(--layout-code-highlight);
+  --docusaurus-collapse-button-bg: transparent;
+  --docusaurus-collapse-button-bg-hover: color-mix(in srgb, var(--layout-text) 8%, transparent);
+  --doc-sidebar-width: 280px;
+
+  /* The search box and its results, @easyops-cn/docusaurus-search-local */
+  --search-local-modal-background: var(--layout-surface-raised);
+  --search-local-modal-shadow: 0 0 0 1px var(--layout-border), var(--layout-shadow-lg);
+  --search-local-modal-width: 600px;
+  --search-local-hit-background: var(--layout-surface);
+  --search-local-hit-shadow: inset 0 0 0 1px var(--layout-border);
+  --search-local-hit-color: var(--layout-text);
+  --search-local-hit-height: 58px;
+  --search-local-highlight-color: var(--layout-accent-fill);
+  --search-local-muted-color: var(--layout-text-muted);
+  --search-local-input-active-border-color: var(--layout-accent);
+}
+
+/* Page */
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: var(--layout-bg);
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+::selection {
+  background-color: color-mix(in srgb, var(--layout-pink) 32%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--layout-focus);
+  outline-offset: 2px;
+}
+
+* {
+  scrollbar-color: var(--layout-border-strong) transparent;
+  scrollbar-width: thin;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  letter-spacing: -0.015em;
+}
+
+h1 {
+  letter-spacing: -0.025em;
+}
+
+kbd {
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--layout-border-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--layout-radius-sm);
+  background: var(--layout-surface-raised);
+  box-shadow: none;
+  color: var(--layout-text);
+  font-family: var(--layout-font-mono);
+  font-size: 0.8em;
+}
+
+/* Helpers the components share */
+
+/* Text for screen readers only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Something loading, over a stage or a poster, which are dark in both modes */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgb(255 255 255 / 20%);
+  border-top-color: rgb(255 255 255 / 80%);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2.4s;
+  }
+}
+
+/* GitHub's mark, in the colour of the text it sits in */
+.github-icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  background-color: currentColor;
+  mask: url('/social/github.svg') center / contain no-repeat;
+}
+
+/* Buttons */
+
+.button {
+  border-radius: var(--layout-radius-md);
+  font-weight: 600;
+  transition-property: background-color, border-color, color, box-shadow, transform;
+}
+
+.button--lg {
+  --ifm-button-padding-vertical: 0.75rem;
+  --ifm-button-padding-horizontal: 1.5rem;
+
+  font-size: 1rem;
+}
+
+.button--primary {
+  --ifm-button-background-color: var(--layout-accent-fill);
+  --ifm-button-border-color: var(--layout-accent-fill);
+  --ifm-button-color: var(--layout-accent-on-fill);
+
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 18%) inset,
+    0 6px 20px -6px var(--layout-glow);
+}
+
+.button--primary:hover {
+  --ifm-button-background-color: color-mix(in srgb, var(--layout-accent-fill) 88%, black);
+  --ifm-button-border-color: color-mix(in srgb, var(--layout-accent-fill) 88%, black);
+}
+
+.button.button--secondary {
+  --ifm-button-background-color: var(--layout-surface-raised);
+  --ifm-button-border-color: var(--layout-border-strong);
+
+  color: var(--layout-text);
+}
+
+.button.button--secondary:hover {
+  --ifm-button-background-color: var(--layout-surface);
+  --ifm-button-border-color: var(--layout-text-muted);
+}
+
+/* Navbar */
+
+.navbar {
+  border-bottom: 1px solid var(--layout-border);
+}
+
+/* A backdrop filter makes the navbar the containing block of the mobile menu, so it's off while that's open */
+.navbar:not(.navbar-sidebar--show) {
+  backdrop-filter: saturate(160%) blur(12px);
+}
+
+.navbar__brand {
+  margin-right: var(--layout-space-5);
+}
+
+.navbar__logo {
+  height: 30px;
+  margin-right: 0.6rem;
+}
+
+.navbar__title {
+  font-family: var(--layout-font-display);
+  font-weight: 650;
+  font-size: 1.2rem;
+  letter-spacing: -0.01em;
+  color: var(--layout-text);
+}
+
+.navbar__item.navbar__link {
+  font-size: 0.94rem;
+  font-weight: 500;
+}
+
+@media (min-width: 997px) {
+  .navbar__items:not(.navbar__items--right) .navbar__link {
+    position: relative;
+  }
+
+  .navbar__items:not(.navbar__items--right) .navbar__link--active::after {
+    content: '';
+    position: absolute;
+    right: var(--ifm-navbar-item-padding-horizontal);
+    bottom: calc(-1 * (var(--ifm-navbar-height) - 40px) / 2 - 1px);
+    left: var(--ifm-navbar-item-padding-horizontal);
+    height: 2px;
+    border-radius: 2px;
+    background: var(--layout-gradient);
+  }
+}
+
+/* The version dropdown, a small pill */
+.navbar__items--right > .dropdown > .navbar__link {
+  margin-right: var(--layout-space-1);
+  padding: 0.2rem 0.65rem;
+  border: 1px solid var(--layout-border);
+  border-radius: var(--layout-radius-pill);
+  color: var(--layout-text-muted);
+  font-family: var(--layout-font-mono);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.navbar__items--right > .dropdown > .navbar__link:hover {
+  border-color: var(--layout-border-strong);
+  color: var(--layout-text);
+}
+
+.dropdown__menu {
+  padding: var(--layout-space-1);
+  border: 1px solid var(--layout-border);
+  border-radius: var(--layout-radius-md);
+  box-shadow: var(--layout-shadow-lg);
+}
+
+.dropdown__link {
+  border-radius: var(--layout-radius-sm);
+  font-size: 0.9rem;
+}
+
+.dropdown__link--active {
+  background-color: var(--layout-accent-soft);
+  color: var(--layout-accent);
+}
+
+/* The search box */
+.navbar__search-input {
+  height: 36px;
+  border: 1px solid var(--layout-border);
+  border-radius: var(--layout-radius-md);
+  font-size: 0.9rem;
+  transition: border-color var(--layout-duration) var(--layout-ease);
+}
+
+.navbar__search-input:hover {
+  border-color: var(--layout-border-strong);
+}
+
+@media (min-width: 997px) {
+  .navbar__search-input {
+    width: 13.5rem;
+  }
+}
+
+/* Between the mobile menu and a wide screen, the bar tightens so every item keeps its place */
+@media (min-width: 997px) and (max-width: 1199px) {
+  .navbar {
+    --ifm-navbar-item-padding-horizontal: 0.5rem;
+  }
+
+  .navbar__brand {
+    margin-right: var(--layout-space-3);
+  }
+
+  .navbar__search-input {
+    width: 8.5rem;
+  }
+}
+
+/* The shortcut hint fits only beside the full-width search box */
+@media (max-width: 1199px) {
+  .navbar__search .navbar__search-hints {
+    display: none;
+  }
+}
+
+.navbar__search-input::placeholder {
+  color: var(--layout-text-muted);
+  opacity: 1;
+}
+
+.navbar__search kbd {
+  border: 1px solid var(--layout-border-strong);
+  border-radius: 5px;
+  background: var(--layout-surface-raised);
+  box-shadow: none;
+  color: var(--layout-text-muted);
+  font-family: var(--layout-font-sans);
+}
+
+/*
+ * The dropdown is built by the search plugin's autocomplete from the plugin's CSS-module classes, and
+ * Docusaurus names a code block's title the same way, with no variable or theme class for either, so
+ * these rules and the title's match the name's stem
+ */
+.navbar .navbar__search [class*='dropdownMenu_'] {
+  border-radius: var(--layout-radius-lg);
+}
+
+[class*='dropdownMenu_'] [class*='suggestion_'] {
+  border-radius: var(--layout-radius-md);
+}
+
+[class*='dropdownMenu_'] [class*='suggestion_'][class*='cursor_'] {
+  box-shadow: none;
+}
+
+.navbar__search .navbar__search-footer a {
+  color: var(--layout-text-muted);
+}
+
+/* The color mode toggle */
+.navbar__items--right [class*='toggleButton_'] {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--layout-radius-md);
+  color: var(--layout-text-muted);
+}
+
+.navbar__items--right [class*='toggleButton_']:hover {
+  background: color-mix(in srgb, var(--layout-text) 8%, transparent);
+  color: var(--layout-text);
+}
+
+/* The icon links of the navbar; the mobile menu shows each with its label */
+.navbar-icon::before {
+  content: '';
+  display: block;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  background-color: currentColor;
+  mask: var(--navbar-icon) center / contain no-repeat;
+}
+
+/* Below 997px Docusaurus hides navbar items for the mobile menu, so the bar shows these only above it */
+@media (min-width: 997px) {
+  .navbar__item.navbar-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+  }
+}
+
+.navbar__item.navbar-icon {
+  border-radius: var(--layout-radius-md);
+  color: var(--layout-text-muted);
+}
+
+.navbar__item.navbar-icon:hover {
+  background: color-mix(in srgb, var(--layout-text) 8%, transparent);
+  color: var(--layout-text);
+}
+
+.menu__link.navbar-icon {
+  justify-content: flex-start;
+  gap: var(--layout-space-3);
+}
+
+.menu__link.navbar-icon::after {
+  content: attr(aria-label);
+}
+
+.navbar-icon--github {
+  --navbar-icon: url('/social/github.svg');
+}
+
+.navbar-icon--discord {
+  --navbar-icon: url('/social/discord.svg');
+}
+
+/* The mobile menu */
+.navbar-sidebar {
+  background-color: var(--layout-bg);
+}
+
+.navbar-sidebar__brand {
+  border-bottom: 1px solid var(--layout-border);
+}
+
+.navbar-sidebar__back {
+  border-radius: var(--layout-radius-sm);
+  background: var(--layout-surface);
+  color: var(--layout-text-muted);
+  font-size: 0.9rem;
+}
+
+/* Docs: sidebar, breadcrumbs, table of contents, pagination */
+
+.theme-doc-sidebar-menu {
+  padding-top: var(--layout-space-2);
+}
+
+.menu {
+  font-size: 0.92rem;
+  font-weight: 450;
+  scrollbar-gutter: stable;
+}
+
+.menu__link,
+.menu__caret {
+  border-radius: var(--layout-radius-sm);
+}
+
+.menu__link {
+  line-height: 1.4;
+  transition-property: color, background-color;
+}
+
+.menu__link:hover {
+  color: var(--layout-text);
+}
+
+.menu__link--active:not(.menu__link--sublist) {
+  font-weight: 550;
+}
+
+.menu__link--sublist-caret::after,
+.menu__caret::before {
+  background-size: 1.6rem 1.6rem;
+  opacity: 0.6;
+}
+
+/* A top-level category reads as a section title */
+.theme-doc-sidebar-item-category-level-1 > .menu__list-item-collapsible > .menu__link {
+  color: var(--layout-text);
+  font-weight: 600;
+}
+
+/* A page at the top level sits beside the section titles, so it reads at their level */
+.theme-doc-sidebar-item-link-level-1 > .menu__link:not(.menu__link--active) {
+  color: var(--layout-text);
+  font-weight: 500;
+}
+
+.theme-doc-sidebar-item-category-level-1 + .theme-doc-sidebar-item-category-level-1 {
+  margin-top: var(--layout-space-1);
+}
+
+.menu__list .menu__list {
+  margin-top: 2px;
+  margin-left: 0.85rem;
+  padding-left: 0.5rem;
+  border-left: 1px solid var(--layout-border);
+}
+
+/* The button that folds the sidebar away fills the sidebar's foot, so it keeps no button's corners */
+.theme-doc-sidebar-container .button {
+  border-radius: 0;
+}
+
+.theme-doc-breadcrumbs {
+  margin-bottom: var(--layout-space-3);
+}
+
+/*
+ * One line at every width: a crumb too long for the row ends in an ellipsis instead of wrapping, so the
+ * web font swapping in can't add a line and push the page down
+ */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumbs__item {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.breadcrumbs__item:first-child,
+.breadcrumbs__item::after {
+  flex: none;
+}
+
+.breadcrumbs__link {
+  overflow: hidden;
+  padding: 0.2rem 0.65rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: var(--layout-radius-pill);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.breadcrumbs__item--active .breadcrumbs__link {
+  font-weight: 600;
+}
+
+.breadcrumbs__item:not(:last-child)::after {
+  opacity: 0.4;
+}
+
+.table-of-contents {
+  font-size: 0.84rem;
+}
+
+.table-of-contents__left-border {
+  border-left: 1px solid var(--layout-border);
+}
+
+.theme-doc-toc-desktop::before {
+  content: 'On this page';
+  display: block;
+  margin: 0 0 var(--layout-space-2) var(--layout-space-4);
+  color: var(--layout-text);
+  font-family: var(--layout-font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.table-of-contents__link {
+  display: block;
+  line-height: 1.45;
+}
+
+.table-of-contents__link:hover,
+.table-of-contents__link:hover code {
+  color: var(--layout-text);
+}
+
+.table-of-contents__link--active {
+  position: relative;
+  font-weight: 550;
+}
+
+.table-of-contents__left-border .table-of-contents__link--active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(-1 * var(--ifm-toc-padding-horizontal) - 1px);
+  width: 2px;
+  border-radius: 2px;
+  background: var(--layout-accent);
+}
+
+.table-of-contents li {
+  position: relative;
+}
+
+.theme-doc-toc-mobile {
+  border: 1px solid var(--layout-border);
+  border-radius: var(--layout-radius-md);
+  background: var(--layout-surface);
+}
+
+.pagination-nav {
+  gap: var(--layout-space-4);
+}
+
+.pagination-nav__link {
+  padding: var(--layout-space-4) var(--layout-space-5);
+  border: 1px solid var(--layout-border);
+  border-radius: var(--layout-radius-lg);
+  transition:
+    border-color var(--layout-duration) var(--layout-ease),
+    background-color var(--layout-duration) var(--layout-ease);
+}
+
+.pagination-nav__link:hover {
+  border-color: color-mix(in srgb, var(--layout-accent) 60%, var(--layout-border));
+  background: var(--layout-surface);
+}
+
+.pagination-nav__sublabel {
+  color: var(--layout-text-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.pagination-nav__label {
+  font-family: var(--layout-font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.theme-edit-this-page {
+  color: var(--layout-text-muted);
+  font-size: 0.9rem;
+}
+
+.theme-edit-this-page:hover {
+  color: var(--layout-accent);
+}
+
+.theme-doc-footer {
+  margin-top: var(--layout-space-7) !important;
+}
+
+.theme-doc-version-badge {
+  margin-bottom: var(--layout-space-3);
+  padding: 0.15rem 0.6rem;
+  border: 1px solid var(--layout-border);
+  background: var(--layout-surface);
+  color: var(--layout-text-muted);
+  font-size: 0.75rem;
+  font-weight: 550;
+}
+
+.theme-back-to-top-button {
+  border: 1px solid var(--layout-border);
+  background-color: var(--layout-surface-raised);
+  box-shadow: var(--layout-shadow);
+}
+
+/* Prose */
+
+.markdown {
+  --ifm-h1-vertical-rhythm-bottom: 1.1;
+  --ifm-h2-vertical-rhythm-top: 2.25;
+  --ifm-h3-vertical-rhythm-top: 1.6;
+  --ifm-paragraph-margin-bottom: 1.1rem;
+
+  font-size: 1rem;
+}
+
+.markdown > h1:first-child,
+.markdown header > h1 {
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  font-weight: 700;
+}
+
+.markdown h2 {
+  padding-top: var(--layout-space-2);
+}
+
+/* Links in running text; a link that is only code, or a block such as a card, keeps no underline */
+.markdown :is(p, li, td, blockquote) > a:not(:has(> code:only-child)) {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--layout-accent) 35%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color var(--layout-duration) var(--layout-ease);
+}
+
+.markdown :is(p, li, td, blockquote) > a:not(:has(> code:only-child)):hover {
+  text-decoration-color: currentColor;
+}
+
+.markdown img {
+  border-radius: var(--layout-radius-md);
+}
+
+.markdown hr {
+  margin: var(--layout-space-7) 0;
+}
+
+.hash-link {
+  color: var(--layout-text-muted);
+}
+
+blockquote {
+  border-left-width: 3px;
+  font-style: normal;
+}
+
+/* Inline code. No ligatures in any code: `<=` reads as typed, as it does in the live editor. */
+code {
+  border: 1px solid var(--layout-border);
+  background-color: var(--layout-surface);
+  font-variant-ligatures: none;
+  font-weight: 450;
+  vertical-align: baseline;
+}
+
+/*
+ * Where there's room, a code doesn't break at its hyphens: `clear-right` stays one token. In a table it
+ * doesn't wrap. In running text it moves to the next line whole, and wraps only when it's longer than a
+ * line. A phone's narrow column still wraps it as text.
+ */
+@media (min-width: 997px) {
+  .markdown table code {
+    white-space: nowrap;
+  }
+
+  .markdown :is(p, li) code:not(pre code) {
+    display: inline-block;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    line-height: 1.45;
+  }
+}
+
+a code {
+  color: inherit;
+}
+
+/* A name as a heading, such as `useFrame`, in the heading's own size and without the box of inline code */
+.markdown :is(h1, h2, h3, h4) code {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 0.9em;
+}
+
+/* Code blocks */
+
+/* The block's pre sets code at --ifm-code-font-size of this, about 13.4px */
+.theme-code-block {
+  border: 1px solid var(--layout-code-border);
+  box-shadow: none;
+  font-size: 0.95rem;
+}
+
+.theme-code-block pre {
+  --ifm-pre-background: var(--layout-code-bg);
+}
+
+.theme-code-block code {
+  border: 0;
+  background: none;
+  font-weight: 400;
+}
+
+.theme-code-block [class*='codeBlockTitle_'] {
+  padding: 0.6rem var(--ifm-pre-padding);
+  border-bottom: 1px solid var(--layout-code-border);
+  background: var(--layout-code-title);
+  color: var(--layout-text-muted);
+  font-family: var(--layout-font-mono);
+  font-size: 0.78rem;
+}
+
+.theme-code-block-highlighted-line {
+  box-shadow: inset 2px 0 0 var(--layout-accent);
+}
+
+.theme-code-block [class*='buttonGroup_'] button {
+  border: 1px solid var(--layout-code-border);
+  border-radius: var(--layout-radius-sm);
+  background: var(--layout-code-title);
+  color: var(--layout-text-muted);
+}
+
+.theme-code-block [class*='buttonGroup_'] button:hover {
+  color: var(--layout-text);
+}
+
+/* Tables */
+
+.markdown table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--layout-border);
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: var(--layout-radius-lg);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.markdown table thead tr {
+  border: 0;
+  background: var(--layout-surface);
+}
+
+.markdown table th {
+  border: 0;
+  border-bottom: 1px solid var(--layout-border);
+  color: var(--layout-text);
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.markdown table tr {
+  border: 0;
+}
+
+.markdown table td {
+  border: 0;
+  border-top: 1px solid var(--layout-border);
+  vertical-align: top;
+}
+
+.markdown table tbody tr:first-child td {
+  border-top: 0;
+}
+
+.markdown table th + th,
+.markdown table td + td {
+  border-left: 1px solid var(--layout-border);
+}
+
+.markdown table tbody tr:hover {
+  background: color-mix(in srgb, var(--layout-surface) 60%, transparent);
+}
+
+/* Admonitions: a tint and an edge in the hue of their type */
+
+.theme-admonition {
+  --layout-admonition: var(--layout-note);
+  --ifm-alert-background-color: color-mix(in srgb, var(--layout-admonition) 8%, var(--layout-bg));
+  --ifm-alert-background-color-highlight: color-mix(in srgb, var(--layout-admonition) 16%, transparent);
+  --ifm-alert-border-color: var(--layout-admonition);
+  --ifm-alert-foreground-color: var(--layout-text);
+  --ifm-alert-border-left-width: 3px;
+  --ifm-alert-padding-vertical: 1rem;
+  --ifm-alert-padding-horizontal: 1.25rem;
+
+  border: 1px solid color-mix(in srgb, var(--layout-admonition) 28%, transparent);
+  border-left: 3px solid var(--layout-admonition);
+  border-radius: var(--layout-radius-md);
+  box-shadow: none;
+}
+
+.theme-admonition-tip {
+  --layout-admonition: var(--layout-tip);
+}
+
+.theme-admonition-info {
+  --layout-admonition: var(--layout-info);
+}
+
+.theme-admonition-warning,
+.theme-admonition-caution {
+  --layout-admonition: var(--layout-warning);
+}
+
+.theme-admonition-danger {
+  --layout-admonition: var(--layout-danger);
+}
+
+.theme-admonition [class*='admonitionHeading_'] {
+  color: var(--layout-admonition);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+}
+
+.theme-admonition [class*='admonitionIcon_'] svg {
+  height: 1.3em;
+  width: 1.3em;
+  fill: var(--layout-admonition);
+}
+
+.theme-admonition a {
+  color: var(--layout-accent);
+  text-decoration-color: color-mix(in srgb, var(--layout-accent) 35%, transparent);
+}
+
+.theme-admonition code {
+  background-color: color-mix(in srgb, var(--layout-admonition) 10%, var(--layout-bg));
+}
+
+/*
+ * Tabs and segmented controls, one look: the docs' tabs, and every choice between a few options, such
+ * as the renderer. A segmented control is `.segmented` around buttons with `aria-pressed`, or around
+ * labels that each hold a radio input and a span. `.segmented--small` fits a bar of small text.
+ */
+
+.tabs-container {
+  margin-bottom: var(--ifm-leading);
+}
+
+.tabs,
+.segmented {
+  display: inline-flex;
+  gap: 2px;
+  max-width: 100%;
+  padding: 3px;
+  border: 1px solid var(--layout-border);
+  border-radius: var(--layout-radius-md);
+  background: var(--layout-surface);
+  scrollbar-width: none;
+}
+
+/* A fieldset's own margin and minimum width */
+.segmented {
+  min-inline-size: auto;
+  margin: 0;
+}
+
+.tabs__item,
+.segmented > button,
+.segmented > label > span {
+  flex: none;
+  padding: 0.3rem 0.95rem;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--layout-text-muted);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 550;
+  line-height: 1.5;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color var(--layout-duration) var(--layout-ease),
+    background-color var(--layout-duration) var(--layout-ease),
+    box-shadow var(--layout-duration) var(--layout-ease);
+}
+
+.segmented--small > button,
+.segmented--small > label > span {
+  padding: 2px 10px;
+  font-size: 0.74rem;
+}
+
+.segmented > label {
+  position: relative;
+  flex: none;
+  margin: 0;
+}
+
+.segmented > label > span {
+  display: block;
+}
+
+.segmented > label > input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.tabs__item:hover,
+.segmented > button:hover:enabled,
+.segmented > label > input:hover:enabled + span {
+  color: var(--layout-text);
+}
+
+/* Infima tints a tab under the pointer */
+.tabs__item:not(.tabs__item--active):hover {
+  background: none;
+}
+
+.tabs__item--active,
+.segmented > button[aria-pressed='true'],
+.segmented > label > input:checked + span {
+  border-radius: 7px;
+  background: var(--layout-surface-raised);
+  box-shadow:
+    0 0 0 1px var(--layout-border-strong) inset,
+    0 1px 2px rgb(0 0 0 / 20%);
+  color: var(--layout-text);
+}
+
+.segmented > button:disabled,
+.segmented > label > input:disabled,
+.segmented > label > input:disabled + span {
+  cursor: not-allowed;
+}
+
+.segmented > button:disabled,
+.segmented > label > input:disabled + span {
+  opacity: 0.45;
+}
+
+/* Inside the control's scroll box an outside ring would be clipped */
+.tabs__item:focus-visible,
+.segmented > button:focus-visible {
+  outline-offset: -2px;
+}
+
+.segmented > label > input:focus-visible + span {
+  outline: 2px solid var(--layout-focus);
+  outline-offset: -2px;
+}
+
+/* Details */
+
+.markdown details {
+  --docusaurus-details-decoration-color: var(--layout-text-muted);
+
+  border: 1px solid var(--layout-border);
+  border-radius: var(--layout-radius-md);
+  background: var(--layout-surface);
+  box-shadow: none;
+  color: var(--layout-text);
+}
+
+/* Cards of a category index */
+
+.card {
+  border: 1px solid var(--layout-border);
+  border-radius: var(--layout-radius-lg);
+  box-shadow: none;
+  transition: border-color var(--layout-duration) var(--layout-ease);
+}
+
+a.card:hover {
+  border-color: color-mix(in srgb, var(--layout-accent) 60%, var(--layout-border));
+}
+
+/* Footer: the layout is src/theme/Footer/Layout */
+
+.footer {
+  border-top: 1px solid var(--layout-border);
+  background: var(--layout-surface);
+}
+
+.footer--dark {
+  --ifm-footer-background-color: var(--layout-surface);
+  --ifm-footer-color: var(--layout-text-muted);
+  --ifm-footer-link-color: var(--layout-text-muted);
+  --ifm-footer-title-color: var(--layout-text);
+}
+
+.footer__title {
+  margin-bottom: var(--layout-space-3);
+  font-family: var(--layout-font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.footer__item {
+  margin-bottom: var(--layout-space-2);
+  font-size: 0.92rem;
+}
+
+.footer__link-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.footer__link-item:hover {
+  text-decoration: none;
+}
+
+.footer__link-item svg {
+  opacity: 0.5;
+}
+
+.pagination-nav__link--prev .pagination-nav__label::before {
+  content: '← ';
+}
+
+.pagination-nav__link--next .pagination-nav__label::after {
+  content: ' →';
+}

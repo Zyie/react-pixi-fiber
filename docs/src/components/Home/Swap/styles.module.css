@@ -1,0 +1,165 @@
+/* The hero's panel: an editor's frame around one scene, its import the only line that changes */
+.panel {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--layout-border-strong);
+  border-radius: var(--layout-radius-xl);
+  background: var(--layout-code-bg);
+  box-shadow: var(--layout-shadow-lg);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-3);
+  min-height: 48px;
+  padding: var(--layout-space-2) var(--layout-space-3) var(--layout-space-2) var(--layout-space-4);
+  border-bottom: 1px solid var(--layout-code-border);
+  background: var(--layout-code-title);
+}
+
+.dots {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--layout-border-strong);
+}
+
+.file {
+  flex: 1;
+  color: var(--layout-text-muted);
+  font-family: var(--layout-font-mono);
+  font-size: 0.8rem;
+}
+
+.switch {
+  flex: none;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 640px) {
+  .body {
+    grid-template-columns: minmax(0, 1.95fr) minmax(0, 1fr);
+  }
+}
+
+.code {
+  margin: 0;
+  padding: var(--layout-space-4);
+  overflow-x: auto;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--layout-code-text);
+  font-family: var(--layout-font-mono);
+  font-size: 0.74rem;
+  line-height: 1.7;
+}
+
+.code code {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: inherit;
+}
+
+.line,
+.changed {
+  display: block;
+  min-height: 1.7em;
+  white-space: pre;
+}
+
+/* The import, the one line a port changes, marked as a diff would */
+.changed {
+  margin-inline: calc(-1 * var(--layout-space-4));
+  padding-inline: calc(var(--layout-space-4) - 3px) var(--layout-space-4);
+  border-left: 3px solid var(--layout-accent);
+  background: var(--layout-accent-soft);
+}
+
+.keyword {
+  color: var(--layout-code-keyword);
+}
+
+.name {
+  color: var(--layout-code-function);
+}
+
+.string {
+  color: var(--layout-code-string);
+  animation: swap 360ms var(--layout-ease);
+}
+
+@keyframes swap {
+  from {
+    opacity: 0;
+    filter: blur(2px);
+  }
+}
+
+.stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  border-top: 1px solid var(--layout-code-border);
+  background: radial-gradient(circle at 50% 45%, rgb(255 255 255 / 4%), transparent 60%), var(--layout-stage);
+}
+
+@media (min-width: 640px) {
+  .stage {
+    border-top: 0;
+    border-left: 1px solid var(--layout-code-border);
+  }
+}
+
+.stage img {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+}
+
+/* The other renderer's picture, loaded already so the swap shows at once */
+.stage img.hidden {
+  display: none;
+}
+
+.caption {
+  position: absolute;
+  bottom: var(--layout-space-3);
+  left: 50%;
+  padding: 3px 10px;
+  border: 1px solid var(--layout-stage-border);
+  border-radius: var(--layout-radius-pill);
+  background: rgb(0 0 0 / 45%);
+  color: #ecebf2;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.note {
+  padding: var(--layout-space-3) var(--layout-space-4);
+  border-top: 1px solid var(--layout-code-border);
+  color: var(--layout-text-muted);
+  font-size: 0.85rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .string {
+    animation: none;
+  }
+}

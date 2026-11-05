@@ -5,6 +5,9 @@
   "description": "A React renderer for pixi-3d, ported from react-three-fiber v10",
   "license": "MIT",
   "author": "PixiJS",
+  "workspaces": [
+    "docs"
+  ],
   "files": [
     "dist"
   ],
@@ -22,15 +25,20 @@
     "vendor:r3f": "node scripts/r3f/vendor.mts --write",
     "setup": "npm ci --prefer-offline --no-audit --no-fund && npm run sync:repos",
     "start": "vite --config playground/vite.config.ts",
-    "test": "npm run test:lint && npm run test:types && vitest run --browser.headless",
+    "test": "npm run test:lint && npm run test:types && npm run test:docs && vitest run --browser.headless",
     "test:bundle": "node scripts/build/check-bundle.mts",
     "test:visual": "vitest run --project three --project scenes --browser.headless",
     "test:three": "vitest run --project three --browser.headless",
     "test:update": "vitest run --project three --project scenes --browser.headless --update=true",
     "test:unit": "vitest run --project unit --browser.headless",
     "test:types": "tsc --noEmit -p tsconfig.json",
-    "test:lint": "oxlint --deny-warnings && oxfmt --check && node scripts/r3f/vendor.mts --check",
-    "lint": "oxlint --fix && oxfmt --write"
+    "test:lint": "oxlint --deny-warnings --ignore-pattern=docs/** && oxfmt --check && node scripts/r3f/vendor.mts --check",
+    "lint": "oxlint --fix && oxfmt --write",
+    "docs:dev": "node docs/scripts/site.mts dev",
+    "docs:build": "node docs/scripts/site.mts build",
+    "docs:serve": "node docs/scripts/site.mts serve",
+    "test:docs": "node docs/scripts/typedoc/check.mts && oxlint --deny-warnings docs && tsc --noEmit -p docs/tsconfig.json && node --test docs/scripts/typedoc/__tests__/*.test.mts docs/plugins/*/__tests__/*.test.mts docs/scripts/__tests__/*.test.mts docs/scripts/generators/*/__tests__/*.test.mts docs/src/components/*/__tests__/*.test.mts",
+    "test:site": "node docs/scripts/site.mts build --name test && node docs/scripts/crawl.mts --name test"
   },
   "dependencies": {
     "@pmndrs/scheduler": "^0.3.0",

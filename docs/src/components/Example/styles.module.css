@@ -1,0 +1,347 @@
+.example {
+  margin: 0 0 var(--ifm-leading);
+  border: 1px solid var(--layout-code-border);
+  border-radius: var(--layout-radius-lg);
+  overflow: hidden;
+  background: var(--layout-code-bg);
+}
+
+/* The bar: the caption, the run state and the actions */
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-2);
+  min-height: 44px;
+  padding: var(--layout-space-1) var(--layout-space-1) var(--layout-space-1) var(--layout-space-4);
+  border-bottom: 1px solid var(--layout-code-border);
+  background: var(--layout-code-title);
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--layout-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.path {
+  color: var(--layout-text-muted);
+  font-family: var(--layout-font-mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.status {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  color: var(--layout-text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.status::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.running {
+  color: var(--layout-tip);
+}
+
+.running::before {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--layout-tip) 22%, transparent);
+}
+
+/* The tip green is a shade light for small text on the bar's tint */
+:global([data-theme='light']) .running {
+  color: color-mix(in srgb, var(--layout-tip) 80%, var(--layout-text));
+}
+
+.error {
+  color: var(--layout-danger);
+}
+
+.loading::before {
+  animation: pulse 1s var(--layout-ease) infinite alternate;
+}
+
+@keyframes pulse {
+  from {
+    opacity: 0.25;
+  }
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--layout-radius-sm);
+  background: none;
+  color: var(--layout-text-muted);
+  cursor: pointer;
+  transition:
+    color var(--layout-duration) var(--layout-ease),
+    background-color var(--layout-duration) var(--layout-ease);
+}
+
+.action:hover {
+  background: color-mix(in srgb, var(--layout-text) 8%, transparent);
+  color: var(--layout-text);
+}
+
+/*
+ * The stage: the picture on a plain ground it blends into, or the canvas running live, framed on a
+ * dotted ground, since the reader can resize it then
+ */
+
+.stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--layout-stage);
+  background-image: radial-gradient(var(--layout-stage-dots) 1px, transparent 1.2px);
+  background-size: 16px 16px;
+  background-position: center;
+  color-scheme: dark;
+}
+
+.idle {
+  background-image: none;
+  cursor: pointer;
+}
+
+.canvas {
+  position: relative;
+  flex: none;
+  max-width: 100%;
+  background: var(--layout-stage);
+}
+
+.stage:not(.idle) .canvas {
+  max-width: none;
+  box-shadow: 0 0 0 1px var(--layout-stage-border);
+}
+
+.picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Over the runner's own `position: relative`, whichever of the two stylesheets loads last */
+.canvas .runner {
+  position: absolute;
+  inset: 0;
+}
+
+.cover {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.inert {
+  pointer-events: none;
+}
+
+.play {
+  position: absolute;
+  right: var(--layout-space-3);
+  bottom: var(--layout-space-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px 7px 12px;
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: var(--layout-radius-pill);
+  background: rgb(20 18 28 / 78%);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 35%);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition:
+    background-color var(--layout-duration) var(--layout-ease),
+    border-color var(--layout-duration) var(--layout-ease),
+    transform var(--layout-duration) var(--layout-ease);
+}
+
+.play svg {
+  width: 12px;
+  height: 12px;
+}
+
+.stage:hover .play,
+.play:focus-visible {
+  border-color: var(--layout-accent-fill);
+  background: var(--layout-accent-fill);
+  transform: translateY(-1px);
+}
+
+/* The corner a reader drags to resize the canvas, which the scene's camera follows */
+.resize {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 0 0 2px;
+  background: linear-gradient(
+    135deg,
+    transparent 0 55%,
+    rgb(255 255 255 / 55%) 55% 62%,
+    transparent 62% 72%,
+    rgb(255 255 255 / 55%) 72% 79%,
+    transparent 79%
+  );
+  cursor: nwse-resize;
+  opacity: 0.55;
+  touch-action: none;
+  transition: opacity var(--layout-duration) var(--layout-ease);
+}
+
+.stage:hover .resize,
+.resize:active,
+.resize:focus-visible {
+  opacity: 1;
+}
+
+/* Inside the corner, which the stage would clip at its edge */
+.resize:focus-visible {
+  outline: 2px solid var(--layout-focus);
+  outline-offset: -2px;
+}
+
+.size {
+  position: absolute;
+  top: var(--layout-space-2);
+  left: var(--layout-space-2);
+  padding: 2px 8px;
+  border-radius: var(--layout-radius-pill);
+  background: rgb(20 18 28 / 80%);
+  color: rgb(255 255 255 / 80%);
+  font-family: var(--layout-font-mono);
+  font-size: 0.72rem;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.shown,
+.stage:has(.resize:focus-visible) .size {
+  opacity: 1;
+}
+
+/* Under the stage while it runs: the console and the renderer */
+
+/* As tall as the console's bar from the click that starts a run, while the console itself loads */
+.statusBar {
+  min-height: 41px;
+  border-top: 1px solid var(--layout-code-border);
+  background: var(--layout-code-title);
+}
+
+/* The code: the region the page is about, or the editor */
+
+.code {
+  border-top: 1px solid var(--layout-code-border);
+}
+
+.code :global(.theme-code-block) {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+/* Filling the window: the stage beside the editor, or above it on a narrow screen */
+
+.expanded {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--ifm-z-index-fixed) + 20);
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+.expanded .body {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-height: 0;
+}
+
+.expanded .view {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--layout-code-border);
+}
+
+.expanded .stage {
+  flex: 1;
+  min-height: 0;
+}
+
+.expanded .stage .canvas {
+  width: 100%;
+  height: 100%;
+  box-shadow: none;
+}
+
+.expanded .code {
+  min-height: 0;
+  border-top: 0;
+}
+
+@media (max-width: 996px) {
+  .expanded .body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 45%) minmax(0, 1fr);
+  }
+
+  .expanded .view {
+    border-right: 0;
+    border-bottom: 1px solid var(--layout-code-border);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading::before {
+    animation: none;
+  }
+}
+
+.expanded .code > * {
+  height: 100%;
+}
