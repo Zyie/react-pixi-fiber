@@ -4,3 +4,9 @@ export interface RootState {
   size: { width: number; height: number };
   missing: boolean;
 }
+
+/** Steps a root */
+export interface Advance {
+  /** Steps a root at a time */
+  (timestamp: number): void;
+}

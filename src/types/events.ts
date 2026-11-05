@@ -3,8 +3,8 @@ import type { Container3D, Ray } from '@pixi/3d';
 import type { OrthographicCamera } from '../catalog/OrthographicCamera';
 import type { PerspectiveCamera } from '../catalog/PerspectiveCamera';
 import type { Intersection as RaycastIntersection } from '../compat/Raycaster';
-import type { Vector2 } from '../compat/Vector2';
-import type { Vector3 } from '../compat/Vector3';
+import type { ThreeVector2 } from '../compat/ThreeVector2';
+import type { ThreeVector3 } from '../compat/ThreeVector3';
 import type { RootState } from './state';
 import type { Properties } from './utils';
 
@@ -17,6 +17,13 @@ export type Camera = (PerspectiveCamera | OrthographicCamera) & {
   /** When `true`, r3f leaves the projection alone on resize */
   manual?: boolean;
 };
+
+/**
+ * r3f's name for {@link Camera}
+ * @category types
+ * @advanced
+ */
+export type ThreeCamera = Camera;
 
 /**
  * A raycaster hit with the object whose handler is running
@@ -39,9 +46,9 @@ export interface IntersectionEvent<TSourceEvent> extends Intersection {
   /** Every hit under the pointer, nearest first */
   intersections: Intersection[];
   /** The pointer unprojected onto the camera's near plane */
-  unprojectedPoint: Vector3;
+  unprojectedPoint: ThreeVector3;
   /** Normalised pointer coordinates, -1 to 1 */
-  pointer: Vector2;
+  pointer: ThreeVector2;
   /** `pointerId` of the native event */
   pointerId: number;
   /** Distance in pixels between the pointer-down and this event */
@@ -164,6 +171,24 @@ export interface EventHandlers {
   onOccluded?: (occluded: boolean) => void;
   /** Fires when the object's combined visibility (frustum and `visible`) changes */
   onVisible?: (visible: boolean) => void;
+}
+
+/**
+ * An object with visibility handlers, as r3f's frame loop tracks it in `state.internal.visibilityRegistry`
+ * @category events
+ * @advanced
+ */
+export interface VisibilityEntry {
+  /** The object */
+  object: Container3D;
+  /** Its visibility handlers */
+  handlers: Pick<EventHandlers, 'onFramed' | 'onOccluded' | 'onVisible'>;
+  /** Whether it was in the frustum last frame; `null` before the first check */
+  lastFramedState: boolean | null;
+  /** Whether it was occluded last frame; always `null` on pixi-3d */
+  lastOccludedState: boolean | null;
+  /** Whether it was visible last frame; `null` before the first check */
+  lastVisibleState: boolean | null;
 }
 
 /**

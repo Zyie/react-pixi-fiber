@@ -3,8 +3,8 @@ import type { Camera3D, Container3D, Mesh3D, PointData3D } from '@pixi/3d';
 import type { PointData } from 'pixi.js';
 
 import { cameraProjectionInverse, cameraWorld } from './cameraMatrices';
-import { Vector2 } from './Vector2';
-import { Vector3 } from './Vector3';
+import { ThreeVector2 } from './ThreeVector2';
+import { ThreeVector3 } from './ThreeVector3';
 
 /**
  * The triangle a ray hit, as three's `Face`
@@ -19,7 +19,7 @@ export interface Face {
   /** Index of the triangle's third vertex */
   c: number;
   /** The triangle's flat normal, in the object's local space */
-  normal: Vector3;
+  normal: ThreeVector3;
   /** Always 0: pixi-3d geometry has no material groups */
   materialIndex: number;
 }
@@ -33,7 +33,7 @@ export interface Intersection<TObject extends Container3D = Container3D> {
   /** Distance from the ray's origin to the hit, in world units */
   distance: number;
   /** Where the ray hit, in world space */
-  point: Vector3;
+  point: ThreeVector3;
   /** The object that was hit */
   object: TObject;
   /** The triangle that was hit */
@@ -41,9 +41,9 @@ export interface Intersection<TObject extends Container3D = Container3D> {
   /** Index of the triangle that was hit */
   faceIndex?: number;
   /** Texture coordinates at the hit */
-  uv?: Vector2;
+  uv?: ThreeVector2;
   /** The hit triangle's flat normal, in the object's local space */
-  normal?: Vector3;
+  normal?: ThreeVector3;
   /** The instance hit, for instanced meshes; pixi-3d has none yet */
   instanceId?: number;
   /** The vertex or segment hit, for points and lines; pixi-3d has none yet */
@@ -81,10 +81,10 @@ const byDistance = (a: Intersection, b: Intersection): number => a.distance - b.
  * As in three, hidden objects are hit too, and a single-sided material is not hit from behind.
  * @example
  * ```ts
- * import { Raycaster, Vector2 } from 'react-pixi-fiber';
+ * import { Raycaster, ThreeVector2 } from 'react-pixi-fiber';
  *
  * const raycaster = new Raycaster();
- * raycaster.setFromCamera(new Vector2(0, 0), camera);
+ * raycaster.setFromCamera(new ThreeVector2(0, 0), camera);
  * const [nearest] = raycaster.intersectObject(scene, true);
  * ```
  * @category events
@@ -229,15 +229,15 @@ export function raycastMesh(mesh: Mesh3D, raycaster: Raycaster, intersects: Inte
   const triangle = hit.triangleIndex;
   const indices = geometry.indexBuffer?.data as Uint16Array | Uint32Array | undefined;
   const vertex = (corner: number): number => (indices ? indices[triangle * 3 + corner] : triangle * 3 + corner);
-  const normal = new Vector3(hit.normal.x, hit.normal.y, hit.normal.z);
+  const normal = new ThreeVector3(hit.normal.x, hit.normal.y, hit.normal.z);
 
   intersects.push({
     distance,
-    point: new Vector3(worldPoint.x, worldPoint.y, worldPoint.z),
+    point: new ThreeVector3(worldPoint.x, worldPoint.y, worldPoint.z),
     object: mesh,
     face: { a: vertex(0), b: vertex(1), c: vertex(2), normal, materialIndex: 0 },
     faceIndex: triangle,
-    uv: new Vector2(hit.uv.x, hit.uv.y),
+    uv: new ThreeVector2(hit.uv.x, hit.uv.y),
     normal: normal.clone(),
   });
 }

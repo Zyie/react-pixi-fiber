@@ -2,9 +2,11 @@ import { Vector2 as PixiVector2 } from '@pixi/3d';
 import type { PointData } from 'pixi.js';
 
 /**
- * pixi-3d's `Vector2` with the three.js members r3f and typical `useFrame` code call
+ * three's `Vector2`: pixi-3d's `Vector2` with the three.js members r3f and typical `useFrame` code call
  *
- * r3f keeps the normalised pointer in one (`state.pointer`) and raycasts from it.
+ * It is the `Vector2` r3f's core gets from the catalog (`getThree().Vector2`), and r3f keeps the
+ * normalised pointer in one (`state.pointer`). The entry's `Vector2` is r3f's math-prop type, so
+ * this class takes another name.
  * @example
  * ```ts
  * import { useThree } from 'react-pixi-fiber';
@@ -15,7 +17,7 @@ import type { PointData } from 'pixi.js';
  * @category math
  * @standard
  */
-export class Vector2 extends PixiVector2 {
+export class ThreeVector2 extends PixiVector2 {
   /** Always `true`; r3f and three duck-type vectors by it */
   public readonly isVector2 = true;
 
@@ -62,7 +64,7 @@ export class Vector2 extends PixiVector2 {
   }
 
   /** A new vector with the same components */
-  public override clone(): Vector2 {
-    return new Vector2(this.x, this.y);
+  public override clone(): ThreeVector2 {
+    return new ThreeVector2(this.x, this.y);
   }
 }

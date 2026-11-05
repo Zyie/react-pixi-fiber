@@ -10,7 +10,7 @@ src/index.tsx           the public entry: r3f's API, typed against pixi-3d
   src/support/          pixi-3d as an r3f renderer support (kind 'pixi')
   src/renderer/         PixiRenderer: three's renderer surface over pixi.js and View3Ds
   src/catalog/          classes under three's names (<mesh>, <boxGeometry>, ...) and three's constants
-  src/compat/           three's members on pixi-3d classes; Vector3, Raycaster, Frustum
+  src/compat/           three's members on pixi-3d classes; ThreeVector3, Raycaster, Frustum
   src/types/            RootState, ThreeElements, events, props: our types, naming pixi-3d
   src/r3f/              r3f's packages/fiber, vendored byte for byte; never edited
 ```
@@ -64,7 +64,7 @@ The patches are typed: `PixiMixins.Container3D` and the `@pixi/3d` module are au
 
 Three-shaped classes core builds by name:
 
-- `Vector3`, `Vector2`: pixi-3d's vectors plus `copy`, `setScalar`, `sub`, `lerp`, `length`, `project`, `unproject`, `isVector3`.
+- `ThreeVector3`, `ThreeVector2` (the catalog's `Vector3` and `Vector2`): pixi-3d's vectors plus `copy`, `setScalar`, `sub`, `lerp`, `length`, `project`, `unproject`, `isVector3`.
 - `Frustum`: pixi-3d's plus `intersectsObject`, for `onFramed` and `onVisible`. A mesh is tested by the sphere around its geometry's bounds in world space.
 - `Raycaster`: builds its ray from the camera's own matrices (any camera picks, not only one a view draws with), walks objects through their `raycast` method as three does, and returns three's intersection shape: `distance`, `point`, `object`, `face` (`a`, `b`, `c`, `normal`), `faceIndex`, `uv`, `normal`. As in three, hidden objects are hit, and a single-sided material isn't hit from behind.
 
@@ -108,9 +108,23 @@ three's renderer settings reach each view as it draws:
 
 ## The entry and its types
 
-`src/index.tsx` mirrors r3f's `index.tsx` export list: `Canvas`, `createRoot`, `events`, `extend`, `useThree`, `useFrame`, `useLoader`, `useTexture`, `useGraph`, `useInstanceHandle`, `useStore`, `createPortal`, `invalidate`, `advance`, `flushSync`, `act`, `applyProps`, `dispose`, `getRootState`, `context`, `getThree`, `registerRootExtension`, `setRenderOverride`, `getScheduler`, and the rest. Each value is core's own function, re-declared with a type from `src/types`, which names pixi-3d. Nothing is `export *`'d from the copy, so the declaration bundle never names three, and modules like Environment never enter the bundle. `npm run test:bundle` checks the built package.
+`src/index.tsx` mirrors the export list of r3f v10's `index.tsx`, which is everything `core/index.tsx` exports plus the entry's own `Canvas`, `createRoot`, `events`, `ThreeElements`, the build flags and the `ReactThreeFiber` namespace. Each value is core's own function, re-declared with a type from `src/types`, which names pixi-3d. Nothing is `export *`'d from the copy, so the declaration bundle never names three, and modules like Environment never enter the bundle. `npm run test:bundle` checks the built package.
 
-Left out until they work on pixi-3d: `Environment`, `useEnvironment`, `useRenderTarget` (no render targets yet), `useTextures` (its `dispose` calls three's `Texture.dispose`), and the multi-canvas registry (`registerPrimary`, ...).
+The math-prop types keep r3f's names: `Vector2`, `Vector3`, `Vector4`, `Euler`, `Quaternion`, `Matrix3`, `Matrix4` and `Color` are what a prop of that kind takes (`const position: Vector3 = [0, 1, 0]`), as in r3f, and `ReactThreeFiber` carries them with the element types. That frees the names three gives its vector classes, so the compat classes are exported as `ThreeVector2` and `ThreeVector3`; the catalog still registers them as `Vector2` and `Vector3`, the names core builds by. `act` is an extra: React's `act`, which r3f v10's entry doesn't export.
+
+Left out, because they need what pixi-3d doesn't have yet or are typed against three's renderers:
+
+| Left out                                                                                                                                                                                                                                                                         | Why                                                                                                               |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `Environment`, `EnvironmentMap`, `EnvironmentCube`, `EnvironmentPortal`, `presetsObj`, `useEnvironment`, and the types `EnvironmentProps`, `EnvironmentLoaderProps`, `PresetsType`, `BackgroundConfig`                                                                           | three's HDR loaders and PMREM; pixi-3d's environments load differently                                            |
+| `useRenderTarget`, and `RenderTargetOptions`, `R3FRenderTarget`                                                                                                                                                                                                                  | No render targets for r3f to make yet                                                                             |
+| `useTextures`, and `TextureInput`, `TextureResult`, `DisposeOptions`, `UseTexturesReturn`                                                                                                                                                                                        | Its `dispose` calls three's `Texture.dispose`                                                                     |
+| `registerPrimary`, `getPrimary`, `waitForPrimary`, `hasPrimary`, `unregisterPrimary`, `getPrimaryIds`, and `PrimaryCanvasEntry`                                                                                                                                                  | The multi-canvas registry shares one three renderer between canvases                                              |
+| `Renderer`, `RendererFactory`, `BaseRendererProps`, `DefaultRendererProps`, `DefaultGLProps`, `GLProps`, `RendererConfigExtended`, `RendererSettingsConfig`, `ColorManagementConfig`, `CanvasSchedulerConfig`                                                                    | three's renderer settings; this package's are `PixiRenderer`, `PixiRendererParameters` and `RendererSettings`     |
+| `LegacyRenderer`, `LegacyRootState`, `LegacyInternalState`, `WebGLProps`, `WebGLDefaultProps`, `WebGLShadowConfig`, `WebGPURootState`, `WebGPUInternalState`, `WebGPUR3FRenderer`, `WebGPUProps`, `WebGPUDefaultProps`, `WebGPUShadowConfig`, `UseThreeWebGPU`, `UseFrameWebGPU` | Narrowed to one of three's renderers; `RootState`, `useThree` and `useFrame` are typed with `PixiRenderer`        |
+| `Register`, `RegisteredRenderer`, `ForRegisteredRenderer`, `R3FRenderer`, `R3FRendererSupport`                                                                                                                                                                                   | Picks between three's renderers                                                                                   |
+| `RendererProvider`, `RendererSupport`, `WebGLSupport`, `WebGPUSupport`, `OcclusionSupport`, `ThreeCore`, `ThreeNamespace`                                                                                                                                                        | three's support modules; this package's are `PixiSupport` and `PixiCatalog`                                       |
+| `Layers`, `RaycastableRepresentation`, `GeometryTransformProps`, `GeometryProps`, `TSLNodeInput`, `NodeProps`, `Object3DMethod`                                                                                                                                                  | Element types over three classes with no pixi-3d counterpart: layers, `BufferGeometry` transforms, node materials |
 
 ## How a frame flows
 

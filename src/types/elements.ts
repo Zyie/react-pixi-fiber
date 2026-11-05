@@ -71,12 +71,29 @@ export interface ReactProps<P> {
 export type EventProps<P> = P extends Container3D ? Partial<EventHandlers> : {};
 
 /**
+ * A function that attaches a child to its parent and returns the detach
+ * @category types
+ * @advanced
+ */
+export type AttachFnType<O = unknown> = (parent: unknown, self: O) => () => void;
+
+/**
  * Where a child attaches on its parent: a property path, or a function that attaches it and
  * returns the detach
  * @category types
  * @advanced
  */
-export type AttachType<O = unknown> = string | ((parent: unknown, self: O) => () => void);
+export type AttachType<O = unknown> = string | AttachFnType<O>;
+
+/**
+ * Classes by name, as `extend` takes them
+ * @category types
+ * @advanced
+ */
+export interface Catalogue {
+  /** A class by its name */
+  [name: string]: ConstructorRepresentation;
+}
 
 /**
  * Constructor arguments of a class, as the `args` prop
@@ -148,6 +165,13 @@ export type ThreeToJSXElements<T extends object> = {
 };
 
 /**
+ * The entry of element map `E` named `K`
+ * @category types
+ * @advanced
+ */
+export type ElementOf<E, K extends string> = E[Extract<keyof E, K>];
+
+/**
  * Element names HTML or SVG already use; a catalog class with one of these names is reachable
  * with a `three` prefix instead (pixi-3d's `Track` is `<threeTrack>`)
  * @category types
@@ -201,4 +225,40 @@ export interface Instance<O = unknown> {
   attach?: AttachType<O>;
   /** Whether Suspense or Activity is hiding it */
   isHidden: boolean;
+}
+
+/**
+ * The types r3f's reconciler is built with
+ * @category types
+ * @advanced
+ */
+export interface HostConfig {
+  /** An element name */
+  type: string;
+  /** An element's props */
+  props: Instance['props'];
+  /** A root's store */
+  container: RootStore;
+  /** An element's instance record */
+  instance: Instance;
+  /** Text has no instance */
+  textInstance: void;
+  /** A suspended element's instance record */
+  suspenseInstance: Instance;
+  /** Never hydrates */
+  hydratableInstance: never;
+  /** No forms */
+  formInstance: never;
+  /** What a ref receives: the element's object */
+  publicInstance: Instance['object'];
+  /** No host context */
+  hostContext: {};
+  /** No persistent mode */
+  childSet: never;
+  /** A timer handle */
+  timeoutHandle: number | undefined;
+  /** No timer */
+  noTimeout: -1;
+  /** No transition status */
+  TransitionStatus: null;
 }

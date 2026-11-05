@@ -33,6 +33,30 @@ await test('the entry is src/index.tsx, followed through export * into vendored 
   );
 });
 
+await test('a const whose type is a function, here or imported, is called like one', () => {
+  assert.equal(symbol('useClock').calls, true);
+  assert.deepEqual(symbol('useClock').callable, {
+    parameters: [{ name: 'scale', type: 'number', optional: true }],
+    returns: 'number',
+  });
+  assert.equal(symbol('advance').calls, true);
+  assert.deepEqual(symbol('advance').callable?.parameters, [{ name: 'timestamp', type: 'number', optional: false }]);
+  assert.equal(symbol('undocumentedValue').calls, false);
+});
+
+await test('a module exported as a namespace is a type, with its JSDoc and the types it exports as members', () => {
+  assert.equal(symbol('Types').kind, 'type');
+  assert.equal(symbol('Types').signature, 'namespace Types');
+  assert.equal(symbol('Types').doc?.description, "The types of a namespace, as r3f's `ReactThreeFiber`");
+  assert.deepEqual(
+    symbol('Types').members.map(({ name, field }) => [name, field?.type]),
+    [
+      ['Position', '[x: number, y: number]'],
+      ['State', 'RootState'],
+    ],
+  );
+});
+
 await test('a path into another package and a name starting with _ are not followed', () => {
   assert.ok(api.unresolved.includes('Scene'));
   assert.ok(!api.symbols.some(({ name }) => name === '_internal'));

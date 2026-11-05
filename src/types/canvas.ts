@@ -13,6 +13,14 @@ import type { Dpr, Frameloop, Performance, RootState, RootStore, Size } from './
 import type { Properties } from './utils';
 
 /**
+ * What `<Canvas background>` takes: a colour. r3f's also takes an environment preset or image URLs,
+ * which pixi-3d can't load as a backdrop yet.
+ * @category types
+ * @advanced
+ */
+export type BackgroundProp = ColorSource;
+
+/**
  * A promise tagged with its state, the protocol React's `use` reads
  * @category types
  * @advanced
@@ -133,6 +141,30 @@ export interface ReconcilerRoot<TCanvas extends HTMLCanvasElement | OffscreenCan
 }
 
 /**
+ * r3f's record of a root on a canvas, kept in `_roots`
+ * @category types
+ * @advanced
+ */
+export interface Root {
+  /** React's fiber root, opaque */
+  fiber: unknown;
+  /** The root's store */
+  store: RootStore;
+  /** Whether the root is open, closing or disposed */
+  state:
+    | { status: 'open' }
+    | { status: 'closing'; token: symbol; settled: Promise<void>; settle: () => void }
+    | { status: 'disposed' };
+  /** The props the root was last configured with, and how to apply new ones */
+  configuration: {
+    previous?: RenderProps<HTMLCanvasElement | OffscreenCanvas>;
+    apply: (props: RenderProps<HTMLCanvasElement | OffscreenCanvas>) => void;
+  };
+  /** Settles once every configure call so far has applied */
+  ready: TrackedPromise<unknown>;
+}
+
+/**
  * The props of `<Canvas>`
  * @category types
  * @standard
@@ -158,7 +190,7 @@ export interface CanvasProps
   /** Canvas height in CSS pixels; the container's when left out */
   height?: number;
   /** Colour drawn behind the scene; three's presets and image URLs are not supported */
-  background?: ColorSource;
+  background?: BackgroundProp;
 }
 
 /**

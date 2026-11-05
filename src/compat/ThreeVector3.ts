@@ -4,22 +4,23 @@ import type { Camera3D, Matrix4, PointData3D } from '@pixi/3d';
 import { cameraProjection, cameraProjectionInverse, cameraWorld, cameraWorldInverse } from './cameraMatrices';
 
 /**
- * pixi-3d's `Vector3` with the three.js members r3f and typical `useFrame` code call
+ * three's `Vector3`: pixi-3d's `Vector3` with the three.js members r3f and typical `useFrame` code call
  *
  * It is the `Vector3` r3f's core gets from the catalog (`getThree().Vector3`), so `unproject`,
  * `copy` and `isVector3` behave as they do in three. Everything pixi-3d's vector already has
- * (`set`, `add`, `distanceTo`, `applyMatrix4`, ...) works unchanged.
+ * (`set`, `add`, `distanceTo`, `applyMatrix4`, ...) works unchanged. The entry's `Vector3` is r3f's
+ * math-prop type, so this class takes another name.
  * @example
  * ```ts
- * import { Vector3 } from 'react-pixi-fiber';
+ * import { ThreeVector3 } from 'react-pixi-fiber';
  *
- * const target = new Vector3(1, 2, 3);
- * target.lerp(new Vector3(0, 0, 0), 0.5).length(); // 1.87
+ * const target = new ThreeVector3(1, 2, 3);
+ * target.lerp(new ThreeVector3(0, 0, 0), 0.5).length(); // 1.87
  * ```
  * @category math
  * @standard
  */
-export class Vector3 extends PixiVector3 {
+export class ThreeVector3 extends PixiVector3 {
   /** Always `true`; r3f and three duck-type vectors by it */
   public readonly isVector3 = true;
 
@@ -119,7 +120,7 @@ export class Vector3 extends PixiVector3 {
   }
 
   /** A new vector with the same components */
-  public override clone(): Vector3 {
-    return new Vector3(this.x, this.y, this.z);
+  public override clone(): ThreeVector3 {
+    return new ThreeVector3(this.x, this.y, this.z);
   }
 }

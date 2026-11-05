@@ -211,7 +211,11 @@ type Declaration =
   | ESTree.TSInterfaceDeclaration
   | ESTree.TSTypeAliasDeclaration
   | ESTree.TSEnumDeclaration
-  | ESTree.VariableDeclaration;
+  | ESTree.VariableDeclaration
+  | ESTree.Program;
+
+/** Finds the declaration a type name in a file refers to: one of the file's own, or one it imports */
+type TypeLookup = (file: SourceFile, name: string) => Declared | undefined;
 
 /** A declaration of a name, with the file it is in */
 interface Declared {
@@ -348,6 +352,7 @@ function nameOf(name: ESTree.ModuleExportName): string {
  * @param node - The declaration
  */
 function declaredNames(node: Declaration): string[] {
+  if (node.type === 'Program') return [];
   if (node.type !== 'VariableDeclaration') return node.id ? [node.id.name] : [];
 
   return node.declarations.flatMap((declarator) => (declarator.id.type === 'Identifier' ? [declarator.id.name] : []));
@@ -398,6 +403,7 @@ function exportsOf(collector: Collector, file: SourceFile): Exports {
   const exports: Exports = new Map();
   const locals = new Map<string, Declared[]>();
   const imports = new Map<string, { source: string; name: string }>();
+  const namespaces = new Map<string, string>();
   const local: { exported: string; name: string }[] = [];
   const stars: SourceFile[] = [];
 
@@ -422,6 +428,8 @@ function exportsOf(collector: Collector, file: SourceFile): Exports {
       for (const specifier of statement.specifiers) {
         if (specifier.type === 'ImportSpecifier') {
           imports.set(specifier.local.name, { source: statement.source.value, name: nameOf(specifier.imported) });
+        } else if (specifier.type === 'ImportNamespaceSpecifier') {
+          namespaces.set(specifier.local.name, statement.source.value);
         }
       }
     } else if (statement.type === 'ExportAllDeclaration') {
@@ -454,6 +462,14 @@ function exportsOf(collector: Collector, file: SourceFile): Exports {
   }
 
   for (const { exported, name } of local) {
+    const namespace = namespaces.get(name);
+    const module = namespace === undefined ? null : resolveImport(collector, file, namespace);
+
+    if (module) {
+      exports.set(exported, [{ file: module, node: module.program, docAt: module.program.body[0]?.start ?? 0 }]);
+      continue;
+    }
+
     const imported = imports.get(name);
     const target = imported ? resolveImport(collector, file, imported.source) : null;
     const found =
@@ -738,9 +754,40 @@ function declarationSignature(declared: Declared): string {
 
       return signatureText(file, node.start, node.end);
     }
+    case 'Program':
+      return '';
     default:
       return signatureText(file, node.start, 'body' in node && node.body ? node.body.start : node.end);
   }
+}
+
+/**
+ * The types a module exports, each as a read-only member whose type is what it stands for: the members
+ * of the namespace an entry makes of it with `import * as`
+ * @param file - The module
+ */
+function namespaceMembersOf(file: SourceFile): ApiMember[] {
+  return file.program.body.flatMap((statement): ApiMember[] => {
+    const declaration = statement.type === 'ExportNamedDeclaration' ? statement.declaration : null;
+
+    if (declaration?.type !== 'TSTypeAliasDeclaration' && declaration?.type !== 'TSInterfaceDeclaration') return [];
+
+    const type =
+      declaration.type === 'TSTypeAliasDeclaration'
+        ? signatureText(file, declaration.typeAnnotation.start, declaration.typeAnnotation.end)
+        : null;
+
+    return [
+      {
+        name: declaration.id.name,
+        kind: 'property',
+        signature: declarationSignature({ file, node: declaration, docAt: statement.start }),
+        doc: docBefore(file, statement.start),
+        callable: null,
+        field: { optional: false, readonly: true, type, value: null },
+      },
+    ];
+  });
 }
 
 /**
@@ -755,6 +802,7 @@ function kindOf(node: Declaration): ApiKind {
     case 'TSInterfaceDeclaration':
       return 'interface';
     case 'TSTypeAliasDeclaration':
+    case 'Program':
       return 'type';
     case 'TSEnumDeclaration':
       return 'enum';
@@ -781,11 +829,18 @@ function lineOf(file: SourceFile, at: number): number {
  * @param declarations - Every declaration of it
  * @param typeOnly - Whether the barrel exports it as a type
  */
-function symbolOf(name: string, declarations: readonly Declared[], typeOnly: boolean): ApiSymbol {
+function symbolOf(
+  name: string,
+  declarations: readonly Declared[],
+  typeOnly: boolean,
+  lookup: TypeLookup = () => undefined,
+): ApiSymbol {
   const overloads = declarations.filter(({ node }) => node.type === 'TSDeclareFunction');
   const shown = overloads.length > 0 ? overloads : declarations;
   const isType = (declared: Declared): boolean =>
-    declared.node.type === 'TSInterfaceDeclaration' || declared.node.type === 'TSTypeAliasDeclaration';
+    declared.node.type === 'TSInterfaceDeclaration' ||
+    declared.node.type === 'TSTypeAliasDeclaration' ||
+    declared.node.type === 'Program';
   const primary = shown.find((declared) => !isType(declared)) ?? shown[0]!;
   const { file, node } = primary;
   const docs = [primary, ...shown].map((declared) => docBefore(declared.file, declared.docAt));
@@ -795,16 +850,16 @@ function symbolOf(name: string, declarations: readonly Declared[], typeOnly: boo
   else if (node.type === 'TSInterfaceDeclaration') members = membersOf(file, node.body.body);
   else if (node.type === 'TSTypeAliasDeclaration' && node.typeAnnotation.type === 'TSTypeLiteral') {
     members = membersOf(file, node.typeAnnotation.members);
-  }
+  } else if (node.type === 'Program') members = namespaceMembersOf(file);
 
   const kind = kindOf(node);
-  const { callable, calls } = callOf(file, node);
+  const { callable, calls } = callOf(file, node, lookup);
 
   return {
     name,
     kind,
     typeOnly,
-    signature: shown.map(declarationSignature).join('\n'),
+    signature: node.type === 'Program' ? `namespace ${name}` : shown.map(declarationSignature).join('\n'),
     doc: docs.find((doc) => doc !== null) ?? null,
     members,
     callable,
@@ -814,13 +869,48 @@ function symbolOf(name: string, declarations: readonly Declared[], typeOnly: boo
 }
 
 /**
+ * The first call signature of a type: a function type, a literal or an interface of call signatures,
+ * or a name that `lookup` follows to one of those; null when it has none
+ * @param file - The file the type is written in
+ * @param type - The type
+ * @param lookup - Follows a type name to its declaration
+ */
+function callSignatureOf(file: SourceFile, type: ESTree.TSType, lookup: TypeLookup): ApiCallable | null {
+  if (type.type === 'TSFunctionType') return callableOf(file, type);
+  if (type.type === 'TSTypeLiteral') {
+    const call = type.members.find((member) => member.type === 'TSCallSignatureDeclaration');
+
+    return call ? callableOf(file, call) : null;
+  }
+  if (type.type !== 'TSTypeReference' || type.typeName.type !== 'Identifier') return null;
+
+  const target = lookup(file, type.typeName.name);
+
+  if (target?.node.type === 'TSTypeAliasDeclaration') {
+    return callSignatureOf(target.file, target.node.typeAnnotation, lookup);
+  }
+  if (target?.node.type === 'TSInterfaceDeclaration') {
+    const call = target.node.body.body.find((member) => member.type === 'TSCallSignatureDeclaration');
+
+    return call ? callableOf(target.file, call) : null;
+  }
+
+  return null;
+}
+
+/**
  * What a call of a declaration takes and returns, and whether a const holds something to call: an arrow
- * or function expression with no type written, or a type that is a function or a literal of call
- * signatures
+ * or function expression with no type written, or a type that is a function, a literal or an interface of
+ * call signatures, or a name of one of those
  * @param file - The file
  * @param node - The declaration
+ * @param lookup - Follows a type name to its declaration
  */
-function callOf(file: SourceFile, node: Declaration): { callable: ApiCallable | null; calls: boolean } {
+function callOf(
+  file: SourceFile,
+  node: Declaration,
+  lookup: TypeLookup,
+): { callable: ApiCallable | null; calls: boolean } {
   switch (node.type) {
     case 'FunctionDeclaration':
     case 'TSDeclareFunction':
@@ -834,12 +924,10 @@ function callOf(file: SourceFile, node: Declaration): { callable: ApiCallable | 
       const { id, init } = node.declarations[0]!;
       const type = id.typeAnnotation?.typeAnnotation;
 
-      if (type?.type === 'TSFunctionType') return { callable: callableOf(file, type), calls: true };
       if (type) {
-        return {
-          callable: null,
-          calls: type.type === 'TSTypeLiteral' && type.members[0]?.type === 'TSCallSignatureDeclaration',
-        };
+        const callable = callSignatureOf(file, type, lookup);
+
+        return { callable: type.type === 'TSTypeLiteral' ? null : callable, calls: callable !== null };
       }
       if (init?.type === 'ArrowFunctionExpression' || init?.type === 'FunctionExpression') {
         return { callable: callableOf(file, init), calls: true };
@@ -915,10 +1003,32 @@ export function collectEntry(entry: Entry, root: string): ApiEntry {
 
   const symbols: ApiSymbol[] = [];
   const unresolved: string[] = [];
+  const lookup: TypeLookup = (file, name) => {
+    const own = file.program.body
+      .map((statement) =>
+        asDeclaration(statement.type === 'ExportNamedDeclaration' ? statement.declaration : statement),
+      )
+      .find((node) => node && declaredNames(node).includes(name));
+
+    if (own) return { file, node: own, docAt: own.start };
+
+    for (const statement of file.program.body) {
+      if (statement.type !== 'ImportDeclaration') continue;
+
+      const specifier = statement.specifiers.find(
+        (each) => each.type === 'ImportSpecifier' && each.local.name === name,
+      ) as ESTree.ImportSpecifier | undefined;
+      const target = specifier && resolveImport(collector, file, statement.source.value);
+
+      if (target) return exportsOf(collector, target).get(nameOf(specifier.imported))?.[0];
+    }
+
+    return undefined;
+  };
 
   for (const [name, declarations] of exportsOf(collector, barrel)) {
     if (name.startsWith('_')) continue;
-    if (declarations.length > 0) symbols.push(symbolOf(name, declarations, typeOnly.has(name)));
+    if (declarations.length > 0) symbols.push(symbolOf(name, declarations, typeOnly.has(name), lookup));
     else unresolved.push(name);
   }
 

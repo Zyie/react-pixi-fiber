@@ -8,8 +8,8 @@ import type { UseBoundStoreWithEqualityFn } from 'zustand/traditional';
 import type { Scene } from '../catalog/Scene';
 import type { Frustum } from '../compat/Frustum';
 import type { Raycaster } from '../compat/Raycaster';
-import type { Vector2 } from '../compat/Vector2';
-import type { Vector3 } from '../compat/Vector3';
+import type { ThreeVector2 } from '../compat/ThreeVector2';
+import type { ThreeVector3 } from '../compat/ThreeVector3';
 import type { PixiRenderer } from '../renderer/PixiRenderer';
 import type { PixiSupport } from '../support/pixiSupport';
 import type { Camera, DomEvent, EventManager, PointerCaptureTarget, ThreeEvent } from './events';
@@ -208,12 +208,12 @@ export interface RootState {
   /** Camera controls an app registers as the default, which events and helpers read */
   controls: object | null;
   /** Normalised pointer coordinates, -1 to 1 */
-  pointer: Vector2;
+  pointer: ThreeVector2;
   /**
    * Normalised pointer coordinates, by r3f's older name
    * @deprecated Use `pointer`.
    */
-  mouse: Vector2;
+  mouse: ThreeVector2;
   /** Colour space for 8-bit colour textures */
   textureColorSpace: string;
   /** When the root renders */
@@ -227,7 +227,7 @@ export interface RootState {
     /** The viewport at a distance from a camera */
     getCurrentViewport: (
       camera?: Camera,
-      target?: Vector3 | [x: number, y: number, z: number],
+      target?: ThreeVector3 | [x: number, y: number, z: number],
       size?: Size,
     ) => Omit<Viewport, 'dpr' | 'initialDpr'>;
   };

@@ -2,8 +2,8 @@ import * as PIXI3D from '@pixi/3d';
 
 import { Frustum } from '../compat/Frustum';
 import { Raycaster } from '../compat/Raycaster';
-import { Vector2 } from '../compat/Vector2';
-import { Vector3 } from '../compat/Vector3';
+import { ThreeVector2 } from '../compat/ThreeVector2';
+import { ThreeVector3 } from '../compat/ThreeVector3';
 import { AmbientLight } from './AmbientLight';
 import { BoxGeometry } from './BoxGeometry';
 import * as constants from './constants';
@@ -59,9 +59,9 @@ export interface AliasCatalog {
   /** three's `TextureLoader` */
   TextureLoader: typeof TextureLoader;
   /** three's `Vector2` */
-  Vector2: typeof Vector2;
+  Vector2: typeof ThreeVector2;
   /** three's `Vector3` */
-  Vector3: typeof Vector3;
+  Vector3: typeof ThreeVector3;
   /** three's `Frustum` */
   Frustum: typeof Frustum;
   /** three's `Raycaster` */
@@ -100,8 +100,8 @@ export const aliases: AliasCatalog = {
   DirectionalLight,
   PointLight,
   TextureLoader,
-  Vector2,
-  Vector3,
+  Vector2: ThreeVector2,
+  Vector3: ThreeVector3,
   Frustum,
   Raycaster,
 };
