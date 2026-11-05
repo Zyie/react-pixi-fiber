@@ -1,5 +1,5 @@
 // #region result
-import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Canvas, createPortal, useFrame, useRenderTarget, useThree } from 'react-pixi-fiber';
 import type { ComputeFunction, ThreeElements } from 'react-pixi-fiber';
@@ -40,17 +40,17 @@ function Bottle(props: ThreeElements['group']) {
 }
 
 // #region portal
-function Portal({ children, ...props }: { children: ReactNode } & ThreeElements['mesh']) {
+function Portal({
+  children,
+  scale,
+  ...props
+}: { children: ReactNode; scale: [number, number, number] } & ThreeElements['mesh']) {
   const ref = useRef<Mesh>(null!);
   const fbo = useRenderTarget();
   const events = useThree((state) => state.events);
-  const [scene] = useState(() => new Scene());
-  const [camera] = useState(() => new PerspectiveCamera(50, 1, 0.1, 1000));
-
-  useLayoutEffect(() => {
-    camera.aspect = ref.current.scale.x / ref.current.scale.y;
-    camera.updateProjectionMatrix();
-  }, [camera]);
+  const scene = useMemo(() => new Scene(), []);
+  const [width, height] = scale;
+  const camera = useMemo(() => new PerspectiveCamera(50, width / height, 0.1, 1000), [width, height]);
 
   useFrame((state) => {
     camera.position.copy(state.camera.position);
@@ -74,10 +74,11 @@ function Portal({ children, ...props }: { children: ReactNode } & ThreeElements[
 
   return (
     <>
-      <mesh ref={ref} {...props}>
+      <mesh ref={ref} scale={scale} {...props}>
         <planeGeometry />
         <meshBasicMaterial map={fbo.texture} />
       </mesh>
+      {/* oxlint-disable-next-line react/refs -- compute reads the ref on pointer events, after render */}
       {createPortal(children, scene, { camera, events: { compute, priority: events.priority - 1 } })}
     </>
   );

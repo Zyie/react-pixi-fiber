@@ -1,5 +1,5 @@
 // #region result
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Canvas, createPortal, extend, useFrame, useThree } from 'react-pixi-fiber';
 import type { ThreeElement } from 'react-pixi-fiber';
 import { OrbitControls } from 'react-pixi-fiber/addons';
@@ -19,25 +19,20 @@ import type { Example } from '../example';
 
 // #region result
 function Viewcube() {
-  const { renderer, scene: defaultScene, camera: defaultCamera, size, events } = useThree();
+  const { scene: defaultScene, camera: defaultCamera, size, events } = useThree();
   const scene = useMemo(() => new Scene(), []);
-  const camera = useMemo(() => new OrthographicCamera(-1, 1, 1, -1, 0.1, 1000), []);
+  const camera = useMemo(() => {
+    const hud = new OrthographicCamera(-size.width / 2, size.width / 2, size.height / 2, -size.height / 2, 0.1, 1000);
+    hud.position.set(0, 0, 100);
+    return hud;
+  }, [size]);
   const matrix = useMemo(() => new Matrix4(), []);
   const cube = useRef<Mesh>(null!);
   const [hovered, setHovered] = useState(false);
 
-  useLayoutEffect(() => {
-    camera.left = -size.width / 2;
-    camera.right = size.width / 2;
-    camera.top = size.height / 2;
-    camera.bottom = -size.height / 2;
-    camera.position.set(0, 0, 100);
-    camera.updateProjectionMatrix();
-  }, [camera, size]);
-
   // #region render
   useFrame(
-    () => {
+    ({ renderer }) => {
       matrix.copy(defaultCamera.matrix).invert();
       cube.current.quaternion.setFromRotationMatrix(matrix);
       renderer.autoClear = true;

@@ -1,4 +1,4 @@
-import { act } from 'react';
+import { act, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { createRoot, useRenderTarget } from 'react-pixi-fiber';
 import type { ReconcilerRoot, RootState } from 'react-pixi-fiber';
@@ -59,15 +59,20 @@ for (const preference of ['webgl', 'webgpu'] as const) {
 
     const corner = await state.renderer.readRenderTargetPixelsAsync(target, 6, 3, 1, 1);
     expect([...corner]).toEqual([0, 0, 255, 255]);
-
-    if (preference === 'webgl') {
-      const sync = new Uint8Array(8 * 4 * 4);
-      state.renderer.readRenderTargetPixels(target, 0, 0, 8, 4, sync);
-      expect(sync).toEqual(pixels);
-    }
     target.dispose();
   });
 }
+
+it('reads a target synchronously on WebGL, as three does', async () => {
+  const state = await mount(null, 'webgl');
+  const target = new WebGLRenderTarget(8, 4);
+  clearHalves(state, target);
+
+  const sync = new Uint8Array(8 * 4 * 4);
+  state.renderer.readRenderTargetPixels(target, 0, 0, 8, 4, sync);
+  expect(sync).toEqual(await state.renderer.readRenderTargetPixelsAsync(target, 0, 0, 8, 4));
+  target.dispose();
+});
 
 it('disposes a target once, destroying its texture and telling its listeners', async () => {
   const target = new WebGLRenderTarget(4, 4);
@@ -97,21 +102,22 @@ it('resizes a target in place, keeping its texture, and resets its viewport and 
   target.dispose();
 });
 
-let made: WebGLRenderTarget | undefined;
-
-function Target() {
-  made = useRenderTarget();
+function Target({ onTarget }: { onTarget: (target: WebGLRenderTarget) => void }) {
+  const target = useRenderTarget();
+  useEffect(() => {
+    onTarget(target);
+  }, [onTarget, target]);
   return null;
 }
 
 it('disposes what useRenderTarget made when the component unmounts, and follows the canvas size without one', async () => {
-  await mount(<Target />);
-  const target = made!;
-  expect([target.width, target.height]).toEqual([64, 64]);
+  let target: WebGLRenderTarget | undefined;
+  await mount(<Target onTarget={(made) => (target = made)} />);
+  expect([target!.width, target!.height]).toEqual([64, 64]);
 
   await act(async () => root!.render(null));
 
-  expect(target.disposed).toBe(true);
+  expect(target!.disposed).toBe(true);
 });
 
 it('frees the environment cubes, the backgrounds and the cube face texture when the renderer is disposed', async () => {
