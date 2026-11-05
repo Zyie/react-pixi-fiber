@@ -3,7 +3,15 @@ import { useState } from 'react';
 import type { ThreeEvent } from 'react-pixi-fiber';
 
 /** A plane that turns orange while hovered; with `stop`, it hides whatever is behind it from the pointer */
-function Plane({ stop = false, color, position }: { stop?: boolean; color: string; position: [number, number, number] }) {
+function Plane({
+  stop = false,
+  color,
+  position,
+}: {
+  stop?: boolean;
+  color: string;
+  position: [number, number, number];
+}) {
   const [hovered, setHovered] = useState(false);
 
   return (
