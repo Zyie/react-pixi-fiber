@@ -9,9 +9,10 @@ const scratchPoint = new Vector3();
  * three's `Frustum`: pixi-3d's `Frustum`, six planes, with three's `intersectsObject` and `copy`
  *
  * r3f's `onFramed` and `onVisible` events test each registered object against the camera's frustum
- * once a frame through `intersectsObject`. A mesh is tested by the sphere around its geometry's
- * bounds in world space, as three tests its geometry's `boundingSphere`. Any other node counts as
- * framed when its world position is inside.
+ * once a frame through `intersectsObject`. An object with its own `boundingSphere`, such as an
+ * `InstancedMesh`, is tested by it, worked out first when it is `null`, as in three. A mesh is tested
+ * by the sphere around its geometry's bounds in world space, as three tests its geometry's
+ * `boundingSphere`. Any other node counts as framed when its world position is inside.
  * @example
  * ```tsx
  * <mesh onFramed={(inView) => console.log(inView ? 'on screen' : 'off screen')}>
@@ -28,6 +29,14 @@ export class Frustum extends PixiFrustum {
    * @returns `true` when the object is at least partly inside
    */
   public intersectsObject(object: Container3D): boolean {
+    const bounded = object as Container3D & { boundingSphere?: Sphere | null; computeBoundingSphere?: () => void };
+
+    if (bounded.boundingSphere !== undefined) {
+      if (bounded.boundingSphere === null) bounded.computeBoundingSphere?.();
+      scratchSphere.copyFrom(bounded.boundingSphere!);
+      scratchSphere.applyMatrix4(object.getGlobalTransform(scratchMatrix));
+      return this.intersectsSphere(scratchSphere);
+    }
     if (object instanceof Mesh3D) {
       scratchSphere.setFromBox(object.geometry.bounds3D);
       scratchSphere.applyMatrix4(object.getGlobalTransform(scratchMatrix));
