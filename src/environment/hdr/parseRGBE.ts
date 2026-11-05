@@ -4,11 +4,15 @@
  */
 
 /**
- * A decoded Radiance image: linear RGBA as half floats, rows from the top of the image down
- * @internal
+ * A decoded Radiance image, what `HDRLoader.parse` returns: linear RGBA as half floats, rows from the
+ * top of the image down
+ * @category catalog
+ * @advanced
  */
 export interface RGBEImage {
+  /** Width in pixels */
   width: number;
+  /** Height in pixels */
   height: number;
   /** Four half floats per pixel, alpha 1 */
   data: Uint16Array;

@@ -26,6 +26,7 @@ function Cube({ color, ...props }: CubeProps) {
   );
 }
 
+// #region inject
 function Portals() {
   const [scene1] = useState(() => new Scene());
   const [scene2] = useState(() => new Scene());
@@ -33,7 +34,6 @@ function Portals() {
   return (
     <>
       <Cube position={[-0.8, 0, 0]} color="hotpink" />
-      {/* #region inject */}
       {createPortal(
         <group>
           <Cube position={[0, 0.6, 0]} color="lightblue" />
@@ -42,12 +42,12 @@ function Portals() {
         scene1,
         { camera: customCamera1 },
       )}
-      {/* #endregion inject */}
       <primitive object={scene1} />
       <primitive object={scene2} />
     </>
   );
 }
+// #endregion inject
 
 export function App() {
   return (

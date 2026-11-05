@@ -15,6 +15,7 @@ declare module 'react-pixi-fiber' {
 import type { Example } from '../example';
 
 // #region result
+// #region portal
 function PortalTestScene() {
   const { camera, renderer } = useThree();
 
@@ -28,7 +29,6 @@ function PortalTestScene() {
         <meshStandardMaterial color="orange" />
       </mesh>
       <orbitControls args={[camera, renderer.domElement]} />
-      {/* #region portal */}
       {createPortal(
         <mesh position={[0, 0, -2]} scale={0.2}>
           <boxGeometry />
@@ -36,10 +36,10 @@ function PortalTestScene() {
         </mesh>,
         camera,
       )}
-      {/* #endregion portal */}
     </>
   );
 }
+// #endregion portal
 
 export function App() {
   return (

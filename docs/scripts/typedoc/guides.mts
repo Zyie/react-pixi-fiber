@@ -56,6 +56,19 @@ export const GUIDES: readonly Guide[] = [
     file: 'src/__docs__/loading-models-and-textures.md',
     section: 'tutorials',
   },
+  {
+    id: 'render-targets',
+    title: 'Render targets',
+    file: 'src/environment/__docs__/render-targets.md',
+    section: 'tutorials',
+  },
+  { id: 'environment', title: 'Environment', file: 'src/environment/__docs__/environment.md', section: 'tutorials' },
+  {
+    id: 'camera-controls',
+    title: 'Camera controls',
+    file: 'src/addons/controls/__docs__/camera-controls.md',
+    section: 'tutorials',
+  },
   { id: 'three-entry', title: 'The three entry', file: 'src/__docs__/three-entry.md', section: 'reference' },
   {
     id: DIFFERENCES_ID,
