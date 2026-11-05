@@ -93,45 +93,63 @@ const CURVE_CODE: Record<Exclude<Curve, 'none'>, { gl: string; gpu: string }> = 
   },
 };
 
-const SRGB_ENCODE = {
-  gl: `vec3 threeEncode(vec3 color) {
+const SRGB_OUTPUT = {
+  gl: `vec3 threeOutput(vec3 color) {
   vec3 c = max(color, vec3(0.0));
   return mix(pow(c, vec3(0.41666)) * 1.055 - vec3(0.055), c * 12.92, vec3(lessThanEqual(c, vec3(0.0031308))));
 }`,
-  gpu: `fn threeEncode(color: vec3<f32>) -> vec3<f32> {
+  gpu: `fn threeOutput(color: vec3<f32>) -> vec3<f32> {
   let c = max(color, vec3<f32>(0.0));
   return select(pow(c, vec3<f32>(0.41666)) * 1.055 - vec3<f32>(0.055), c * 12.92, c <= vec3<f32>(0.0031308));
 }`,
 };
 
+const LINEAR_OUTPUT = {
+  gl: 'vec3 threeOutput(vec3 color) { return color; }',
+  gpu: 'fn threeOutput(color: vec3<f32>) -> vec3<f32> { return color; }',
+};
+
+const NO_CURVE = {
+  gl: 'vec3 threeToneMap(vec3 color) { return color; }',
+  gpu: 'fn threeToneMap(color: vec3<f32>) -> vec3<f32> { return color; }',
+};
+
+/**
+ * The slot a material's tone mapping bit leaves after its output transform, where fog is mixed in as
+ * three mixes it: after the tone curve, in the output colour space. The fog code may call
+ * `threeOutput(color)`, which takes a linear colour to the output colour space. WebGPU names a
+ * fragment slot with a `fragment` prefix, so its marker is `{{fragmentThreeFog}}`.
+ * @internal
+ */
+export const FOG_SLOT = 'threeFog';
+
 const bits = new Map<string, ShaderBit>();
 
 /**
  * The shader bit that ends a material's shader as three's renderer does: three's tone curve, then
- * the sRGB transfer function, or nothing for a linear output
+ * the sRGB transfer function, or nothing for a linear output, then the fog slot
  *
  * pixi-3d ends with its own curves and a 2.2 power, which draws tones under about 1% of full
  * brightness up to twice as bright as three's sRGB curve does, and has no AgX or Neutral curve.
  * @param toneMapping - three's tone mapping constant
  * @param outputColorSpace - three's output colour space; `'srgb-linear'` leaves the result linear
  */
-function toneMappingBit(toneMapping: number, outputColorSpace: string): ShaderBit | null {
+function toneMappingBit(toneMapping: number, outputColorSpace: string): ShaderBit {
   const curve: Curve = CURVES[toneMapping] ?? 'aces';
   const encode = outputColorSpace !== 'srgb-linear';
-  if (curve === 'none' && !encode) return null;
-
   const name = `threeToneMapping:${curve}:${encode ? 'srgb' : 'linear'}`;
   let bit = bits.get(name);
   if (bit) return bit;
 
-  const code = curve === 'none' ? null : CURVE_CODE[curve];
-  const header = (side: 'gl' | 'gpu'): string => [code?.[side], encode ? SRGB_ENCODE[side] : ''].join('\n');
-  const end = `finalColor = ${encode ? 'threeEncode(' : '('}${code ? 'threeToneMap(finalColor)' : 'finalColor'});`;
+  const code = curve === 'none' ? NO_CURVE : CURVE_CODE[curve];
+  const output = encode ? SRGB_OUTPUT : LINEAR_OUTPUT;
+  const end = 'finalColor = threeOutput(threeToneMap(finalColor));';
+  const gpuSlot = `fragment${FOG_SLOT[0].toUpperCase()}${FOG_SLOT.slice(1)}`;
 
   bit = {
     name,
-    gl: { header: header('gl'), fragment: { end } },
-    gpu: { header: header('gpu'), fragment: { end } },
+    gl: { header: `${code.gl}\n${output.gl}`, fragment: { end: `${end}\n{{${FOG_SLOT}}}` } },
+    gpu: { header: `${code.gpu}\n${output.gpu}`, fragment: { end: `${end}\n{{${gpuSlot}}}` } },
   };
   bits.set(name, bit);
   return bit;

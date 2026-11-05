@@ -1,9 +1,11 @@
 import { Camera3D, Matrix4, Quaternion, Vector3, View3D } from '@pixi/3d';
 import type { Container3D, ShadowFilter } from '@pixi/3d';
-import { Color, Container, autoDetectRenderer } from 'pixi.js';
+import { Color, Container, Texture, autoDetectRenderer } from 'pixi.js';
 import type { ColorSource, Renderer } from 'pixi.js';
 
 import { Color as ThreeColor, toPixiColor } from '../math/Color';
+import { releaseBackdrop, updateBackdrop } from './backdrop';
+import { applyFog } from './sceneFog';
 import { finishLights, prepareLights } from './sceneLights';
 import { setShadowsEnabled } from './shadowViews';
 import { applyToneMapping } from './toneMapping';
@@ -312,7 +314,7 @@ export class PixiRenderer {
     const background = (scene as Container3D & { background?: SceneBackground }).background;
     const clearToBackground = this._applyBackground(pixi, background);
     this._applySettings(entry, background);
-    prepareLights(view, scene);
+    this._applySceneSettings(entry, scene);
     try {
       pixi.render({ container: entry.stage, clear: this.autoClear || clearToBackground });
     } finally {
@@ -338,6 +340,7 @@ export class PixiRenderer {
     scene.off('destroyed', entry.release);
     if (entry.proxy) scene.removeChild(entry.proxy);
     entry.proxy?.destroy();
+    releaseBackdrop(entry.stage);
     const children = scene.children.slice();
     entry.view.destroy();
     if (!scene.destroyed) for (const child of children) if (!child.destroyed) scene.addChild(child);
@@ -421,6 +424,18 @@ export class PixiRenderer {
     return false;
   }
 
+  /**
+   * What three reads off the scene itself: its lights, its fog, and a texture background, which is
+   * drawn behind the view
+   */
+  private _applySceneSettings(entry: SceneView, scene: Container3D): void {
+    const { view } = entry;
+    const settings = scene as Container3D & { background?: unknown; backgroundIntensity?: number };
+    prepareLights(view, scene);
+    applyFog(view, scene);
+    updateBackdrop(entry.stage, settings.background, this._width, this._height, settings.backgroundIntensity ?? 1);
+  }
+
   private _applySettings(entry: SceneView, background: SceneBackground): void {
     const { view } = entry;
     applyToneMapping(view, this.toneMapping, this.toneMappingExposure, this.outputColorSpace);
@@ -429,7 +444,7 @@ export class PixiRenderer {
     setShadowsEnabled(view, this.shadowMap.enabled);
 
     if (background !== undefined) {
-      const viewBackground = isColorBackground(background) ? null : background;
+      const viewBackground = isColorBackground(background) || background instanceof Texture ? null : background;
       if (viewBackground !== entry.background) {
         entry.background = viewBackground;
         view.background = viewBackground;
