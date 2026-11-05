@@ -139,6 +139,7 @@ export interface ReconcilerRoot<TCanvas extends HTMLCanvasElement | OffscreenCan
  */
 export interface CanvasProps
   extends Omit<RenderProps<HTMLCanvasElement>, 'size'>, Omit<React.HTMLAttributes<HTMLDivElement>, 'onCopy'> {
+  /** The scene */
   children?: React.ReactNode;
   /** Receives the canvas element */
   ref?: React.Ref<HTMLCanvasElement>;

@@ -20,9 +20,13 @@ import type { Camera, DomEvent, EventManager, PointerCaptureTarget, ThreeEvent }
  * @standard
  */
 export interface Size {
+  /** Width in CSS pixels */
   width: number;
+  /** Height in CSS pixels */
   height: number;
+  /** Distance from the top of the page in CSS pixels */
   top: number;
+  /** Distance from the left of the page in CSS pixels */
   left: number;
 }
 
@@ -89,8 +93,11 @@ export interface Performance {
  * @advanced
  */
 export interface Subscription {
+  /** The callback, kept current across renders */
   ref: RefObject<RenderCallback>;
+  /** Its priority; one above 0 takes over rendering */
   priority: number;
+  /** The root it runs in */
   store: RootStore;
 }
 
@@ -138,6 +145,7 @@ export interface InternalState {
   rootId?: string;
   /** What children attach to: the scene, or a portal's container */
   container?: Container3D;
+  /** What r3f and extensions keep beside these */
   [key: string]: unknown;
 }
 
@@ -147,7 +155,9 @@ export interface InternalState {
  * @advanced
  */
 export interface XRManager {
+  /** Starts listening for an XR session */
   connect: () => void;
+  /** Stops listening for an XR session */
   disconnect: () => void;
 }
 
@@ -169,7 +179,10 @@ export interface RootState {
   get: StoreApi<RootState>['getState'];
   /** The store of the root that owns the renderer: this one */
   primaryStore: RootStore;
-  /** @deprecated Use `renderer`. */
+  /**
+   * The renderer, by r3f's older name
+   * @deprecated Use `renderer`.
+   */
   gl: PixiRenderer;
   /** The renderer */
   renderer: PixiRenderer;
@@ -192,10 +205,14 @@ export interface RootState {
   /** XR wiring; inert on pixi-3d */
   xr: XRManager;
   /** Camera controls registered with `makeDefault` */
+  /** Camera controls an app registers as the default, which events and helpers read */
   controls: object | null;
   /** Normalised pointer coordinates, -1 to 1 */
   pointer: Vector2;
-  /** @deprecated Use `pointer`. */
+  /**
+   * Normalised pointer coordinates, by r3f's older name
+   * @deprecated Use `pointer`.
+   */
   mouse: Vector2;
   /** Colour space for 8-bit colour textures */
   textureColorSpace: string;

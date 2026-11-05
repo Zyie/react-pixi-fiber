@@ -109,37 +109,53 @@ The names are three's. Where pixi-3d calls a property something else, such as a 
 
 ### Shortcuts
 
-A prop whose property has a `set` method, such as a vector or a colour, takes the arguments of `set`:
+A prop whose property has a `set` method, such as a vector, takes the arguments of `set`:
 
 ```tsx
 <directionalLight position={[0, 0, 5]} color="red" />
 ```
 
-That is the same as `light.position.set(0, 0, 5)` and `light.color.set('red')`, written once in JSX.
+That is the same as `light.position.set(0, 0, 5)`, written once in JSX. A colour prop takes anything a colour does, a CSS name, a hex string or a number.
 
 ## The result
+
+Put together, the scene is a box lit red from the front, with a faint ambient light on everything:
+
+<!-- snippet: examples/your-first-scene/first-scene.example.tsx#result -->
 
 ```tsx
 import { Canvas } from 'react-pixi-fiber';
 
-export default function App() {
+function Scene() {
   return (
-    <Canvas>
+    <>
       <mesh>
         <boxGeometry args={[2, 2, 2]} />
         <meshStandardMaterial />
       </mesh>
       <ambientLight intensity={0.1} />
       <directionalLight position={[0, 0, 5]} color="red" />
-    </Canvas>
+    </>
+  );
+}
+
+export function App() {
+  return (
+    <div id="canvas-container">
+      <Canvas>
+        <Scene />
+      </Canvas>
+    </div>
   );
 }
 ```
 
+![A box lit red from the front](../../tests/snapshots/docs/your-first-scene/first-scene.webgl.png)
+
 > [!TIP]
 > Things to try:
 >
-> - another geometry, such as `<sphereGeometry>` or `<torusGeometry>`
+> - another geometry, such as `<sphereGeometry>` or `<planeGeometry>`
 > - a `color` on the material
 > - a `position` on the mesh, set as the prop of the same name
 > - the mesh as a component of its own

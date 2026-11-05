@@ -16,16 +16,18 @@ npm install react-pixi-fiber react react-dom pixi.js
 
 ## With TypeScript
 
-The elements are typed from the catalog react-pixi-fiber renders, with r3f's own `ThreeElementsOf` mapping, so `<mesh>`, `<boxGeometry>` and their props are checked as in r3f. Import the package once, anywhere in the program, and its JSX elements are declared.
+The elements are typed from the catalog react-pixi-fiber renders, mapped the way r3f maps three's, so `<mesh>`, `<boxGeometry>` and their props are checked as in r3f. Import the package once, anywhere in the program, and its JSX elements are declared.
 
-A ref holds the object behind the element, which is a pixi-3d object, so type it with pixi-3d's class. `<mesh>` is a `Mesh3D`:
+A ref holds the object behind the element, which is a pixi-3d object. Type it by the element's name, which works with r3f too:
 
 ```tsx
-import type { Mesh3D } from '@pixi/3d';
 import { useRef } from 'react';
+import type { ElementRef } from 'react';
 
-const ref = useRef<Mesh3D>(null);
+const ref = useRef<ElementRef<'mesh'>>(null);
 ```
+
+`<mesh>` is react-pixi-fiber's `Mesh`, a pixi-3d `Mesh3D` with three's constructor and fields.
 
 ## Moving an r3f app
 

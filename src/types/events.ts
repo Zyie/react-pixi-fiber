@@ -82,19 +82,33 @@ export type DomEvent = PointerEvent | MouseEvent | WheelEvent;
  * @advanced
  */
 export interface Events {
+  /** Listens for `click` */
   onClick: EventListener;
+  /** Listens for `contextmenu` */
   onContextMenu: EventListener;
+  /** Listens for `dblclick` */
   onDoubleClick: EventListener;
+  /** Listens for `wheel` */
   onWheel: EventListener;
+  /** Listens for `pointerdown` */
   onPointerDown: EventListener;
+  /** Listens for `pointerup` */
   onPointerUp: EventListener;
+  /** Listens for `pointerleave` */
   onPointerLeave: EventListener;
+  /** Listens for `pointermove` */
   onPointerMove: EventListener;
+  /** Listens for `pointercancel` */
   onPointerCancel: EventListener;
+  /** Listens for `lostpointercapture` */
   onLostPointerCapture: EventListener;
+  /** Listens for `dragenter` */
   onDragEnter: EventListener;
+  /** Listens for `dragleave` */
   onDragLeave: EventListener;
+  /** Listens for `dragover` */
   onDragOver: EventListener;
+  /** Listens for `drop` */
   onDrop: EventListener;
 }
 
@@ -104,8 +118,11 @@ export interface Events {
  * @standard
  */
 export interface EventHandlers {
+  /** Fires on a click on the object, after a pointerdown on it */
   onClick?: (event: ThreeEvent<MouseEvent>) => void;
+  /** Fires on a right click or long press on the object */
   onContextMenu?: (event: ThreeEvent<MouseEvent>) => void;
+  /** Fires on a double click on the object */
   onDoubleClick?: (event: ThreeEvent<MouseEvent>) => void;
   /** Fires continuously while dragging over the object */
   onDragOver?: (event: ThreeEvent<DragEvent>) => void;
@@ -119,16 +136,27 @@ export interface EventHandlers {
   onDrop?: (event: ThreeEvent<DragEvent>) => void;
   /** Fires when a drop misses this object */
   onDropMissed?: (event: DragEvent) => void;
+  /** Fires when a button is released over the object */
   onPointerUp?: (event: ThreeEvent<PointerEvent>) => void;
+  /** Fires when a button is pressed over the object */
   onPointerDown?: (event: ThreeEvent<PointerEvent>) => void;
+  /** Fires when the pointer moves onto the object or one of its children */
   onPointerOver?: (event: ThreeEvent<PointerEvent>) => void;
+  /** Fires when the pointer moves off the object or one of its children */
   onPointerOut?: (event: ThreeEvent<PointerEvent>) => void;
+  /** Fires when the pointer moves onto the object; it doesn't bubble */
   onPointerEnter?: (event: ThreeEvent<PointerEvent>) => void;
+  /** Fires when the pointer moves off the object; it doesn't bubble */
   onPointerLeave?: (event: ThreeEvent<PointerEvent>) => void;
+  /** Fires when the pointer moves over the object */
   onPointerMove?: (event: ThreeEvent<PointerEvent>) => void;
+  /** Fires on a click that misses the object */
   onPointerMissed?: (event: MouseEvent) => void;
+  /** Fires when the browser cancels a pointer over the object */
   onPointerCancel?: (event: ThreeEvent<PointerEvent>) => void;
+  /** Fires on a wheel turn over the object */
   onWheel?: (event: ThreeEvent<WheelEvent>) => void;
+  /** Fires when the object loses a pointer it captured */
   onLostPointerCapture?: (event: ThreeEvent<PointerEvent>) => void;
   /** Fires when the object enters or leaves the camera's frustum */
   onFramed?: (inView: boolean) => void;

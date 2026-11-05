@@ -1,10 +1,10 @@
-// #region canvas
+// #region result
 import { Canvas } from 'react-pixi-fiber';
-// #endregion canvas
+// #endregion result
 
 import type { Example } from '../example';
 
-// #region scene
+// #region result
 function Scene() {
   return (
     <>
@@ -17,9 +17,9 @@ function Scene() {
     </>
   );
 }
-// #endregion scene
+// #endregion result
 
-// #region canvas
+// #region result
 export function App() {
   return (
     <div id="canvas-container">
@@ -29,7 +29,7 @@ export function App() {
     </div>
   );
 }
-// #endregion canvas
+// #endregion result
 
 export const example: Example = {
   render: () => <Scene />,

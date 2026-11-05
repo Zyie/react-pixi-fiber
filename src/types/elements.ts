@@ -12,6 +12,7 @@ import type { ConstructorRepresentation, IsAllOptional, Mutable, Overwrite } fro
  * @advanced
  */
 export interface MathRepresentation {
+  /** Sets the components */
   set(...args: number[]): unknown;
 }
 
@@ -54,8 +55,11 @@ export type ColorProps<P> = {
  * @advanced
  */
 export interface ReactProps<P> {
+  /** Child elements, which attach to this one */
   children?: React.ReactNode;
+  /** Receives the object behind the element */
   ref?: React.Ref<P>;
+  /** React's key */
   key?: React.Key;
 }
 

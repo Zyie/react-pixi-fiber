@@ -28,7 +28,7 @@ Start with the click a DOM element would have:
 ```tsx
 <mesh onClick={() => alert('Hello')}>
   <boxGeometry />
-  <meshPhongMaterial color="royalblue" />
+  <meshStandardMaterial color="royalblue" />
 </mesh>
 ```
 
@@ -45,7 +45,7 @@ and scale the mesh by it:
 ```tsx
 <mesh scale={active ? 1.5 : 1} onClick={() => setActive(!active)}>
   <boxGeometry />
-  <meshPhongMaterial color="royalblue" />
+  <meshStandardMaterial color="royalblue" />
 </mesh>
 ```
 
@@ -59,7 +59,7 @@ Click the mesh and it scales up and down. In three steps it:
 
 A handler gets r3f's event: the DOM event's fields, and what the ray hit. `e.object` is the pixi-3d object that was hit, `e.eventObject` the one whose handler runs, `e.point` the hit in world space and `e.distance` how far along the ray it was. `e.stopPropagation()` stops the event at the nearest object, as in r3f.
 
-The hit comes from a pixi-3d ray cast against the geometry of each mesh with a handler. A few fields three.js fills in aren't there yet: `instanceId`, since pixi-3d's batched meshes can't be picked by instance. Hit testing is double-sided whatever the material's `side`.
+The hit comes from a pixi-3d ray cast against the geometry of each mesh with a handler, which skips back faces as three.js does. The hit carries `face`, `faceIndex` and `uv` as well. A few things differ: there's no `instanceId`, since pixi-3d's batched meshes can't be picked by instance, and `face.normal` is the hit triangle's flat normal, where three.js interpolates the vertex normals.
 
 **Try this:**
 

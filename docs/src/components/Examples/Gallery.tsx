@@ -10,6 +10,9 @@ import type { GalleryExample, GalleryTopic } from './types';
 
 import styles from './styles.module.css';
 
+/** "example" or "examples", for a count */
+const plural = (count: number): string => (count === 1 ? 'example' : 'examples');
+
 /**
  * What the gallery shows, kept in the page's query so a filtered gallery can be shared. The gallery
  * writes the query past the router, so typing re-renders nothing else, and reads it after hydration and
@@ -209,7 +212,9 @@ export default function Gallery(props: {
       </div>
 
       <p className={styles.summary} aria-live="polite">
-        {filtered ? `${shown.length} of ${examples.length} examples` : `${examples.length} examples`}
+        {filtered
+          ? `${shown.length} of ${examples.length} ${plural(examples.length)}`
+          : `${examples.length} ${plural(examples.length)}`}
         {filtered && (
           <button type="button" className={styles.clear} onClick={() => update(NONE)}>
             Clear filters

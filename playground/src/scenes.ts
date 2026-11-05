@@ -4,7 +4,7 @@ export type EntryKind = 'scene' | 'example';
 /** A scene or an example the playground can show, and the import that loads its module */
 export interface PlaygroundEntry {
   kind: EntryKind;
-  /** Its path under its folder without the suffix: `core/use-frame`, or `start/first-scene` for an example */
+  /** Its path under its folder without the suffix: `core/use-frame`, or `your-first-scene/first-scene` for an example */
   id: string;
   /** The key its references are stored under: the id, or `docs/<id>` for an example */
   key: string;

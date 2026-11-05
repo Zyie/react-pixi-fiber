@@ -15,6 +15,7 @@ export type InputLike = string | string[] | string[][] | Readonly<string | strin
  * @advanced
  */
 export interface LoaderLike {
+  /** Loads a URL and calls back with the result, its progress, or an error */
   load(
     url: string,
     onLoad?: Callback<unknown>,
@@ -51,7 +52,10 @@ export type Extensions<T> = (loader: LoaderInstance<T>) => void;
  * @standard
  */
 export interface ObjectMap {
+  /** Every node, by name */
   nodes: Record<string, Container3D>;
+  /** Every material, by name */
   materials: Record<string, unknown>;
+  /** Every mesh, by name */
   meshes: Record<string, Container3D>;
 }

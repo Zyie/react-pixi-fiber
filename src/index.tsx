@@ -5,10 +5,12 @@
  * name pixi-3d instead of three. An r3f app should only have to swap its import.
  */
 import type { Container3D } from '@pixi/3d';
+import { getScheduler as pmndrsGetScheduler, Scheduler as PmndrsScheduler } from '@pmndrs/scheduler';
 import type {
   FrameCallback as SchedulerFrameCallback,
-  FrameNextControls,
-  UseFrameNextOptions,
+  FrameNextControls as PmndrsFrameNextControls,
+  FrameTimingState as PmndrsFrameTimingState,
+  UseFrameOptions as PmndrsUseFrameOptions,
 } from '@pmndrs/scheduler';
 import type { Texture } from 'pixi.js';
 import * as React from 'react';
@@ -89,8 +91,55 @@ export type * from './types/events';
 export type * from './types/loader';
 export type * from './types/state';
 export type * from './types/utils';
-export { getScheduler, Scheduler } from '@pmndrs/scheduler';
-export type { FrameNextControls, FrameTimingState, UseFrameNextOptions, UseFrameOptions } from '@pmndrs/scheduler';
+
+/**
+ * The scheduler every root's frameloop runs on, one per page; r3f's, from `@pmndrs/scheduler`
+ * @category core
+ * @advanced
+ */
+export const getScheduler: () => PmndrsScheduler = pmndrsGetScheduler;
+
+/**
+ * The class of the scheduler {@link getScheduler} returns, from `@pmndrs/scheduler`
+ * @category core
+ * @advanced
+ */
+export const Scheduler: typeof PmndrsScheduler = PmndrsScheduler;
+
+/**
+ * An instance of {@link Scheduler}
+ * @category core
+ * @advanced
+ */
+export type Scheduler = PmndrsScheduler;
+
+/**
+ * What {@link useFrame} returns: controls for its job, such as pausing and stepping it
+ * @category hooks
+ * @advanced
+ */
+export type FrameNextControls = PmndrsFrameNextControls;
+
+/**
+ * The clock a {@link useFrame} callback gets: elapsed time, delta, frame count
+ * @category hooks
+ * @advanced
+ */
+export type FrameTimingState = PmndrsFrameTimingState;
+
+/**
+ * The options of {@link useFrame}: phase, priority, fps, and the jobs to run before or after
+ * @category hooks
+ * @advanced
+ */
+export type UseFrameOptions = PmndrsUseFrameOptions;
+
+/**
+ * The options of {@link useFrame}, by its older name
+ * @category hooks
+ * @advanced
+ */
+export type UseFrameNextOptions = PmndrsUseFrameOptions;
 
 /**
  * Whether this entry builds three's WebGL renderer: never, it renders with pixi-3d
@@ -178,6 +227,7 @@ export const useFrame: UseFrame = coreUseFrame as unknown as UseFrame;
  * @advanced
  */
 export interface UseLoader {
+  /** Loads assets with a loader and suspends until they are ready */
   <I extends InputLike, L extends LoaderLike | ConstructorRepresentation<LoaderLike>>(
     loader: L,
     input: I,
@@ -231,6 +281,7 @@ export type MappedTextures<Url> = Url extends string
  * @advanced
  */
 export interface UseTexture {
+  /** Loads textures by URL and suspends until they are ready */
   <Url extends string | string[] | Record<string, string>>(
     input: Url,
     optionsOrOnLoad?:
@@ -281,7 +332,9 @@ export const useInstanceHandle: <T>(ref: React.RefObject<T>) => React.RefObject<
  * @advanced
  */
 export interface Extend {
+  /** Makes one class a JSX element and returns a component for it */
   <T extends ConstructorRepresentation>(objects: T): React.ExoticComponent<ThreeElement<T>>;
+  /** Makes classes JSX elements, named in camelCase */
   (objects: Record<string, unknown>): void;
 }
 
@@ -420,6 +473,7 @@ export const advance: (timestamp: number, runGlobalEffects?: boolean, state?: Ro
   coreAdvance as unknown as (timestamp: number, runGlobalEffects?: boolean, state?: RootState) => void;
 
 /**
+ * Runs a callback before every frame of every root
  * @deprecated Use `useFrame(callback, { phase: 'start' })`.
  * @category core
  * @advanced
@@ -427,6 +481,7 @@ export const advance: (timestamp: number, runGlobalEffects?: boolean, state?: Ro
 export const addEffect: (callback: (timestamp: number) => void) => () => void = coreAddEffect;
 
 /**
+ * Runs a callback after every frame of every root
  * @deprecated Use `useFrame(callback, { phase: 'finish' })`.
  * @category core
  * @advanced
@@ -434,6 +489,7 @@ export const addEffect: (callback: (timestamp: number) => void) => () => void = 
 export const addAfterEffect: (callback: (timestamp: number) => void) => () => void = coreAddAfterEffect;
 
 /**
+ * Runs a callback when the frameloop goes idle
  * @deprecated Use `getScheduler().onIdle(callback)`.
  * @category core
  * @advanced

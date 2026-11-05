@@ -118,13 +118,13 @@ Test files share a page and Playwright's mouse stays where the last scene left i
 An example is the code a docs page quotes, in the shape of a scene. Each `examples/<topic>/<name>.example.tsx` exports `example: Example` (`examples/example.tsx`):
 
 ```tsx
-// #region canvas
+// #region result
 import { Canvas } from 'react-pixi-fiber';
-// #endregion canvas
+// #endregion result
 
 import type { Example } from '../example';
 
-// #region scene
+// #region result
 function Scene() {
   return (
     <>
@@ -137,9 +137,9 @@ function Scene() {
     </>
   );
 }
-// #endregion scene
+// #endregion result
 
-// #region canvas
+// #region result
 export function App() {
   return (
     <div id="canvas-container">
@@ -149,7 +149,7 @@ export function App() {
     </div>
   );
 }
-// #endregion canvas
+// #endregion result
 
 export const example: Example = {
   render: () => <Scene />,
@@ -159,12 +159,13 @@ export const example: Example = {
 What the docs site can rely on:
 
 - **Format.** `Example` is `render`, plus any of `camera`, `canvas`, `frames`, `act`, `parity`, `pixelMatch`, `skip` and `fails`, with the meanings a scene gives them. `render()` returns the children of a `<Canvas>`, `camera` is the Canvas's `camera` prop and `canvas` more of its props. An example takes the default 400 by 300 canvas; it has no `size`.
+- **Topic.** A topic folder named like a guide's id (`your-first-scene`, `basic-animations`, `events-and-interaction`, `loading-models-and-textures`) links that guide from the example's page.
 - **Regions.** `// #region <name>` and `// #endregion <name>` mark the code a page quotes. A name may mark several blocks of a file, which read as one in their order, so a region can take an import from the top of the file and a component from further down. Code outside every region, such as `import type { Example }` and the `example` export, is never shown.
 - **Key and pictures.** An example runs as a scene keyed `docs/<topic>/<name>`. Its reference images are `tests/snapshots/docs/<topic>/<name>.webgl.png`, `.webgpu.png` and `.three.png`, each 400 by 300, and its parity composite after a run is `.temp/parity/docs/<topic>/<name>.png`.
 - **Live.** `runExample(example, renderer, host)` mounts the example in a `<Canvas>` that fills `host`, on r3f's default frameloop, as an app would run it, on `webgl`, `webgpu` or `three`. It returns a function that unmounts it.
 - **Playground.** `/scene-frame.html?kind=example&id=<topic>/<name>&renderer=webgl|webgpu|three&live` runs it live on one renderer.
 
-`examples/start/first-scene.example.tsx` is r3f's "Your first scene" tutorial with the import swapped. It uses `meshStandardMaterial`, from the tutorial's first step, where the tutorial ends on `meshPhongMaterial`, which the catalog doesn't have yet.
+`examples/your-first-scene/first-scene.example.tsx` is r3f's "Your first scene" tutorial with the import swapped. It uses `meshStandardMaterial`, from the tutorial's first step, where the tutorial ends on `meshPhongMaterial`, which the catalog doesn't have yet.
 
 ## Parity with three.js
 
@@ -180,11 +181,11 @@ At the end of a run the reporter prints a table, and writes the same to `.temp/p
 
 ```
 Parity with three.js: the share of drawn pixels that differ (pixelmatch threshold 0.05)
-scene                   webgl  webgpu  maxDiff  parity
-----------------------  -----  ------  -------  -------------
-assets/use-texture      94.1%  94.1%   10.0%    over maxDiff
-core/use-frame          53.3%  53.2%   -        reported only
-docs/start/first-scene  0.0%   0.0%    -        reported only
+scene                              webgl  webgpu  maxDiff  parity
+---------------------------------  -----  ------  -------  --------------
+assets/use-texture                 2.4%   2.4%    5.0%     within maxDiff
+core/alias-catalog                 34.4%  34.4%   -        reported only
+docs/your-first-scene/first-scene  0.0%   0.0%    -        reported only
 ```
 
 ### Reading a parity composite
@@ -198,7 +199,7 @@ Each scene that ran on pixi-3d gets `.temp/parity/<key>.png`, four panels from t
 
 Read it in that order. A red patch where both pictures draw the same shape is shading or colour: lighting calibration, tone mapping, colour management. A red outline or a red shape that is in one picture only is geometry, a transform, or something not drawn at all: a missing alias, prop or feature.
 
-A scene whose pixi pictures can't match three.js yet because of a known gap sets `maxDiff` and marks its pixi renderers `fails`, as `tests/scenes/assets/use-texture.scene.tsx` does for `map`. The day the gap closes, its reference comparison fails, and the references are updated and the mark removed.
+A scene whose pixi pictures can't match three.js yet because of a known gap sets `maxDiff` and marks its pixi renderers `fails`. The day the gap closes, its reference comparison fails, and the references are updated and the mark removed. `tests/scenes/assets/use-texture.scene.tsx` carried one until `map` was aliased; it now keeps a `maxDiff` of 5% as a gate.
 
 ## Running tests
 
@@ -214,7 +215,7 @@ Run one scene by the full path of its wrapper. Pass the full path, since vitest 
 
 ```sh
 npx vitest run --browser.headless tests/scenes/core/use-frame.scene.test.ts
-npx vitest run --browser.headless --project scenes -t webgpu tests/docs/start/first-scene.example.test.ts
+npx vitest run --browser.headless --project scenes -t webgpu tests/docs/your-first-scene/first-scene.example.test.ts
 ```
 
 Run the `three` project too when you want a fresh parity number; the `scenes` project alone measures against the three.js references on disk. Every run writes its full results to `.temp/vitest-last.json`.

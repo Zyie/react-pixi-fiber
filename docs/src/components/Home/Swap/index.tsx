@@ -32,7 +32,7 @@ const SCENE = [
 /**
  * The hero's picture of the idea: one scene, whose import a reader swaps between react-three-fiber and
  * react-pixi-fiber, and the cube each draws: pixi-3d's through react-pixi-fiber, three.js's through r3f.
- * Only the import line changes. The two pictures differ where the renderers' lights do.
+ * Only the import line changes.
  */
 export default function Swap(): ReactNode {
   const [choice, setChoice] = useState<Choice>('pixi');
@@ -96,8 +96,8 @@ export default function Swap(): ReactNode {
         </div>
       </div>
       <figcaption className={styles.note}>
-        Swap the import; the scene stays as written. The pictures differ where pixi-3d still does, in the default camera
-        and in how lights aim, which <Link to="/docs/reference/differences/">the reference</Link> tracks.
+        Swap the import; the scene stays as written. The visual tests hold every scene to three.js&apos;s picture of it,
+        and <Link to="/docs/reference/differences/">the reference</Link> tracks what still differs.
       </figcaption>
     </figure>
   );
