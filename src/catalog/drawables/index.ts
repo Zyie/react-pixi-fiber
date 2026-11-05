@@ -1,1 +1,12 @@
-export {};
+export { ArrowHelper } from './ArrowHelper';
+export { AxesHelper } from './AxesHelper';
+export { BoxHelper } from './BoxHelper';
+export { GridHelper } from './GridHelper';
+export { Line } from './Line';
+export { LineBasicMaterial, type LineBasicMaterialParameters } from './LineBasicMaterial';
+export { LineLoop } from './LineLoop';
+export { LineSegments } from './LineSegments';
+export { Points } from './Points';
+export { PointsMaterial, type PointsMaterialParameters } from './PointsMaterial';
+export { Sprite } from './Sprite';
+export { SpriteMaterial, type SpriteMaterialParameters } from './SpriteMaterial';

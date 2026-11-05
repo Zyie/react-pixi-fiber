@@ -61,6 +61,17 @@ const PIXI_ATTRIBUTES: Readonly<Record<string, PixiAttributeTarget>> = {
 /** A degenerate triangle at the origin: what a geometry with no `position` yet draws, which is nothing */
 const EMPTY_POSITIONS = new Float32Array(9);
 
+/**
+ * How the object holding a geometry draws its vertices, which decides what pixi-3d gets: triangles
+ * as they are, each vertex as a camera-facing quad for `Points`, or vertex pairs as 1px lines for
+ * `LineSegments`, `Line` (a strip) and `LineLoop`
+ * @internal
+ */
+export type GeometryDrawMode = 'triangles' | 'points' | 'lineSegments' | 'lineStrip' | 'lineLoop';
+
+/** The corners of a point's quad as texture coordinates: top left, bottom left, bottom right, top right */
+const POINT_CORNERS = [0, 0, 0, 1, 1, 1, 1, 0];
+
 /** The pixi-3d internals a geometry resets when its attributes change */
 interface Geometry3DInternals {
   attributes: Record<string, Attribute>;
@@ -179,6 +190,7 @@ export class BufferGeometry extends Geometry3D implements BufferAttributeOwner {
   public parameters?: Record<string, unknown>;
 
   private readonly _threeAttributes: Record<string, BufferAttribute> = Object.create(null);
+  private _drawMode: GeometryDrawMode = 'triangles';
   private readonly _pixiData = new Map<BufferAttribute, Float32Array>();
   private _index: BufferAttribute | null = null;
 
@@ -213,10 +225,12 @@ export class BufferGeometry extends Geometry3D implements BufferAttributeOwner {
     this.setIndex(value);
   }
 
-  /** The index, or `null` */
-  // @ts-expect-error -- three's getIndex returns the index attribute where pixi's returns its buffer; neither pixi-3d nor pixi's 3D path calls pixi's
-  public override getIndex(): BufferAttribute | null {
-    return this._index;
+  /**
+   * The index, or `null` when the vertices are drawn in order. Typed to stand in for pixi's
+   * `getIndex`, which returns the index buffer and which neither pixi-3d nor pixi's 3D path calls.
+   */
+  public override getIndex(): BufferAttribute & Buffer {
+    return this._index as BufferAttribute & Buffer;
   }
 
   /**
@@ -237,12 +251,12 @@ export class BufferGeometry extends Geometry3D implements BufferAttributeOwner {
   }
 
   /**
-   * An attribute by name
+   * An attribute by three's name, or `undefined` when it isn't set. Typed to stand in for pixi's
+   * `getAttribute`, which takes pixi's names and which neither pixi-3d nor pixi's 3D path calls.
    * @param name - `position`, `normal`, `uv`, `color`, or a name of your own
    */
-  // @ts-expect-error -- three's getAttribute takes three's names where pixi's takes its own; neither pixi-3d nor pixi's 3D path calls pixi's
-  public override getAttribute(name: string): BufferAttribute | undefined {
-    return this._threeAttributes[name];
+  public override getAttribute(name: string): BufferAttribute & Attribute {
+    return this._threeAttributes[name] as BufferAttribute & Attribute;
   }
 
   /**
@@ -306,6 +320,10 @@ export class BufferGeometry extends Geometry3D implements BufferAttributeOwner {
   public setDrawRange(start: number, count: number): void {
     this.drawRange.start = start;
     this.drawRange.count = count;
+    if (this._drawMode === 'points') {
+      this._rebuild();
+      return;
+    }
     this._rebuildIndex();
     this._repack();
   }
@@ -577,6 +595,22 @@ export class BufferGeometry extends Geometry3D implements BufferAttributeOwner {
     return new BufferGeometry().copy(this);
   }
 
+  /**
+   * How the object holding the geometry draws it; `Points` and the lines set it when given the
+   * geometry. A geometry drawn two ways at once takes the last.
+   * @internal
+   */
+  public get _mode(): GeometryDrawMode {
+    return this._drawMode;
+  }
+
+  public set _mode(value: GeometryDrawMode) {
+    if (value === this._drawMode) return;
+    this._drawMode = value;
+    this.topology = value === 'triangles' || value === 'points' ? 'triangle-list' : 'line-list';
+    this._rebuild();
+  }
+
   /** Frees the geometry and the buffers it made, once */
   public dispose(): void {
     this.destroy(true);
@@ -599,6 +633,10 @@ export class BufferGeometry extends Geometry3D implements BufferAttributeOwner {
     const name = this._nameOf(attribute);
     const target = name ? PIXI_ATTRIBUTES[name] : undefined;
     if (!target) return;
+    if (this._drawMode === 'points') {
+      this._rebuild();
+      return;
+    }
     const pixi = this.attributes[target.name] as Attribute | undefined;
     if (!pixi || this.dynamic !== this._wantsDynamic()) {
       this._rebuild();
@@ -647,11 +685,16 @@ export class BufferGeometry extends Geometry3D implements BufferAttributeOwner {
     const previous = new Set(this.buffers);
     const buffers: Buffer[] = [];
 
+    const points = this._drawMode === 'points' && this._threeAttributes.position ? this._pointQuads() : undefined;
+
     for (const name in PIXI_ATTRIBUTES) {
       const target = PIXI_ATTRIBUTES[name];
       const { name: pixiName, size, format } = target;
       const attribute = this._threeAttributes[name];
-      const data = attribute ? this._dataFor(attribute, target) : name === 'position' ? EMPTY_POSITIONS : undefined;
+      let data: Float32Array | undefined;
+      if (points) data = points[name];
+      else if (attribute) data = this._dataFor(attribute, target);
+      else if (name === 'position') data = EMPTY_POSITIONS;
       if (!data) {
         delete pixiAttributes[pixiName];
         continue;
@@ -693,15 +736,7 @@ export class BufferGeometry extends Geometry3D implements BufferAttributeOwner {
    * @param buffers - The geometry's buffers being rebuilt, when called from `_rebuild`
    */
   private _rebuildIndex(buffers?: Buffer[]): void {
-    const index = this._index;
-    const vertexCount = this._threeAttributes.position ? this._threeAttributes.position.count : 3;
-    const total = index ? index.count : vertexCount;
-    const start = Math.max(0, this.drawRange.start);
-    const count = Math.max(0, Math.min(total - start, this.drawRange.count));
-    const large = vertexCount > 65535;
-    let data: Uint16Array | Uint32Array = large ? new Uint32Array(count) : new Uint16Array(count);
-
-    for (let i = 0; i < count; i++) data[i] = index ? index.getX(start + i) : start + i;
+    let data = this._indices();
     if (data instanceof Uint16Array && data.byteLength % 4 !== 0) data = new Uint32Array(data);
 
     if (this.indexBuffer && !this.indexBuffer.destroyed) {
@@ -713,6 +748,68 @@ export class BufferGeometry extends Geometry3D implements BufferAttributeOwner {
       this.buffers.push(this.indexBuffer);
       this._listen(this.indexBuffer, true);
     }
+  }
+
+  /** The draw range over three's index, or over the vertices without one */
+  private _range(): { start: number; count: number; vertexCount: number } {
+    const index = this._index;
+    const vertexCount = this._threeAttributes.position ? this._threeAttributes.position.count : 3;
+    const total = index ? index.count : vertexCount;
+    const start = Math.min(Math.max(0, this.drawRange.start), total);
+    const count = Math.max(0, Math.min(total - start, this.drawRange.count));
+    return { start, count, vertexCount };
+  }
+
+  /** pixi-3d's index for the draw mode: the triangles, point quads, or line pairs, in the draw range */
+  private _indices(): Uint16Array | Uint32Array {
+    const index = this._index;
+    const { start, count, vertexCount } = this._range();
+    const at = (i: number): number => (index ? index.getX(start + i) : start + i);
+    const mode = this._threeAttributes.position ? this._drawMode : 'triangles';
+    const pairs = mode === 'lineSegments' ? count >> 1 : mode === 'lineStrip' ? Math.max(0, count - 1) : count;
+    const length = mode === 'points' ? count * 6 : mode === 'triangles' ? count : pairs * 2;
+    const large = (mode === 'points' ? count * 4 : vertexCount) > 65535;
+    const data = large ? new Uint32Array(length) : new Uint16Array(length);
+
+    if (mode === 'triangles') {
+      for (let i = 0; i < count; i++) data[i] = at(i);
+    } else if (mode === 'points') {
+      for (let p = 0; p < count; p++) data.set([p * 4, p * 4 + 1, p * 4 + 2, p * 4, p * 4 + 2, p * 4 + 3], p * 6);
+    } else if (mode === 'lineSegments') {
+      for (let i = 0; i < pairs * 2; i++) data[i] = at(i);
+    } else {
+      for (let i = 0; i < pairs; i++) {
+        data[i * 2] = at(i);
+        data[i * 2 + 1] = at((i + 1) % count);
+      }
+    }
+    return data;
+  }
+
+  /**
+   * Each point in the draw range as four vertices at its position, with the quad's corner in `uv`,
+   * for `PointsMaterial` to spread across the screen
+   */
+  private _pointQuads(): Partial<Record<string, Float32Array>> {
+    const { position, color } = this._threeAttributes;
+    const index = this._index;
+    const { start, count } = this._range();
+    const positions = new Float32Array(count * 12);
+    const uvs = new Float32Array(count * 8);
+    const colors = color ? new Float32Array(count * 16) : undefined;
+
+    for (let p = 0; p < count; p++) {
+      const vertex = index ? index.getX(start + p) : start + p;
+      for (let corner = 0; corner < 4; corner++) {
+        const v = p * 4 + corner;
+        positions.set([position.getX(vertex), position.getY(vertex), position.getZ(vertex)], v * 3);
+        uvs.set([POINT_CORNERS[corner * 2], POINT_CORNERS[corner * 2 + 1]], v * 2);
+        if (colors && color) {
+          for (let c = 0; c < 4; c++) colors[v * 4 + c] = c < color.itemSize ? color.getComponent(vertex, c) : 1;
+        }
+      }
+    }
+    return { position: positions, uv: uvs, color: colors };
   }
 
   /**

@@ -1,4 +1,4 @@
-import { ShaderDescriptor } from '@pixi/3d';
+import { ShaderDescriptor, srgbEncodeBit } from '@pixi/3d';
 import type { BaseMaterial3D, ShaderBit } from '@pixi/3d';
 
 import { installMaterialSurface, invalidateMaterial, threeState } from '../../compat/materialSurface';
@@ -17,34 +17,39 @@ const backSideNormalBit: ShaderBit = {
   gl: { fragment: { material: /*glsl*/ 'normal = -normal;\n' } },
 };
 
-/** The composed descriptors of each base descriptor, front side first, then back side */
-const composed = new WeakMap<ShaderDescriptor, [ShaderDescriptor | undefined, ShaderDescriptor | undefined]>();
+/** The composed descriptors of each base descriptor, one per back-side and output-encode case */
+const composed = new WeakMap<ShaderDescriptor, (ShaderDescriptor | undefined)[]>();
 
 /**
- * A material's descriptor with three's bits in place of pixi-3d's, and the back-side normal flip
- * ahead of the material's bits when it draws only its back faces
+ * A material's descriptor with three's bits in place of pixi-3d's; the back-side normal flip ahead of
+ * the material's bits when it draws only its back faces; and, with `toneMapped` off, the sRGB encode
+ * pixi-3d's tone curves end with, which three applies whether or not it tone maps
  * @param material - The material
  * @param base - The descriptor pixi-3d's material built
  * @param swaps - pixi-3d's bits and the three bits that replace them
+ * @param rawOutput - Whether three writes the colour unencoded, as its normal material does
  * @internal
  */
 export function threeDescriptor(
   material: BaseMaterial3D,
   base: ShaderDescriptor,
   swaps?: ReadonlyMap<ShaderBit, ShaderBit>,
+  rawOutput = false,
 ): ShaderDescriptor {
   const backSide = threeState(material).side === BackSide;
-  if (!backSide && !swaps) return base;
+  const encode = !material.toneMapped && !rawOutput;
+  if (!backSide && !encode && !swaps) return base;
 
   let entry = composed.get(base);
-  if (!entry) composed.set(base, (entry = [undefined, undefined]));
-  const slot = backSide ? 1 : 0;
+  if (!entry) composed.set(base, (entry = []));
+  const slot = (backSide ? 1 : 0) + (encode ? 2 : 0);
   const existing = entry[slot];
   if (existing) return existing;
 
   const compose = (bits: ShaderBit[]): ShaderBit[] => {
     const out = bits.map((bit) => swaps?.get(bit) ?? bit);
     if (backSide) out.unshift(backSideNormalBit);
+    if (encode) out.push(srgbEncodeBit);
     return out;
   };
   const descriptor = new ShaderDescriptor({}).update({

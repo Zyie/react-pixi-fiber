@@ -64,6 +64,6 @@ export class MeshNormalMaterial extends FlatMaterial {
    * @advanced
    */
   public override getPrimaryDescriptor(view: View3D): ShaderDescriptor {
-    return threeDescriptor(this, super.getPrimaryDescriptor(view));
+    return threeDescriptor(this, super.getPrimaryDescriptor(view), undefined, true);
   }
 }
