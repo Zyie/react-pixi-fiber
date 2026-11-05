@@ -29,6 +29,13 @@ const SNAPSHOTS = path.resolve(process.cwd(), 'tests/snapshots');
 const FAILURES = path.resolve(process.cwd(), '.pr_uploads/visual');
 
 /**
+ * pixelmatch's threshold for a reference in update mode: a grey about 5 levels off counts, where the
+ * test's 0.1 lets about 25 levels pass, so `npm run test:update` rewrites a reference whose colours
+ * have drifted
+ */
+const UPDATE_THRESHOLD = 0.02;
+
+/**
  * An element of the test page the harness marked, with `markForCapture`
  * @param iframe - The frame the test runs in
  * @param id - The element's `data-shot` attribute
@@ -91,16 +98,19 @@ const compareScreenshot: BrowserCommand<
     return { diff: 0, passed: true, parity: measured() };
   }
 
-  const { diff, actual, expected, image } = diffImages(capture, PNG.sync.read(fs.readFileSync(reference)));
+  const expectedImage = PNG.sync.read(fs.readFileSync(reference));
 
-  if (diff <= pixelMatch) return { diff, passed: true, parity: measured() };
-
-  // Only a reference the test would fail on is rewritten in update mode; the passing ones are left untouched.
+  // In update mode a reference is held to a tighter threshold, so colour that drifted by a few levels,
+  // which the test lets pass, is rewritten too; one that still matches is left untouched.
   if (updateSnapshot === 'all') {
-    fs.writeFileSync(reference, shot);
+    if (diffImages(capture, expectedImage, UPDATE_THRESHOLD).diff > pixelMatch) fs.writeFileSync(reference, shot);
 
     return { diff: 0, passed: true, parity: measured() };
   }
+
+  const { diff, actual, expected, image } = diffImages(capture, expectedImage);
+
+  if (diff <= pixelMatch) return { diff, passed: true, parity: measured() };
 
   saveStrip(failureStrip, [
     ['expected', expected],

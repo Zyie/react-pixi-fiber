@@ -225,7 +225,7 @@ A scene's references are `tests/snapshots/<key>.webgl.png`, `<key>.webgpu.png` a
 
 A scene with no reference writes one on its first local run and passes. Open each image and check it shows what the scene should draw before you commit it: from then on the test only says nothing changed. A parity composite holds all three of a scene's pictures, so it's the quickest way to look. On CI a missing reference fails the test.
 
-After an intended change, add `--update=true` to the single-scene command to rewrite that scene's references, then look at them. `npm run test:update` does it for every scene. Only references the test would fail on are rewritten.
+After an intended change, add `--update=true` to the single-scene command to rewrite that scene's references, then look at them. `npm run test:update` does it for every scene. A test lets colours a few levels off pass (pixelmatch's threshold of 0.1), so update mode holds a reference to a tighter one, 0.02 (`UPDATE_THRESHOLD` in `scripts/test/browser-commands.mts`), and rewrites it when more than `pixelMatch` pixels are off by about 5 grey levels or more; a reference that still matches is left untouched.
 
 ## Expected failures
 
