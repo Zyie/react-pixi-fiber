@@ -1,10 +1,11 @@
-import { Camera3D, Matrix4, Quaternion, Vector3, View3D } from '@pixi/3d';
-import type { Container3D, ShadowFilter } from '@pixi/3d';
+import { Matrix4, Quaternion, Vector3, View3D } from '@pixi/3d';
+import type { Container3D, ShadowFilter, Camera3D } from '@pixi/3d';
 import { Color, Container, Texture, autoDetectRenderer } from 'pixi.js';
 import type { ColorSource, Renderer } from 'pixi.js';
 
 import { Color as ThreeColor, toPixiColor } from '../math/Color';
 import { releaseBackdrop, updateBackdrop } from './backdrop';
+import { ProxyCamera } from './ProxyCamera';
 import { applyFog } from './sceneFog';
 import { finishLights, prepareLights } from './sceneLights';
 import { setShadowsEnabled } from './shadowViews';
@@ -49,7 +50,7 @@ interface SceneView {
   readonly view: View3D;
   readonly stage: Container;
   readonly release: () => void;
-  proxy: Camera3D | null;
+  proxy: ProxyCamera | null;
   background: unknown;
   drawnAt: number;
 }
@@ -306,7 +307,7 @@ export class PixiRenderer {
     if (camera.view3d === view) {
       view.camera = camera;
     } else {
-      entry.proxy ??= new Camera3D();
+      entry.proxy ??= new ProxyCamera();
       this._syncProxy(entry.proxy, camera, scene);
       view.camera = entry.proxy;
     }
@@ -357,7 +358,7 @@ export class PixiRenderer {
 
   private _createView(scene: Container3D, camera: Camera3D): SceneView {
     const inScene = isDescendant(camera, scene);
-    const proxy = inScene ? null : new Camera3D();
+    const proxy = inScene ? null : new ProxyCamera();
     const view = new View3D({ root: scene, camera: proxy ?? camera, autoResize: true });
     const stage = new Container();
     stage.addChild(view);
@@ -374,7 +375,8 @@ export class PixiRenderer {
     return entry;
   }
 
-  private _syncProxy(proxy: Camera3D, camera: Camera3D, scene: Container3D): void {
+  private _syncProxy(proxy: ProxyCamera, camera: Camera3D, scene: Container3D): void {
+    proxy.source = camera;
     proxy.mode = camera.mode;
     proxy.fov = camera.fov;
     proxy.zoom = camera.zoom;
