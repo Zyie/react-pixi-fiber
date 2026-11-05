@@ -32,6 +32,7 @@ function Box(props: ThreeElements['mesh']) {
   );
 }
 
+// #region primitive
 function Box2(props: ThreeElements['group']) {
   const group = useMemo(() => {
     const group = new Group();
@@ -42,6 +43,7 @@ function Box2(props: ThreeElements['group']) {
 
   return <primitive object={group} {...props} onClick={() => console.log('hi')} />;
 }
+// #endregion primitive
 
 export function App() {
   return (

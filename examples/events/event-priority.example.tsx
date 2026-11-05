@@ -7,6 +7,7 @@ import { Canvas, createPortal } from 'react-pixi-fiber';
 import type { Example } from '../example';
 
 // #region result
+// #region portal
 function Hud() {
   const [layer, setLayer] = useState<ElementRef<'group'> | null>(null);
   const [clicks, setClicks] = useState(0);
@@ -32,6 +33,7 @@ function Hud() {
     </>
   );
 }
+// #endregion portal
 
 function Box() {
   const [active, setActive] = useState(false);

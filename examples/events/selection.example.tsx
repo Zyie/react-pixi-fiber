@@ -6,6 +6,7 @@ import { Canvas } from 'react-pixi-fiber';
 import type { Example } from '../example';
 
 // #region result
+// #region sphere
 function Sphere() {
   const [hovered, setHovered] = useState(false);
 
@@ -16,6 +17,7 @@ function Sphere() {
     </mesh>
   );
 }
+// #endregion sphere
 
 function Card() {
   const [hovered, setHovered] = useState(false);

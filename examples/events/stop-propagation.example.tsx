@@ -18,6 +18,7 @@ function Plane({
 }) {
   const [hovered, setHovered] = useState(false);
 
+  // #region over
   const onPointerOver = useCallback(
     (e: ThreeEvent<PointerEvent>) => {
       if (stop) e.stopPropagation();
@@ -25,6 +26,7 @@ function Plane({
     },
     [stop],
   );
+  // #endregion over
 
   const onPointerOut = useCallback(
     (e: ThreeEvent<PointerEvent>) => {

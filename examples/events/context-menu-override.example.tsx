@@ -6,6 +6,7 @@ import { Canvas } from 'react-pixi-fiber';
 import type { Example } from '../example';
 
 // #region result
+// #region box
 function Box() {
   const [state, setState] = useState(false);
 
@@ -24,6 +25,7 @@ function Box() {
     </mesh>
   );
 }
+// #endregion box
 
 export function App() {
   return (

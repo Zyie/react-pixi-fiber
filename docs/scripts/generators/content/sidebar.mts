@@ -17,6 +17,7 @@ export const SECTION_INDEX: Readonly<Record<GuideSection, string>> = {
   'getting-started': INTRODUCTION,
   tutorials: 'docs/tutorials/index',
   reference: 'docs/reference/index',
+  advanced: 'docs/advanced/index',
 };
 
 /**
