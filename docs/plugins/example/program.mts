@@ -1,7 +1,8 @@
 /**
- * Reads an example file as the site shows and runs it. The file is the program: the reader sees it as
- * written, less its `// #region` markers, and the live frame imports it and mounts its `example` export
- * (`src/components/Live/frame/mount.tsx`). What the guides and the gallery say about an example that no
+ * Reads an example file as the site shows and runs it. The file is the program, less its `// #region`
+ * markers: the live frame imports it and mounts its `example` export
+ * (`src/components/Live/frame/mount.tsx`). The reader sees only the code of its regions, or, in a file
+ * with none, everything but the harness import and the `example` export. What the guides and the gallery say about an example that no
  * guide shows is read here too: the JSDoc above `export const example`, and a `title` or `description`
  * string in its object.
  */
@@ -13,6 +14,11 @@ import { REGION } from '../../scripts/typedoc/snippets.mts';
 export interface Program {
   /** The file's source, TypeScript or TSX, without region markers */
   readonly code: string;
+  /**
+   * The code a reader is shown: the lines of the file's regions in order, a blank line between blocks,
+   * or, in a file with no region, the file less its harness import and its `example` export
+   */
+  readonly shown: string;
   /** For each `// #region` of the file, the lines of `code` it covers: 1-based, inclusive ranges */
   readonly regions: Readonly<Record<string, readonly (readonly [number, number])[]>>;
   /** Imports of other files the program needs at run time, as written, such as `./theme.css?raw` */
@@ -144,6 +150,9 @@ export function toProgram(source: string, file: string): Program {
 
     return value?.type === 'Literal' && typeof value.value === 'string' ? value.value : null;
   };
+  const removed: (readonly [number, number])[] = body
+    .filter((node) => node.type === 'ImportDeclaration' && HARNESS_IMPORT.test(nameOf(child(node, 'source'))!))
+    .map((node) => [node.start, node.end] as const);
   const jsdoc = exported
     ? parsed.comments
         .filter((comment) => comment.type === 'Block' && comment.value.startsWith('*') && comment.end <= exported.start)
@@ -158,11 +167,29 @@ export function toProgram(source: string, file: string): Program {
     .replace(/\s+/g, ' ')
     .trim();
 
+  if (exported) removed.push([jsdoc?.start ?? exported.start, exported.end]);
+
+  const regionLines: string[] = [];
+
+  kept.forEach((i, k) => {
+    if (regionsOf[k]!.length === 0) return;
+    if (regionLines.length > 0 && regionsOf[k - 1]!.length === 0) regionLines.push('');
+    regionLines.push(lines[i]!);
+  });
+
+  const shown = regionLines.length
+    ? regionLines.join('\n')
+    : removed
+        .toSorted((a, b) => b[0] - a[0])
+        .reduce((text, [start, end]) => text.slice(0, start) + text.slice(end), source)
+        .replace(/\n{3,}/g, '\n\n');
+
   return {
     code: `${kept
       .map((i) => lines[i]!)
       .join('\n')
       .trimEnd()}\n`,
+    shown: `${shown.trim()}\n`,
     regions,
     relativeImports,
     packageImports,

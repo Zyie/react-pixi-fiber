@@ -172,7 +172,11 @@ function guideLinks(guide: Guide, count: number): Flow[] {
         ? [
             [
               link(`/examples/?topic=${guide.id}`, 'Examples'),
-              text(` The ${examplesText(count)} of this guide, each with the picture its visual test draws.`),
+              text(
+                count === 1
+                  ? " This guide's example, with the picture its visual test draws."
+                  : ` The ${examplesText(count)} of this guide, each with the picture its visual test draws.`,
+              ),
             ],
           ]
         : []),

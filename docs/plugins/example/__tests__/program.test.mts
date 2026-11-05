@@ -52,3 +52,25 @@ await test("an example's title and description come from its object, else its JS
   assert.equal(program.description, 'A pink box that turns.');
   assert.equal(toProgram('export const example = {};', 'a.example.ts').description, null);
 });
+
+await test("the reader is shown a file's regions, or, with none, the file less the harness", () => {
+  assert.equal(
+    toProgram(source, 'examples/start/box.example.tsx').shown,
+    ["import { useFrame } from 'react-pixi-fiber';", '', 'function Box() {', '  return <mesh />;', '}', ''].join('\n'),
+  );
+  assert.equal(
+    toProgram(
+      [
+        "import type { Example } from '../example';",
+        "import { Canvas } from 'react-pixi-fiber';",
+        '',
+        'export const App = () => <Canvas />;',
+        '',
+        '/** An empty canvas */',
+        'export const example: Example = { render: () => null };',
+      ].join('\n'),
+      'examples/start/empty.example.tsx',
+    ).shown,
+    ["import { Canvas } from 'react-pixi-fiber';", '', 'export const App = () => <Canvas />;', ''].join('\n'),
+  );
+});

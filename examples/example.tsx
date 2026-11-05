@@ -9,11 +9,17 @@ import type { RendererType, TestScene } from '../tests/harness/scene-runner';
  * scene, so tests/docs renders it as one (keyed `docs/<topic>/<name>`) and the playground and the docs
  * run it live through `runExample`. `render` returns the children of an r3f `<Canvas>`; `camera` is the
  * Canvas's `camera` prop and `canvas` more of its props. The canvas is 400 by 300 in the tests.
+ * `title` and `description` name and describe it in the docs' gallery, as string literals the docs read.
  */
 export type Example = Pick<
   TestScene,
   'render' | 'camera' | 'canvas' | 'frames' | 'act' | 'parity' | 'pixelMatch' | 'skip' | 'fails'
->;
+> & {
+  /** Its title in the docs, ahead of the heading of the guide section that shows it */
+  title?: string;
+  /** What it shows, when no guide's prose brings it in */
+  description?: string;
+};
 
 /**
  * Runs an example live, as an app would: a `<Canvas>` that fills its host, on r3f's default frameloop

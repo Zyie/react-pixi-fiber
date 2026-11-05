@@ -32,5 +32,6 @@ export function App() {
 // #endregion result
 
 export const example: Example = {
+  title: 'Your first scene',
   render: () => <Scene />,
 };

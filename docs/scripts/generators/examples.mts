@@ -3,8 +3,8 @@
  * that shows the picture its visual test draws, runs it live, and quotes what the guide that embeds it
  * says about it. There may be no examples yet: the gallery then says so, and no page is written.
  *
- * Nothing here is written by hand. An example's title is the heading of the guide section that first
- * shows its code, or the `title` of its object, or its name; its lead is the prose of that section
+ * Nothing here is written by hand. An example's title is the `title` of its object, or the heading of
+ * the guide section that first shows its code, or its name; its lead is the prose of that section
  * before its snippet; its description is the start of that lead, or the `description` of its object or
  * the JSDoc above it; its alt text that of its picture in the guide. Its pictures are those of
  * `examples/pictures.mts`.
@@ -243,7 +243,7 @@ async function generate(shared: Shared): Promise<GeneratedFiles> {
       const [first] = entry.uses;
       const name = path.posix.basename(entry.id);
       const program = programs.get(entry.id)!;
-      const section = first?.heading ?? program.title ?? humanize(name);
+      const section = program.title ?? first?.heading ?? humanize(name);
       const title = titles.has(section) ? `${section} (${name})` : section;
       const site = pictures.get(entry.id);
       const lead: Flow[] = first
@@ -270,7 +270,7 @@ async function generate(shared: Shared): Promise<GeneratedFiles> {
         id: entry.id,
         title,
         language: program.language,
-        code: program.code,
+        code: program.shown,
         compiled: program.compiled,
         files: program.files,
         picture: site?.picture ?? null,

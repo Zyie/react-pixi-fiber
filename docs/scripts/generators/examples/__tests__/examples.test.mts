@@ -99,7 +99,7 @@ await test('with no examples, the gallery is the only page and the catalogue is 
   fs.rmSync(root, { recursive: true });
 });
 
-await test("each example gets a page titled by its guide's section, its object, or its name, and its picture when there is one", () => {
+await test("each example gets a page titled by its object, its guide's section, or its name, and its picture when there is one", () => {
   const root = rootWith({
     'src/__docs__/your-first-scene.md': [
       '# Your first scene',
@@ -115,8 +115,18 @@ await test("each example gets a page titled by its guide's section, its object, 
       '```',
       '',
       '![A pink square](../../tests/snapshots/docs/your-first-scene/box.webgl.png)',
+      '',
+      '## The result',
+      '',
+      '<!-- snippet: examples/your-first-scene/titled.example.tsx -->',
+      '',
+      '```tsx',
+      "export const example = { title: 'A titled box', render: () => null };",
+      '```',
     ].join('\n'),
     'examples/your-first-scene/box.example.tsx': box,
+    'examples/your-first-scene/titled.example.tsx':
+      "export const example = { title: 'A titled box', render: () => null };\n",
     'examples/materials/colors.example.tsx': colors,
     'examples/materials/plain-cube.example.tsx': 'export const example = { render: () => null };\n',
     'tests/snapshots/docs/your-first-scene/box.webgl.png': picture(),
@@ -129,13 +139,14 @@ await test("each example gets a page titled by its guide's section, its object, 
     cards.map(({ id, title, topic, thumbnail }) => [id, title, topic, thumbnail?.src ?? null]),
     [
       ['your-first-scene/box', 'A turning box', 'your-first-scene', '/example-thumbs/your-first-scene/box.webp'],
+      ['your-first-scene/titled', 'A titled box', 'your-first-scene', null],
       ['materials/colors', 'Three colours', 'materials', null],
       ['materials/plain-cube', 'Plain cube', 'materials', null],
     ],
   );
   assert.equal(cards[0]!.description, 'The box turns every frame.');
   assert.equal(cards[0]!.alt, 'A pink square');
-  assert.equal(cards[1]!.description, 'Three boxes in a row.');
+  assert.equal(cards[2]!.description, 'Three boxes in a row.');
   assert.match(files['content/examples/materials/_category_.json']!, /"label": "Materials"/);
   assert.ok('static/example-pictures/your-first-scene/box.png' in files);
   assert.match(
