@@ -17,6 +17,11 @@ export class RenderTargetCubeTexture extends CubeTexture {
   public readonly isCubeTexture = true;
   /** Always `true`: drawn by a renderer, not loaded */
   public readonly isRenderTargetTexture = true;
+  /**
+   * How many faces a renderer has drawn, so an environment made from the texture can tell a new picture
+   * @internal
+   */
+  public _version: number = 0;
 }
 
 /**
@@ -53,11 +58,6 @@ export class WebGLCubeRenderTarget extends EventDispatcher {
   public scissorTest = false;
   /** The six faces, as a pixi `CubeTexture` */
   public texture: RenderTargetCubeTexture;
-  /**
-   * How many times a renderer has drawn into one of the faces, so what reads the texture can tell a new picture
-   * @internal
-   */
-  public _renderCount: number = 0;
 
   private _disposed = false;
 
@@ -133,5 +133,17 @@ export class WebGLCubeRenderTarget extends EventDispatcher {
   /** Whether `dispose` has run */
   public get disposed(): boolean {
     return this._disposed;
+  }
+
+  /**
+   * How many times a renderer has drawn into one of the faces, kept on the texture
+   * @internal
+   */
+  public get _renderCount(): number {
+    return this.texture._version;
+  }
+
+  public set _renderCount(count: number) {
+    this.texture._version = count;
   }
 }

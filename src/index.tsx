@@ -22,7 +22,9 @@ import type Reconciler from 'react-reconciler';
 
 import type { PixiCatalog } from './catalog/catalog';
 import type { OrthographicCamera } from './catalog/scene/OrthographicCamera';
+import type { PresetsType } from './environment/hooks/useEnvironment';
 import type { Frustum } from './math/Frustum';
+import { presetsObj as corePresetsObj } from './r3f/src/core/components/Environment/environment-assets';
 import {
   createEvents as coreCreateEvents,
   createPointerEvents as coreEvents,
@@ -114,11 +116,23 @@ export { Canvas } from './root/Canvas';
 export { createRoot } from './root/createRoot';
 
 export { aliases, catalog, type AliasCatalog, type PixiCatalog } from './catalog/catalog';
-// #region environment
+export {
+  Environment,
+  EnvironmentCube,
+  EnvironmentMap,
+  EnvironmentPortal,
+  type EnvironmentProps,
+} from './environment/components/Environment';
+export {
+  useEnvironment,
+  type EnvironmentLoader,
+  type EnvironmentLoaderProps,
+  type PresetsType,
+  type UseEnvironment,
+} from './environment/hooks/useEnvironment';
 export { useRenderTarget, type UseRenderTarget } from './environment/hooks/useRenderTarget';
 export type { RenderTargetOptions } from './environment/RenderTarget';
 export type { R3FRenderTarget } from './types/environment';
-// #endregion environment
 export type { CameraMembers, Object3DMembers } from './compat/installObject3DSurface';
 export type { ThreeMatrix4Members, ThreeQuaternionMembers, ThreeVector3Members } from './compat/threeMembers';
 export {
@@ -1167,6 +1181,13 @@ export type OnceValue<A extends unknown[]> = A extends [] ? true : A extends [in
 export const isOnce: (value: unknown) => value is { [ONCE]: unknown[] | true } = coreIsOnce as unknown as (
   value: unknown,
 ) => value is { [ONCE]: unknown[] | true };
+
+/**
+ * The file of each environment preset, r3f's `presetsObj`: Poly Haven `.hdr` files on pmndrs' asset host
+ * @category core
+ * @advanced
+ */
+export const presetsObj: Readonly<Record<PresetsType, string>> = corePresetsObj;
 
 export type { ReactThreeFiber };
 

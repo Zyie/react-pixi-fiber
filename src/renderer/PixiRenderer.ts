@@ -1,12 +1,14 @@
 import { Matrix4, Quaternion, Vector3, View3D } from '@pixi/3d';
 import type { Camera3D, Container3D, ShadowFilter, ToneMapping } from '@pixi/3d';
-import { CLEAR, Color, Container, CubeTexture, autoDetectRenderer } from 'pixi.js';
+import { CLEAR, Color, Container, CubeTexture, Texture, autoDetectRenderer } from 'pixi.js';
 import type { ColorSource, Renderer } from 'pixi.js';
 
 import { DirectionalLight } from '../catalog/lights/DirectionalLight';
+import { EnvironmentMaps } from '../environment/EnvironmentMaps';
+import type { EnvironmentScene } from '../environment/EnvironmentMaps';
 import { Color as ThreeColor, toPixiColor } from '../math/Color';
 import { Vector4 } from '../math/Vector4';
-import { ClearRect, ProxyCamera, coversSurface, fromBottomLeft, surfaceOf } from './renderTargets';
+import { ClearRect, CubeFaceWriter, ProxyCamera, coversSurface, fromBottomLeft, surfaceOf } from './renderTargets';
 import type { DrawableTarget, PixelRect } from './renderTargets';
 import { setShadowsEnabled } from './shadowViews';
 
@@ -87,7 +89,7 @@ const viewRect: PixelRect = { x: 0, y: 0, width: 0, height: 0 };
 const scissorRect: PixelRect = { x: 0, y: 0, width: 0, height: 0 };
 const clearRGBA: [number, number, number, number] = [0, 0, 0, 0];
 
-type SceneBackground = ThreeColor | ColorSource | View3D['background'] | null | undefined;
+type SceneBackground = ThreeColor | ColorSource | Texture | View3D['background'] | null | undefined;
 
 /** Whether a scene's background is a colour, which three clears the canvas to, untouched by tone mapping */
 const isColorBackground = (background: SceneBackground): background is ThreeColor | ColorSource =>
@@ -97,6 +99,10 @@ const isColorBackground = (background: SceneBackground): background is ThreeColo
   typeof background === 'number' ||
   Array.isArray(background) ||
   ArrayBuffer.isView(background);
+
+/** Whether a scene's environment or background is a texture, which `EnvironmentMaps` turns into what pixi-3d draws */
+const isEnvironmentTexture = (value: unknown): value is Texture | CubeTexture =>
+  value instanceof Texture || value instanceof CubeTexture;
 
 const isDescendant = (node: Container3D, root: Container3D): boolean => {
   for (let parent = node.parent; parent; parent = parent.parent) if (parent === root) return true;
@@ -193,6 +199,8 @@ export class PixiRenderer {
   private _pixelRatio = 1;
   private _frame = 0;
   private _renderTarget: DrawableTarget | null = null;
+  private _environments: EnvironmentMaps | null = null;
+  private _cubeFaces: CubeFaceWriter | null = null;
   private _activeCubeFace = 0;
   private _activeMipmapLevel = 0;
   private readonly _viewport = new Vector4(0, 0, 300, 150);
@@ -365,7 +373,7 @@ export class PixiRenderer {
 
     const background = (scene as Container3D & { background?: SceneBackground }).background;
     const clearToBackground = target ? isColorBackground(background) : this._applyBackground(pixi, background);
-    this._applySettings(entry, background);
+    this._applySettings(entry, scene as EnvironmentScene, background);
     this._draw(
       entry.stage,
       entry.clearRect,
@@ -564,6 +572,7 @@ export class PixiRenderer {
     scene.off('destroyed', entry.release);
     if (entry.proxy) scene.removeChild(entry.proxy);
     entry.proxy?.destroy();
+    this._environments?.releaseView(entry.view);
     const children = scene.children.slice();
     entry.view.destroy();
     if (!scene.destroyed) for (const child of children) if (!child.destroyed) scene.addChild(child);
@@ -573,6 +582,10 @@ export class PixiRenderer {
   /** Frees every view and the pixi.js renderer; scenes keep their children */
   public dispose(): void {
     for (const scene of this._views.keys()) this.releaseView(scene);
+    this._environments?.dispose();
+    this._environments = null;
+    this._cubeFaces?.destroy();
+    this._cubeFaces = null;
     this._empty.destroy({ children: true });
     this.pixi?.destroy();
     this.pixi = null;
@@ -651,16 +664,17 @@ export class PixiRenderer {
       }
     }
 
-    if (target) {
-      const cube = target.texture instanceof CubeTexture;
+    if (target?.texture instanceof CubeTexture) {
+      this._cubeFaces ??= new CubeFaceWriter();
+      this._cubeFaces.write(pixi, stage, target, this._activeCubeFace, this._activeMipmapLevel, fullClear, clearRGBA);
+      target._renderCount++;
+    } else if (target) {
       pixi.render({
         container: stage,
         target: surfaceOf(target),
         clear: fullClear,
         clearColor: clearRGBA,
-        layer: cube ? this._activeCubeFace : 0,
         mipLevel: this._activeMipmapLevel,
-        flipY: cube,
       });
       target._renderCount++;
     } else {
@@ -724,11 +738,13 @@ export class PixiRenderer {
 
   /**
    * Copies three's renderer settings onto a scene's view before it draws. Into a target, tone mapping
-   * is off and exposure 1, as three draws into a target in linear light.
+   * is off and exposure 1, as three draws into a target in linear light. A texture environment or
+   * background goes through `EnvironmentMaps`.
    * @param entry - The scene's view
+   * @param scene - The scene
    * @param background - The scene's background
    */
-  private _applySettings(entry: SceneView, background: SceneBackground): void {
+  private _applySettings(entry: SceneView, scene: EnvironmentScene, background: SceneBackground): void {
     const { view } = entry;
     const toTarget = this._renderTarget !== null;
     const toneMapping = toTarget ? 'none' : (TONE_MAPPINGS[this.toneMapping] ?? 'aces');
@@ -739,11 +755,25 @@ export class PixiRenderer {
     setShadowsEnabled(view, this.shadowMap.enabled);
 
     if (background !== undefined) {
-      const viewBackground = isColorBackground(background) ? null : background;
+      const viewBackground = isColorBackground(background) || isEnvironmentTexture(background) ? null : background;
       if (viewBackground !== entry.background) {
         entry.background = viewBackground;
         view.background = viewBackground;
       }
+    }
+
+    if (this._environments || isEnvironmentTexture(scene.environment) || isEnvironmentTexture(background)) {
+      this._environments ??= new EnvironmentMaps();
+      this._environments.apply(
+        this.pixi!,
+        view,
+        entry.stage,
+        scene,
+        toTarget ? 0 : this.toneMapping,
+        this.toneMappingExposure,
+        toTarget,
+        this._frame,
+      );
     }
 
     for (const light of view.lights) if (light instanceof DirectionalLight) light.aimAtTarget();
