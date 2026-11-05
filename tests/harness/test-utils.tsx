@@ -5,7 +5,7 @@ import type { FiberFamily } from '../../scripts/test/aliases.mts';
 import { markForCapture } from './capture';
 import { expectFailure, failsOn, skipReason, titleNote } from './expectations';
 import { playwrightPointers } from './playwright-input';
-import { DEFAULT_PIXEL_MATCH } from './scene-constants';
+import { DEFAULT_PARITY_MAX_DIFF, DEFAULT_PIXEL_MATCH } from './scene-constants';
 import { mountScene, PIXI_RENDERERS } from './scene-runner';
 import type { MountedScene, RendererType, TestScene } from './scene-runner';
 
@@ -68,7 +68,7 @@ export async function withScene(
  * Holds a rendered scene against its reference image, `tests/snapshots/<key>.<renderer>.png`, which a
  * run that may write references writes when it is missing. On a pixi-3d renderer it then measures the
  * picture against three.js's, `tests/snapshots/<key>.three.png`, and fails when the scene's
- * `parity.maxDiff` is set and more pixels differ than it allows.
+ * more pixels differ than the scene's `parity.maxDiff` allows, 2% unless it sets one.
  * @param canvas - The scene's canvas, as `mountScene` left it
  * @param key - The scene's key, such as `core/use-frame`
  * @param scene - The scene
@@ -87,7 +87,7 @@ async function checkSceneReferences(
   await new Promise((resolve) => setTimeout(resolve, scene.delay ?? 10));
 
   const result = await server.commands.compareScreenshot(markForCapture(canvas), key, renderer, pixelMatch, {
-    parity: scene.parity ?? {},
+    parity: scene.parity === false ? false : { maxDiff: DEFAULT_PARITY_MAX_DIFF, ...scene.parity },
   });
 
   if (!result.passed) {

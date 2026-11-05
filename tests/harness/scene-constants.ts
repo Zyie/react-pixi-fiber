@@ -18,5 +18,11 @@ export const SCENE_BACKGROUND = '#000000';
 /** Milliseconds of the scene's clock between two frames unless a call says otherwise: a sixtieth of a second */
 export const FRAME_STEP = 1000 / 60;
 
+/**
+ * The largest share of drawn pixels, from 0 to 1, that may differ from three.js on a pixi-3d renderer
+ * unless a scene sets `parity`
+ */
+export const DEFAULT_PARITY_MAX_DIFF = 0.02;
+
 /** How many pixels of a scene may differ from its reference image unless it sets `pixelMatch` */
 export const DEFAULT_PIXEL_MATCH = 16;

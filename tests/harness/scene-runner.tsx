@@ -31,7 +31,7 @@ export interface SceneSkip {
 export interface SceneParity {
   /**
    * The largest share of drawn pixels, from 0 to 1, that may differ from three.js on each pixi-3d
-   * renderer. The scene fails when more differ. Without it, parity is only reported.
+   * renderer. The scene fails when more differ. 2% when omitted (`DEFAULT_PARITY_MAX_DIFF`).
    */
   maxDiff?: number;
 }
@@ -74,7 +74,7 @@ export interface TestScene {
    * way. Delete it when the scene is meant to pass.
    */
   fails?: string | Partial<Record<RendererType, string>>;
-  /** `false` leaves the scene out of the three.js comparison; reported only when omitted */
+  /** `false` leaves the scene out of the three.js comparison; held to 2% of drawn pixels when omitted */
   parity?: false | SceneParity;
 }
 

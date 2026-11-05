@@ -84,7 +84,7 @@ Every scene can also set:
 - `skip`: `{ reason, renderers? }` skips the scene on the listed renderers, or on all of them. The reason is in the test's title.
 - `delay`: milliseconds to wait between the last frame and the capture.
 - `fails`: marks a scene that can't pass yet. See "Expected failures".
-- `parity`: `false` leaves the scene out of the three.js comparison; `{ maxDiff }` fails it when it is further from three.js than that.
+- `parity`: `false` leaves the scene out of the three.js comparison; `{ maxDiff }` sets how far from three.js it may be, 2% of drawn pixels when omitted.
 
 `tests/harness/scene-runner.tsx` documents each option. The playground builds scenes through the same `mountScene`, so a scene looks the same in both.
 
@@ -175,7 +175,7 @@ On each pixi-3d renderer, a scene's capture is measured against its three.js pic
 
 - Two pixels differ when pixelmatch says so at a threshold of 0.05 (`PARITY_THRESHOLD` in `tests/harness/parity-metric.ts`), which lets a grey be about 13 levels off. Shading that is close counts as the same; a face lit a fifth darker, another colour, or a missing or moved object doesn't. Pixels pixelmatch takes for anti-aliasing don't count.
 - A pixel is drawn when it isn't the black background in at least one of the two pictures.
-- The parity diff is the share of drawn pixels that differ, from 0 to 1. A scene with `parity: { maxDiff: 0.1 }` fails when more than 10% of its drawn pixels differ on either pixi-3d renderer. Without `maxDiff` the diff is only reported.
+- The parity diff is the share of drawn pixels that differ, from 0 to 1. A scene fails when more than 2% of its drawn pixels differ on either pixi-3d renderer (`DEFAULT_PARITY_MAX_DIFF` in `tests/harness/scene-constants.ts`), or more than its own `parity: { maxDiff }`.
 
 At the end of a run the reporter prints a table, and writes the same to `.temp/parity/summary.json`:
 
@@ -184,8 +184,8 @@ Parity with three.js: the share of drawn pixels that differ (pixelmatch threshol
 scene                              webgl  webgpu  maxDiff  parity
 ---------------------------------  -----  ------  -------  --------------
 assets/use-texture                 2.4%   2.4%    5.0%     within maxDiff
-core/alias-catalog                 34.4%  34.4%   -        reported only
-docs/your-first-scene/first-scene  0.0%   0.0%    -        reported only
+core/alias-catalog                 34.4%  34.4%   2.0%     over maxDiff
+docs/your-first-scene/first-scene  0.0%   0.0%    2.0%     within maxDiff
 ```
 
 ### Reading a parity composite
@@ -199,7 +199,7 @@ Each scene that ran on pixi-3d gets `.temp/parity/<key>.png`, four panels from t
 
 Read it in that order. A red patch where both pictures draw the same shape is shading or colour: lighting calibration, tone mapping, colour management. A red outline or a red shape that is in one picture only is geometry, a transform, or something not drawn at all: a missing alias, prop or feature.
 
-A scene whose pixi pictures can't match three.js yet because of a known gap sets `maxDiff` and marks its pixi renderers `fails`. The day the gap closes, its reference comparison fails, and the references are updated and the mark removed. `tests/scenes/assets/use-texture.scene.tsx` carried one until `map` was aliased; it now keeps a `maxDiff` of 5% as a gate.
+A scene whose pixi pictures can't match three.js yet because of a known gap marks its pixi renderers `fails`, with the gap in a comment, as `tests/scenes/core/alias-catalog.scene.tsx` does for metalness with no environment map. The day the gap closes, its reference comparison fails, and the references are updated and the mark removed. A scene that comes close but can't match exactly sets its own `maxDiff`, as `tests/scenes/assets/use-texture.scene.tsx` does for texture filtering.
 
 ## Running tests
 
