@@ -1,4 +1,4 @@
-import type { Container3D } from '@pixi/3d';
+import type { BaseMaterial3D, Container3D } from '@pixi/3d';
 
 import type { ConstructorRepresentation } from './utils';
 
@@ -55,7 +55,7 @@ export interface ObjectMap {
   /** Every node, by name */
   nodes: Record<string, Container3D>;
   /** Every material, by name */
-  materials: Record<string, unknown>;
+  materials: Record<string, BaseMaterial3D>;
   /** Every mesh, by name */
   meshes: Record<string, Container3D>;
 }

@@ -64,12 +64,12 @@ export class Mesh extends Mesh3D {
   }
 
   /**
-   * How much of each morph target shows, 0 to 1, as three's; pixi-3d's morph `weights`, so writing an
-   * entry, or an animation track on it, shows on the next frame. `undefined` while the geometry has
-   * no morph targets.
+   * How much of each morph target shows, 0 to 1, as three's; pixi-3d's morph `weights`, a
+   * `Float32Array` typed as three's array, so writing an entry, or an animation track on it, shows on
+   * the next frame. `undefined` while the geometry has no morph targets.
    */
-  public get morphTargetInfluences(): (Float32Array & { fromArray(values: ArrayLike<number>): void }) | undefined {
-    return this.morph?.weights as (Float32Array & { fromArray(values: ArrayLike<number>): void }) | undefined;
+  public get morphTargetInfluences(): number[] | undefined {
+    return this.morph?.weights as unknown as number[] | undefined;
   }
 
   public set morphTargetInfluences(value: ArrayLike<number> | undefined) {
