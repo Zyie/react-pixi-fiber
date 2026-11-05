@@ -48,11 +48,24 @@ function fiberPerFrame(): Plugin {
   };
 }
 
+/**
+ * Watches the scene and example folders, which sit outside the playground's root, so a file added
+ * while the server runs joins the list without a restart
+ */
+function watchScenes(): Plugin {
+  return {
+    name: 'playground:watch-scenes',
+    configureServer(server) {
+      server.watcher.add([path.join(projectRoot, 'tests/scenes'), path.join(projectRoot, 'examples')]);
+    },
+  };
+}
+
 export default defineConfig({
   root,
   // The textures and models the scenes load, at the URLs vitest serves them from.
   publicDir: path.resolve(projectRoot, 'tests/assets'),
-  plugins: [fiberPerFrame()],
+  plugins: [fiberPerFrame(), watchScenes()],
   resolve: { alias: sharedAliases },
   optimizeDeps: {
     exclude: ['pixi.js'],
