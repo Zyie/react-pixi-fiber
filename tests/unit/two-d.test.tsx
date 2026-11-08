@@ -89,7 +89,7 @@ it('draws a scene of 2D alone without a 3D view, and makes one once 3D joins it'
   await act(async () => state.advance(16));
   const view = state.renderer.getView(state.scene)!;
   expect(view).toBeDefined();
-  expect(view.parent).toBe(state.screen);
+  expect(view.parent!.parent === state.screen).toBe(true);
 });
 
 // Identity isn't on the picture either.
