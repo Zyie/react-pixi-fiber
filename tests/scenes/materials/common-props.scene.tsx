@@ -5,7 +5,10 @@ import { AdditiveBlending, BackSide, DoubleSide, FrontSide, LinearFilter } from 
 const SIDES = [FrontSide, BackSide, DoubleSide];
 
 function Props() {
-  const [checker, ramp] = useTexture(['/textures/uv-checker.png', '/textures/alpha-ramp.png']);
+  const [checker, ramp] = useTexture([
+    '/textures/uv-checker.png?common-props',
+    '/textures/alpha-ramp.png?common-props',
+  ]);
   Object.assign(checker, { generateMipmaps: false, minFilter: LinearFilter });
   Object.assign(ramp, { generateMipmaps: false, minFilter: LinearFilter });
 

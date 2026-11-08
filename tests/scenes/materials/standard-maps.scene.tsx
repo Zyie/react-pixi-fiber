@@ -3,7 +3,11 @@ import { useTexture } from 'react-pixi-fiber';
 import { LinearFilter } from 'react-pixi-fiber/three';
 
 function Maps() {
-  const textures = useTexture(['/textures/normal-domes.png', '/textures/alpha-ramp.png', '/textures/uv-checker.png']);
+  const textures = useTexture([
+    '/textures/normal-domes.png?standard-maps',
+    '/textures/alpha-ramp.png?standard-maps',
+    '/textures/uv-checker.png?standard-maps',
+  ]);
   for (const texture of textures) Object.assign(texture, { generateMipmaps: false, minFilter: LinearFilter });
   const [normal, ramp, checker] = textures;
   const position = (index: number): [number, number, number] => [((index % 3) - 1) * 2.3, index < 3 ? 1.1 : -1.1, 0];

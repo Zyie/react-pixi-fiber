@@ -5,7 +5,7 @@ import { SRGBColorSpace } from 'react-pixi-fiber/three';
 
 /** Puts a texture on the scene's `background`, in sRGB as its colours were authored */
 function Backdrop({ intensity }: { intensity: number }) {
-  const texture = useTexture('/textures/quadrants.png');
+  const texture = useTexture('/textures/quadrants.png?background');
   const scene = useThree((state) => state.scene);
 
   useLayoutEffect(() => {

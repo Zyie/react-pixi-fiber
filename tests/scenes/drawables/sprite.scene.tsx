@@ -3,7 +3,7 @@ import { useTexture } from 'react-pixi-fiber';
 import { LinearFilter } from 'react-pixi-fiber/three';
 
 function Sprites() {
-  const checker = useTexture('/textures/uv-checker.png');
+  const checker = useTexture('/textures/uv-checker.png?sprite');
   Object.assign(checker, { generateMipmaps: false, minFilter: LinearFilter });
 
   return (

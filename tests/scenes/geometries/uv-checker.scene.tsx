@@ -5,7 +5,7 @@ import { DoubleSide, LinearFilter } from 'react-pixi-fiber/three';
 import { GEOMETRIES, galleryPosition } from './gallery';
 
 function Gallery() {
-  const checker = useTexture('/textures/uv-checker.png');
+  const checker = useTexture('/textures/uv-checker.png?gallery');
   // pixi-3d samples without mipmaps; three's are turned off so the picture compares UVs, not filtering
   Object.assign(checker, { generateMipmaps: false, minFilter: LinearFilter });
 
