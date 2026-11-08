@@ -1,4 +1,3 @@
-import { PIXI_ONLY } from '@test-scene';
 import type { TestScene } from '@test-scene';
 import { useTexture } from 'react-pixi-fiber';
 
@@ -31,7 +30,6 @@ function Filtered({ blur }: { blur: boolean }) {
  * `<colorMatrixFilter2D>` whose `matrix` prop is set.
  */
 export const scene: TestScene = {
-  ...PIXI_ONLY,
   render: () => <Filtered blur />,
   act: async ({ update }) => {
     await update(<Filtered blur={false} />);

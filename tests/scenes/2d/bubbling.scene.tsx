@@ -1,4 +1,3 @@
-import { PIXI_ONLY } from '@test-scene';
 import type { TestScene } from '@test-scene';
 import { Rectangle, Texture } from 'pixi.js';
 import { useState } from 'react';
@@ -53,7 +52,6 @@ function Scene() {
  * elsewhere, so its lamp only asks that it fired. All five lamps are green.
  */
 export const scene: TestScene = {
-  ...PIXI_ONLY,
   render: () => <Scene />,
   act: async ({ mouse, frames }) => {
     await mouse.click(50, 70);

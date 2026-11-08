@@ -1,4 +1,3 @@
-import { PIXI_ONLY } from '@test-scene';
 import type { TestScene } from '@test-scene';
 import { Texture } from 'pixi.js';
 import { useState } from 'react';
@@ -47,7 +46,6 @@ function Scene({ cursorShown = false }: { cursorShown?: boolean }) {
  * lamp at the bottom.
  */
 export const scene: TestScene = {
-  ...PIXI_ONLY,
   render: () => <Scene />,
   act: async ({ mouse, frames, update }, state) => {
     await mouse.click(110, 130);

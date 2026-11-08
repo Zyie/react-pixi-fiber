@@ -1,4 +1,3 @@
-import { PIXI_ONLY } from '@test-scene';
 import type { TestScene } from '@test-scene';
 import { useTexture } from 'react-pixi-fiber';
 
@@ -24,7 +23,6 @@ function Masked({ masked }: { masked: boolean }) {
  * away, so the whole sprite shows again.
  */
 export const scene: TestScene = {
-  ...PIXI_ONLY,
   render: () => <Masked masked />,
   act: async ({ update, frames }) => {
     await frames();

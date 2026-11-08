@@ -1,4 +1,3 @@
-import { PIXI_ONLY } from '@test-scene';
 import type { TestScene } from '@test-scene';
 import { GraphicsContext } from 'pixi.js';
 import { useMemo, useState } from 'react';
@@ -32,7 +31,6 @@ function Shared() {
  * swaps the green star's own context for one drawn by its `draw` prop.
  */
 export const scene: TestScene = {
-  ...PIXI_ONLY,
   frames: 20,
   render: () => (
     <>

@@ -40,3 +40,17 @@ export const PIXI_ONLY = {
   skip: { renderers: ['three'], reason: 'three.js has no pixi.js 2D elements' },
   parity: false,
 } as const satisfies { skip: { renderers: ['three']; reason: string }; parity: false };
+
+/**
+ * The folders of keys whose scenes and examples draw pixi.js 2D, which three.js can't, so they are
+ * `PIXI_ONLY` without saying so: `tests/scenes/2d`, `tests/scenes/mixed` and `examples/2d`. The
+ * `three` project and the playground's three.js frame don't load them, since they import names only
+ * this library exports.
+ */
+export const PIXI_ONLY_FOLDERS = ['2d', 'mixed', 'docs/2d'] as const;
+
+/**
+ * Whether a scene's key is in one of {@link PIXI_ONLY_FOLDERS}
+ * @param key - The scene's key, such as `2d/graphics` or `docs/2d/first-2d-scene`
+ */
+export const isPixiOnlyKey = (key: string): boolean => PIXI_ONLY_FOLDERS.some((folder) => key.startsWith(`${folder}/`));

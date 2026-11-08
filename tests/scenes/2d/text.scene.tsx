@@ -1,4 +1,3 @@
-import { PIXI_ONLY } from '@test-scene';
 import type { TestScene } from '@test-scene';
 import { useAsset } from 'react-pixi-fiber';
 
@@ -36,6 +35,5 @@ function Texts() {
  * degrees by `angle`.
  */
 export const scene: TestScene = {
-  ...PIXI_ONLY,
   render: () => <Texts />,
 };

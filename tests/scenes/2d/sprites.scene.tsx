@@ -1,4 +1,3 @@
-import { PIXI_ONLY } from '@test-scene';
 import type { TestScene } from '@test-scene';
 import type { Spritesheet } from 'pixi.js';
 import { useAsset, useTexture } from 'react-pixi-fiber';
@@ -41,6 +40,5 @@ function Sprites() {
  * orange.
  */
 export const scene: TestScene = {
-  ...PIXI_ONLY,
   render: () => <Sprites />,
 };

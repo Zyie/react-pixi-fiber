@@ -1,4 +1,3 @@
-import { PIXI_ONLY } from '@test-scene';
 import type { TestScene } from '@test-scene';
 
 /**
@@ -7,7 +6,6 @@ import type { TestScene } from '@test-scene';
  * below, in CSS pixels from the canvas's top-left corner.
  */
 export const scene: TestScene = {
-  ...PIXI_ONLY,
   render: () => (
     <container2D x={40} y={30}>
       <graphics2D

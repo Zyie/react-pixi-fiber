@@ -1,4 +1,3 @@
-import { PIXI_ONLY } from '@test-scene';
 import type { TestScene } from '@test-scene';
 import { Texture } from 'pixi.js';
 
@@ -8,7 +7,6 @@ import { Texture } from 'pixi.js';
  * 2D square beside it, which is directly in the canvas, draws as usual.
  */
 export const scene: TestScene = {
-  ...PIXI_ONLY,
   render: () => (
     <>
       <ambientLight intensity={0.5} />

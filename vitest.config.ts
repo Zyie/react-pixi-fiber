@@ -7,11 +7,17 @@ import { fiberAliases, sharedAliases } from './scripts/test/aliases.mts';
 import BrowserCommands from './scripts/test/browser-commands.mts';
 import generateTestWrappers from './scripts/test/generate-test-wrappers.mts';
 import { ParityReporter } from './scripts/test/parity.mts';
+import { PIXI_ONLY_FOLDERS } from './tests/harness/scene-constants';
 
 const EXCLUDE = [...configDefaults.exclude, '.claude/**', '.repos/**'];
 
 /** The wrappers of every scene and example, which the `three` and `scenes` projects both run */
 const SCENE_WRAPPERS = ['tests/scenes/**/*.scene.test.ts', 'tests/docs/**/*.example.test.ts'];
+
+/** The wrappers of the 2D scenes and examples, which the `three` project leaves out: three.js has no 2D */
+const PIXI_ONLY_WRAPPERS = PIXI_ONLY_FOLDERS.map((folder) =>
+  folder.startsWith('docs/') ? `tests/${folder}/**` : `tests/scenes/${folder}/**`,
+);
 
 export default defineConfig({
   server: {
@@ -84,7 +90,7 @@ export default defineConfig({
         test: {
           name: 'three',
           include: SCENE_WRAPPERS,
-          exclude: EXCLUDE,
+          exclude: [...EXCLUDE, ...PIXI_ONLY_WRAPPERS],
           provide: { fiber: 'three' },
           sequence: { groupOrder: 0 },
         },

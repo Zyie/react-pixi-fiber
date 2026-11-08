@@ -1,4 +1,3 @@
-import { PIXI_ONLY } from '@test-scene';
 import type { TestScene } from '@test-scene';
 import { Texture } from 'pixi.js';
 
@@ -42,7 +41,6 @@ function Scene({ order }: { order: Name[] }) {
  * its blue one.
  */
 export const scene: TestScene = {
-  ...PIXI_ONLY,
   render: () => <Scene order={['red', 'green', 'blue', 'yellow']} />,
   act: async ({ update }) => {
     await update(<Scene order={['yellow', 'blue', 'red', 'green']} />);

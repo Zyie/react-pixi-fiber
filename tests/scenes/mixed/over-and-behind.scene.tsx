@@ -1,4 +1,3 @@
-import { PIXI_ONLY } from '@test-scene';
 import type { TestScene } from '@test-scene';
 
 /**
@@ -8,7 +7,6 @@ import type { TestScene } from '@test-scene';
  * canvas as r3f's default camera sees it.
  */
 export const scene: TestScene = {
-  ...PIXI_ONLY,
   render: () => (
     <>
       <ambientLight intensity={0.4} />

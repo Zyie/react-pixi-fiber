@@ -1,4 +1,3 @@
-import { PIXI_ONLY } from '@test-scene';
 import type { TestScene } from '@test-scene';
 import { Texture } from 'pixi.js';
 import type { RenderLayer, Sprite } from 'pixi.js';
@@ -13,7 +12,6 @@ const COLORS = [0xe6194b, 0x3cb44b, 0xffe119, 0x4363d8, 0xf58231, 0x911eb4, 0x46
  * blue one, though the yellow one comes first in the tree.
  */
 export const scene: TestScene = {
-  ...PIXI_ONLY,
   render: () => (
     <>
       <particleContainer2D x={120} y={150}>

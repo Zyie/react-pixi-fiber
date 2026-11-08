@@ -1,4 +1,3 @@
-import { PIXI_ONLY } from '@test-scene';
 import type { TestScene } from '@test-scene';
 import { useState } from 'react';
 import type { ThreeEvent2D } from 'react-pixi-fiber';
@@ -40,7 +39,6 @@ function Card({ x, stop }: { x: number; stop: boolean }) {
  * went on through its card to the box behind it.
  */
 export const scene: TestScene = {
-  ...PIXI_ONLY,
   render: () => (
     <>
       <Box x={-1.5} />

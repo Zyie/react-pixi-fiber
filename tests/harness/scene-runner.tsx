@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { createRoot, events } from 'react-pixi-fiber';
 import type { PixiRenderer, ReconcilerRoot, RenderProps, RootState, RootStore } from 'react-pixi-fiber';
 
-import { FRAME_STEP, SCENE_BACKGROUND, SCENE_HEIGHT, SCENE_WIDTH } from './scene-constants';
+import { FRAME_STEP, PIXI_ONLY, SCENE_BACKGROUND, SCENE_HEIGHT, SCENE_WIDTH, isPixiOnlyKey } from './scene-constants';
 import { createSceneClock, nextTask, syntheticPointers } from './scene-input';
 import type { PointerSource, SceneInput } from './scene-input';
 
@@ -89,6 +89,16 @@ export function skipReason(scene: TestScene, renderer: RendererType): string | n
   if (!skip || (skip.renderers && !skip.renderers.includes(renderer))) return null;
 
   return skip.reason;
+}
+
+/**
+ * A scene with the defaults of its folder: one under `PIXI_ONLY_FOLDERS` is `PIXI_ONLY`, skipping
+ * three.js and the parity comparison, unless it says otherwise
+ * @param key - The scene's key, such as `2d/graphics` or `docs/2d/first-2d-scene`
+ * @param scene - The scene
+ */
+export function withFolderDefaults<T extends TestScene>(key: string, scene: T): T {
+  return isPixiOnlyKey(key) ? { ...PIXI_ONLY, ...scene } : scene;
 }
 
 /** The root props a scene may set beyond its size, camera and the harness's own */

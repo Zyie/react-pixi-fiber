@@ -1,4 +1,3 @@
-import { PIXI_ONLY } from '@test-scene';
 import type { TestScene } from '@test-scene';
 import { MeshGeometry, Point } from 'pixi.js';
 import { useMemo } from 'react';
@@ -49,6 +48,5 @@ function Meshes() {
  * skewed by its four corners, and a `<mesh2D>` drawing a triangle `MeshGeometry` passed in `args`.
  */
 export const scene: TestScene = {
-  ...PIXI_ONLY,
   render: () => <Meshes />,
 };

@@ -1,4 +1,3 @@
-import { PIXI_ONLY } from '@test-scene';
 import type { TestScene } from '@test-scene';
 import { Texture } from 'pixi.js';
 import type { Sprite } from 'pixi.js';
@@ -57,7 +56,6 @@ function ScreenChildren() {
  * drew: the corner and the spinner, before the dots' own graphics joined it.
  */
 export const scene: TestScene = {
-  ...PIXI_ONLY,
   size: { width: 480, height: 240 },
   frames: 10,
   render: () => (

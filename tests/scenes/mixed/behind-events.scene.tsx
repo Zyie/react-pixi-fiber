@@ -1,4 +1,3 @@
-import { PIXI_ONLY } from '@test-scene';
 import type { TestScene } from '@test-scene';
 import { useState } from 'react';
 import type { ThreeEvent } from 'react-pixi-fiber';
@@ -43,7 +42,6 @@ function Panel({ x }: { x: number }) {
  * the panel behind it, which turns pink. Both boxes are orange.
  */
 export const scene: TestScene = {
-  ...PIXI_ONLY,
   render: () => (
     <>
       <Box x={-1.5} stop />

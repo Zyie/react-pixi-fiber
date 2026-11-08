@@ -6,7 +6,7 @@ import { markForCapture } from './capture';
 import { expectFailure, failsOn, skipReason, titleNote } from './expectations';
 import { playwrightPointers } from './playwright-input';
 import { DEFAULT_PARITY_MAX_DIFF, DEFAULT_PIXEL_MATCH } from './scene-constants';
-import { mountScene, PIXI_RENDERERS } from './scene-runner';
+import { mountScene, PIXI_RENDERERS, withFolderDefaults } from './scene-runner';
 import type { MountedScene, RendererType, TestScene } from './scene-runner';
 
 export * from './capture';
@@ -113,12 +113,15 @@ async function checkSceneReferences(
  * `checkSceneReferences` describes.
  *
  * Every `*.scene.tsx` and `*.example.tsx` has a generated wrapper that calls this once, so each scene is
- * its own test file and vitest runs them in parallel.
+ * its own test file and vitest runs them in parallel. A scene of a 2D folder skips three.js
+ * (`withFolderDefaults`).
  * @param key - The scene's path under `tests/scenes` without `.scene.tsx`, such as `core/use-frame`, or
  * `docs/<topic>/<name>` for an example
- * @param scene - The scene the file exports
+ * @param sceneAsWritten - The scene the file exports
  */
-export function defineSceneTests(key: string, scene: TestScene): void {
+export function defineSceneTests(key: string, sceneAsWritten: TestScene): void {
+  const scene = withFolderDefaults(key, sceneAsWritten);
+
   describe('Visual Tests', () => {
     for (const renderer of projectRenderers()) {
       const skip = skipReason(scene, renderer);

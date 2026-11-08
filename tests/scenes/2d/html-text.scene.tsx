@@ -1,4 +1,3 @@
-import { PIXI_ONLY } from '@test-scene';
 import type { TestScene } from '@test-scene';
 
 /**
@@ -6,7 +5,6 @@ import type { TestScene } from '@test-scene';
  * line of white text with a bold orange word and an italic blue one.
  */
 export const scene: TestScene = {
-  ...PIXI_ONLY,
   frames: 10,
   delay: 200,
   render: () => (

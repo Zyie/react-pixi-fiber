@@ -1,4 +1,3 @@
-import { PIXI_ONLY } from '@test-scene';
 import type { TestScene } from '@test-scene';
 import { Texture } from 'pixi.js';
 
@@ -36,7 +35,6 @@ function Scene({ x, tint, alpha, angle, text, visible }: Props) {
  * a red square at the bottom right is hidden by `visible={false}`.
  */
 export const scene: TestScene = {
-  ...PIXI_ONLY,
   render: () => <Scene x={80} tint="grey" alpha={1} angle={0} text="before" visible />,
   act: async ({ update, frames }) => {
     await frames();

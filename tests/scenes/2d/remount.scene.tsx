@@ -1,4 +1,3 @@
-import { PIXI_ONLY } from '@test-scene';
 import type { TestScene } from '@test-scene';
 import { Texture } from 'pixi.js';
 
@@ -24,7 +23,6 @@ function Scene({ shown }: { shown: Record<'a' | 'b' | 'c', boolean> }) {
  * in its own place, the green one before the blue one in the container as in React.
  */
 export const scene: TestScene = {
-  ...PIXI_ONLY,
   render: () => <Scene shown={{ a: true, b: true, c: true }} />,
   act: async ({ update, frames }) => {
     await frames();

@@ -1,5 +1,6 @@
 import type { Example } from '../../examples/example';
-import { skipReason } from '../../tests/harness/scene-runner';
+import { PIXI_ONLY, isPixiOnlyKey } from '../../tests/harness/scene-constants';
+import { skipReason, withFolderDefaults } from '../../tests/harness/scene-runner';
 import type { RendererType, TestScene } from '../../tests/harness/scene-runner';
 import { findEntry } from './scenes';
 
@@ -8,6 +9,9 @@ export type FrameMessage =
   | { type: 'scene-result'; bitmap: ImageBitmap }
   | { type: 'scene-error'; message: string }
   | { type: 'scene-skipped'; reason: string };
+
+/** What a three.js frame stands in for a 2D scene it doesn't load: nothing to draw, skipped on three.js */
+const PIXI_ONLY_SCENE: TestScene = { ...PIXI_ONLY, render: () => null };
 
 const params = new URLSearchParams(location.search);
 const entry = findEntry(params.get('kind'), params.get('id'));
@@ -18,8 +22,10 @@ const post = (message: FrameMessage, transfer: Transferable[] = []): void =>
 try {
   if (!entry) throw new Error(`No ${params.get('kind')} named ${params.get('id')}`);
 
-  const module = (await entry.load()) as { scene?: TestScene; example?: Example };
-  const scene: TestScene = (module.scene ?? module.example)!;
+  // A 2D scene imports names only this library exports, so the three.js frame doesn't load it.
+  const pixiOnly = renderer === 'three' && isPixiOnlyKey(entry.key);
+  const module = pixiOnly ? {} : ((await entry.load()) as { scene?: TestScene; example?: Example });
+  const scene: TestScene = withFolderDefaults(entry.key, module.scene ?? module.example ?? PIXI_ONLY_SCENE);
   const skip = skipReason(scene, renderer);
 
   if (skip !== null) {
