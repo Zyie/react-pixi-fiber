@@ -65,11 +65,15 @@ type Block =
   | { readonly kind: 'prose'; readonly node: Nodes };
 
 /**
- * A name as words, for a topic or an example with no title of its own: `loading-models` is "Loading models"
+ * A name as words, for a topic or an example with no title of its own: `loading-models` is "Loading
+ * models", and `2d` is "2D"
  * @param name - The folder or file name
  */
 export function humanize(name: string): string {
-  const words = name.replace(/[-_]+/g, ' ').trim();
+  const words = name
+    .replace(/[-_]+/g, ' ')
+    .replace(/\b(\d)d\b/g, '$1D')
+    .trim();
 
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
