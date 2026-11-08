@@ -1,6 +1,6 @@
 # Mixing 2D and 3D
 
-2D and 3D share one canvas, one tree and one event system, and four bridges let each reach into the other:
+2D and 3D share one canvas, one tree and one event system, and four bridges let each reach into the other: 2D that follows a 3D object, 3D inside 2D, the canvas's 3D as a 2D node, and 2D drawn into a material's texture.
 
 | Bridge              | What it does                                                                                       |
 | ------------------- | -------------------------------------------------------------------------------------------------- |

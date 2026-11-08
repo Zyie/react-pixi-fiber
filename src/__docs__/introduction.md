@@ -1,6 +1,6 @@
 # Introduction
 
-react-pixi-fiber is a React renderer for [pixi.js](https://pixijs.com) 2D and [pixi-3d](https://github.com/pixijs/pixi-3d) that keeps [react-three-fiber](https://r3f.docs.pmnd.rs)'s API for both. You build the scene with the same `<Canvas>`, the same hooks and the same JSX elements, and pixi-3d draws it. An r3f scene should only have to change its import. pixi.js's sprites, graphics, text, filters and masks are elements of the same tree (`<sprite2D>`, `<graphics2D>`, `<text2D>`), drawn over or under the 3D, with the same hooks and events; [Your first 2D scene](../two-d/__docs__/your-first-2d-scene.md) starts there.
+react-pixi-fiber is a React renderer for [pixi.js](https://pixijs.com) 2D and [pixi-3d](https://github.com/pixijs/pixi-3d) that keeps [react-three-fiber](https://r3f.docs.pmnd.rs)'s API for both. You build the scene with the same `<Canvas>`, the same hooks and the same JSX elements, and pixi-3d draws it. An r3f scene should only have to change its import. pixi.js's sprites, graphics, text, filters and masks are elements of the same tree (`<sprite2D>`, `<graphics2D>`, `<text2D>`), drawn over or under the 3D, with the same hooks and events; [Your first 2D scene](../two-d/__docs__/your-first-2d-scene.md) starts there. The two also cross: 2D labels that follow a 3D object, 3D drawn inside a 2D card, 2D filters on the 3D, and 2D drawn onto a material, in [Mixing 2D and 3D](../two-d/__docs__/mixing-2d-and-3d.md).
 
 ```diff
 - import { Canvas, useFrame } from '@react-three/fiber';

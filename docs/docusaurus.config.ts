@@ -14,7 +14,8 @@ const SOCIAL_CARD_ALT =
 
 const config: Config = {
   title: 'react-pixi-fiber',
-  tagline: "react-three-fiber's API, rendered by pixi-3d. Swap the import, keep your scene.",
+  tagline:
+    "react-three-fiber's API, rendered by pixi-3d, with pixi.js 2D in the same tree. Swap the import, keep your scene.",
   favicon: 'img/favicon.png',
   url: SITE_URL,
   baseUrl: '/',
@@ -118,6 +119,7 @@ const config: Config = {
       hideOnScroll: false,
       items: [
         { type: 'docSidebar', sidebarId: 'docs', label: 'Docs', position: 'left' },
+        { to: '/docs/2d/', label: '2D', position: 'left', activeBaseRegex: '^/docs/2d/' },
         { type: 'docSidebar', sidebarId: 'examples', label: 'Examples', position: 'left' },
         { type: 'docSidebar', sidebarId: 'api', label: 'API', position: 'left' },
         { type: 'search', position: 'right' },
@@ -133,6 +135,8 @@ const config: Config = {
           title: 'Learn',
           items: [
             { label: 'Docs', to: '/docs/' },
+            { label: '2D', to: '/docs/2d/' },
+            { label: 'Mixing 2D and 3D', to: '/docs/2d/mixing-2d-and-3d/' },
             { label: 'Examples', to: '/examples/' },
             { label: 'API', to: '/api/' },
             { label: 'Differences from r3f', to: '/docs/reference/differences/' },

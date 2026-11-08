@@ -321,7 +321,7 @@ function sectionIndex(section: Exclude<GuideSection, 'getting-started'>, sources
   const leads: Record<typeof section, string> = {
     tutorials:
       "Step by step through react-three-fiber's tutorials, each running on pixi-3d with the same code. Every one assumes you know some React.",
-    '2d': "pixi.js 2D in the same canvas, tree, hooks and events as the 3D: sprites, graphics, text, filters and masks as elements, drawn over or under the 3D, with react-three-fiber's API.",
+    '2d': "pixi.js 2D in the same canvas, tree, hooks and events as the 3D: sprites, graphics, text, filters and masks as elements, drawn over or under the 3D, with react-three-fiber's API, and bridges that put 2D on 3D objects, 3D inside 2D and 2D filters on the 3D.",
     reference:
       'What differs from react-three-fiber, item by item, and every name react-pixi-fiber exports, read from its source and JSDoc.',
     advanced: 'Keeping scenes fast as they grow: rendering on demand, sharing resources and instancing, on pixi-3d.',

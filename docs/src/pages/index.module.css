@@ -8,6 +8,12 @@
   background: var(--layout-bg);
 }
 
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--layout-space-6);
+}
+
 .more {
   display: inline-flex;
   align-items: center;
