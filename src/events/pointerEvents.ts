@@ -1,8 +1,14 @@
+import { Point } from 'pixi.js';
+
+import { Vector2 } from '../math/Vector2';
 import { createPointerEvents as coreEvents } from '../r3f/src/core/events';
 import { cursorAt } from '../two-d/hitTest';
-import { screenOf } from '../two-d/screen';
+import { layerOf, screenOf } from '../two-d/screen';
 import type { DomEvent, EventManager } from '../types/events';
 import type { RootState, RootStore } from '../types/state';
+
+const layerPoint = new Point();
+const rayPointer = new Vector2();
 
 /**
  * r3f's pointer event layer, with `onDoubleClick` delivered and the canvas's cursor following the 2D
@@ -14,12 +20,26 @@ import type { RootState, RootStore } from '../types/state';
  *
  * On a pointer move it sets the canvas's cursor to the `cursor` of the 2D element under the pointer
  * that takes events, as pixi does, and clears it when there is none or the pointer leaves.
+ *
+ * While the scene's 3D layer is moved, scaled or turned (`<Layer3D>`), the ray is cast through the
+ * point of the 3D under the pointer, so the 3D picks where it is drawn; `pointer` stays the canvas's.
  * @param store - The root's store
  * @internal
  */
 export function createPointerEvents(store: RootStore): EventManager<HTMLElement> {
   const manager = (coreEvents as unknown as (store: RootStore) => EventManager<HTMLElement>)(store);
   const handlers = manager.handlers!;
+  const coreCompute = manager.compute!;
+  manager.compute = (event, state, previous) => {
+    coreCompute(event, state, previous);
+    const screen = screenOf(state.scene);
+    const layer = screen && layerOf(screen);
+    if (!layer || layer.worldTransform.isIdentity()) return;
+    layerPoint.set((event as PointerEvent).offsetX, (event as PointerEvent).offsetY);
+    layer.worldTransform.applyInverse(layerPoint, layerPoint);
+    rayPointer.set((layerPoint.x / state.size.width) * 2 - 1, 1 - (layerPoint.y / state.size.height) * 2);
+    state.raycaster.setFromCamera(rayPointer, state.camera);
+  };
   const { onPointerDown, onDoubleClick, onPointerMove, onPointerLeave } = handlers;
   let lastPointerId = 0;
   let cursorSet = false;

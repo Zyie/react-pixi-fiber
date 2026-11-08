@@ -1,6 +1,6 @@
 import type { View3D } from '@pixi/3d';
 import { Sprite, Texture } from 'pixi.js';
-import type { Container } from 'pixi.js';
+import type { ColorSource, Container } from 'pixi.js';
 
 const backdrops = new WeakMap<Container, Sprite>();
 
@@ -29,23 +29,47 @@ export function indexUnderView(stage: Container, view: View3D): number {
  * @internal
  */
 export function updateBackdrop(stage: Container, view: View3D, background: unknown, intensity: number): boolean {
-  let sprite = backdrops.get(stage);
   if (!(background instanceof Texture)) {
+    const sprite = backdrops.get(stage);
     if (sprite) sprite.visible = false;
     return false;
   }
+  const level = Math.round(255 * Math.min(Math.max(intensity, 0), 1) ** (1 / 2.2));
+  showBackdrop(stage, view, background, (level << 16) | (level << 8) | level);
+  return true;
+}
+
+/**
+ * Fills a view's rect with a colour under the view, for a view inside the 2D tree, which can't clear
+ * the canvas to its scene's colour background as a scene drawn on its own does
+ * @param stage - The container holding the view
+ * @param view - The view
+ * @param color - The colour, in display space
+ * @internal
+ */
+export function updateBackdropColor(stage: Container, view: View3D, color: ColorSource): void {
+  showBackdrop(stage, view, Texture.WHITE, color);
+}
+
+/**
+ * Shows the backdrop sprite of a stage over a view's rect, made the first time
+ * @param stage - The view's stage
+ * @param view - The view
+ * @param texture - What it shows
+ * @param tint - Its tint
+ */
+function showBackdrop(stage: Container, view: View3D, texture: Texture, tint: ColorSource): void {
+  let sprite = backdrops.get(stage);
   if (!sprite) {
     sprite = new Sprite();
     backdrops.set(stage, sprite);
     stage.addChildAt(sprite, indexUnderView(stage, view));
   }
   sprite.visible = true;
-  sprite.texture = background;
+  sprite.texture = texture;
   sprite.position.copyFrom(view.position);
   sprite.setSize(view.width, view.height);
-  const level = Math.round(255 * Math.min(Math.max(intensity, 0), 1) ** (1 / 2.2));
-  sprite.tint = (level << 16) | (level << 8) | level;
-  return true;
+  sprite.tint = tint;
 }
 
 /**

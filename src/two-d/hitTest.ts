@@ -2,12 +2,13 @@ import { View3D } from '@pixi/3d';
 import { EventBoundary, Point } from 'pixi.js';
 import type { Container, PointData } from 'pixi.js';
 
-import { castCount } from '../compat/Raycaster';
-import type { Intersection } from '../compat/Raycaster';
+import { castCount, layerSlotOf, setLayerSlot } from '../compat/Raycaster';
+import type { Intersection, LayerSlot, Raycaster } from '../compat/Raycaster';
 import { Vector3 } from '../math/Vector3';
 import { getRootState } from '../r3f/src/core/utils';
+import type { DomEvent } from '../types/events';
 import type { RootState } from '../types/state';
-import { sceneOfScreen } from './screen';
+import { layerOf, sceneOfScreen } from './screen';
 import type { Linked } from './screen';
 import type { Intersection2D } from './types';
 
@@ -48,6 +49,8 @@ interface ScreenHits {
   readonly order: Map<Container, number>;
   /** The place of the first object behind the scene's 3D view; anything from here on draws under the 3D */
   behindFrom: number;
+  /** The screen layer's 3D layer, whose view marks where the 3D is drawn */
+  readonly layer: Container | undefined;
 }
 
 /**
@@ -81,6 +84,16 @@ const takesEvents = (container: Linked<Container>): boolean =>
  */
 function walk(container: Linked<Container>, hits: ScreenHits, active: boolean): void {
   if (!container.visible || !container.renderable || !container.measurable || container.eventMode === 'none') return;
+  if (container instanceof View3D) {
+    if (container.parent === hits.layer && hits.behindFrom === Infinity) hits.behindFrom = hits.order.size;
+    return;
+  }
+  if (sceneOfScreen(container)) {
+    if (!boundary!.misses(container, hits.location) && boundary!.hits(container, hits.location)) {
+      hits.order.set(container, hits.order.size);
+    }
+    return;
+  }
   const takes = active || takesEvents(container);
   if (!takes && !container.interactiveChildren) return;
   if (boundary!.misses(container, hits.location)) return;
@@ -93,29 +106,44 @@ function walk(container: Linked<Container>, hits: ScreenHits, active: boolean): 
 
 /**
  * What is under a point of a screen layer, found once per pointer event: the hits are kept until the
- * root's raycaster is set from a camera again, which every pointer event does first
+ * root's raycaster is set from a camera again, which every pointer event does first. The screen layer
+ * of a `<View3D>` inside it counts as one object, which the view's own layer hit tests.
  * @param screen - The screen layer
- * @param x - The point's x, in CSS pixels from the canvas's left
- * @param y - The point's y, in CSS pixels from the canvas's top
+ * @param x - The point's x, in pixi's global space: the CSS pixels of the canvas, or of the target the
+ *   screen layer is drawn into
+ * @param y - The point's y
  * @internal
  */
 export function screenHits(screen: Container, x: number, y: number): ScreenHits {
   let hits = hitsOf.get(screen);
   const cast = castCount();
   if (hits && hits.cast === cast && hits.location.x === x && hits.location.y === y) return hits;
-  if (!hits) hitsOf.set(screen, (hits = { cast, location: new Point(), order: new Map(), behindFrom: Infinity }));
+  if (!hits) {
+    hits = { cast, location: new Point(), order: new Map(), behindFrom: Infinity, layer: layerOf(screen) };
+    hitsOf.set(screen, hits);
+  }
   boundary ??= new ScreenBoundary();
   hits.cast = cast;
   hits.location.set(x, y);
   hits.order.clear();
   hits.behindFrom = Infinity;
   const { children } = screen;
-  for (let i = children.length - 1; i >= 0; i--) {
-    const child = children[i];
-    if (child instanceof View3D) hits.behindFrom = hits.order.size;
-    else walk(child, hits, false);
-  }
+  for (let i = children.length - 1; i >= 0; i--) walk(children[i], hits, false);
   return hits;
+}
+
+/**
+ * Where a hit sorts in r3f's `distance`: on the root's screen layer, before every 3D hit when it is
+ * drawn over the 3D and after them all when it is drawn under it; in a slot, in the slot's first
+ * quarter over its layer's 3D and its last quarter under it
+ * @param slot - The slot of the screen layer's portal, or `undefined` on the root's
+ * @param order - The hit's place from the front
+ * @param behind - Whether it is drawn under the 3D
+ */
+function distanceOf(slot: LayerSlot | undefined, order: number, behind: boolean): number {
+  if (!slot) return behind ? BEHIND + order : FRONT + order;
+  const along = order / (order + 1);
+  return slot.base + slot.span * (behind ? 0.75 + 0.25 * along : 0.25 * along);
 }
 
 /**
@@ -162,13 +190,15 @@ export function raycastScreen(container: Container, intersects: Intersection[]):
   const screen = screenAbove(container);
   const state = screen && (getRootState(container as never) as RootState | undefined);
   if (!screen || !state) return;
-  const { x, y } = pointerInPixels(state, scratch);
+  screen.worldTransform.apply(pointerInPixels(state, scratch), scratch);
+  const { x, y } = scratch;
   const hits = screenHits(screen, x, y);
   const global = hits.location;
+  const slot = layerSlotOf(state.raycaster as Raycaster);
   for (const [object, order] of hits.order) {
     if (!isWithin(object, container)) continue;
     const hit: Intersection2D = {
-      distance: order < hits.behindFrom ? FRONT + order : BEHIND + order,
+      distance: distanceOf(slot, order, order >= hits.behindFrom),
       point: new Vector3(x, y, 0),
       face: null,
       object,
@@ -192,10 +222,66 @@ export function raycastScreen(container: Container, intersects: Intersection[]):
 export function cursorAt(screen: Container, x: number, y: number): string | null {
   const { order } = screenHits(screen, x, y);
   for (const front of order.keys()) {
+    if (sceneOfScreen(front)) {
+      const nested = cursorAt(front, x, y);
+      if (nested) return nested;
+    }
     for (let node: Container | null = front; node && node !== screen; node = node.parent) {
       if (node.cursor) return node.cursor;
     }
     return null;
   }
   return null;
+}
+
+/**
+ * Points a `<View3D>`'s portal at the pointer, as r3f's `events.compute`: the pointer in the layer the
+ * view is drawn in is found in the view's own space, and its portal's raycaster is set from its camera
+ * there and given the slot the view has in that layer's draw order, so its hits sort where it is drawn.
+ * Away from the view, or where a mask or `hitArea` above it leaves the point out, the portal's
+ * raycaster isn't set, and r3f skips its objects.
+ * @param event - The DOM event
+ * @param state - The portal's state
+ * @param screen - The view's screen layer, drawn inside the parent layer's 2D
+ * @param width - The view's width, in its own pixels
+ * @param height - The view's height
+ * @param previous - The state of the layer the view is drawn in
+ * @internal
+ */
+export function computeEmbedded(
+  event: DomEvent,
+  state: RootState,
+  screen: Container,
+  width: number,
+  height: number,
+  previous: RootState | undefined,
+): void {
+  const parentScreen = screen.parent && screenAbove(screen.parent);
+  if (!previous || !parentScreen) return;
+  if (previous.raycaster.camera === undefined) {
+    previous.events.compute?.(event, previous, previous.previousRoot?.getState());
+  }
+  parentScreen.worldTransform.apply(pointerInPixels(previous, scratch), scratch);
+  const hits = screenHits(parentScreen, scratch.x, scratch.y);
+  const order = hits.order.get(screen);
+  if (order === undefined) return;
+  screen.worldTransform.applyInverse(scratch, scratch);
+  state.pointer.set((scratch.x / width) * 2 - 1, 1 - (scratch.y / height) * 2);
+  state.raycaster.setFromCamera(state.pointer, state.camera);
+  const parentSlot = layerSlotOf(previous.raycaster as Raycaster);
+  const behind = order >= hits.behindFrom;
+  const base = distanceOf(parentSlot, order, behind);
+  setLayerSlot(state.raycaster as Raycaster, base, distanceOf(parentSlot, order + 1, behind) - base);
+}
+
+/**
+ * Gives a portal drawn into a texture on a 3D object the slot of the object's hit, just in front of
+ * it, so the hits of the 2D in the texture sort where the object is
+ * @param raycaster - The portal's raycaster
+ * @param distance - The object's hit distance
+ * @internal
+ */
+export function slotAtHit(raycaster: Raycaster, distance: number): void {
+  const span = Math.max(distance * 1e-6, 1e-9);
+  setLayerSlot(raycaster, distance - span, span);
 }

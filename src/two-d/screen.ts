@@ -2,6 +2,7 @@ import { Container3D } from '@pixi/3d';
 import { Container, warn } from 'pixi.js';
 
 import type { Instance } from '../types/elements';
+import { Anchor2D, adoptIntoAnchor, releaseAnchor } from './Anchor2D';
 
 /**
  * The zIndex of a scene's 3D view in its screen layer: just under 0, so 2D at the default zIndex of 0
@@ -16,10 +17,18 @@ export const VIEW_Z_INDEX = -Number.EPSILON;
  */
 export const THREE_IN_2D =
   "react-pixi-fiber: a 3D element is inside a 2D element, which can't hold 3D, so it is left out. " +
-  'Put 3D elements directly in the <Canvas>, or inside other 3D elements.';
+  'Put 3D elements directly in the <Canvas> or inside other 3D elements, or draw them inside 2D with <View3D>.';
+
+/**
+ * The zIndex of a scene's 3D view in its 3D layer: under every anchored 2D object in the layer
+ * @internal
+ */
+export const VIEW_IN_LAYER_Z_INDEX = -Number.MAX_VALUE;
 
 const screens = new WeakMap<Container3D, Container>();
 const screenScenes = new WeakMap<Container, Container3D>();
+const layers = new WeakMap<Container, Container>();
+const layerScreens = new WeakMap<Container, Container>();
 const watchedChildren = new WeakSet<Container[]>();
 const warned = new Set<string>();
 
@@ -52,9 +61,32 @@ export const screenOf = (scene: Container3D): Container | undefined => screens.g
 export const sceneOfScreen = (screen: Container): Container3D | undefined => screenScenes.get(screen);
 
 /**
+ * The 3D layer of a screen layer: the container that holds the scene's 3D view, and the 2D anchored to
+ * 3D objects over it
+ * @param screen - The screen layer
+ * @internal
+ */
+export const layerOf = (screen: Container): Container | undefined => layers.get(screen);
+
+/**
+ * Whether a container is a screen layer's 3D layer, which stays where its screen layer put it
+ * @param container - The container
+ * @internal
+ */
+export const isLayer3D = (container: object): boolean => layerScreens.has(container as Container);
+
+/**
+ * The screen layer a 3D layer belongs to
+ * @param layer - A 3D layer
+ * @internal
+ */
+export const screenOfLayer = (layer: Container): Container | undefined => layerScreens.get(layer);
+
+/**
  * The screen layer of a scene, made the first time it is asked for: a root's scene when the root is
- * created, any other scene when a 2D element first joins it. It sorts its children by zIndex, with the
- * scene's 3D view just under 0, and is destroyed with the scene or by {@link releaseScreen}.
+ * created, any other scene when a 2D element first joins it. It sorts its children by zIndex. Its 3D
+ * layer, at a zIndex just under 0, holds the scene's 3D view and the 2D anchored to the 3D. Both are
+ * destroyed with the scene or by {@link releaseScreen}.
  * @param scene - The scene
  * @internal
  */
@@ -62,15 +94,19 @@ export function ensureScreen(scene: Container3D): Container {
   let screen = screens.get(scene);
   if (screen) return screen;
   screen = new Container({ label: 'screen', sortableChildren: true });
+  const layer = new Container({ label: '3d', zIndex: VIEW_Z_INDEX, sortableChildren: true });
+  screen.addChild(layer);
   screens.set(scene, screen);
   screenScenes.set(screen, scene);
+  layers.set(screen, layer);
+  layerScreens.set(layer, screen);
   watchChildOrder(screen);
   scene.once('destroyed', () => releaseScreen(scene));
   return screen;
 }
 
 /**
- * Destroys a scene's screen layer, leaving its children to the elements that made them
+ * Destroys a scene's screen layer and its 3D layer, leaving their children to the elements that made them
  * @param scene - The scene
  * @internal
  */
@@ -78,6 +114,11 @@ export function releaseScreen(scene: Container3D): void {
   const screen = screens.get(scene);
   if (!screen) return;
   screens.delete(scene);
+  const layer = layers.get(screen);
+  if (layer && !layer.destroyed) {
+    layer.removeChildren();
+    layer.destroy();
+  }
   if (!screen.destroyed) screen.destroy();
 }
 
@@ -156,38 +197,54 @@ export function addInElementOrder(parent: Container, child: Linked<Container>): 
 }
 
 /**
- * Adds a 2D object to a 3D node: a scene puts it on its screen layer, in the order of its element among
- * the scene's children. Under any other 3D node it is left out with a warning, since 3D objects can't
- * hold 2D yet.
+ * Adds a 2D object to a 3D node. A scene puts it on its screen layer, in the order of its element among
+ * the scene's children. Any other 3D node anchors it: an `<anchor2D>` follows the node, and any other 2D
+ * object is put in an anchor of its own that follows the node's origin. Anchors are drawn in the 3D
+ * layer of the scene the node is in, over its 3D.
  * @param node - The 3D node
  * @param child - A 2D object
  * @internal
  */
 export function addToScene(node: Container3D, child: Linked<object>): void {
-  const name = `<${child.__r3f?.type ?? '2D element'}>`;
   if (!(child instanceof Container)) {
+    const name = `<${child.__r3f?.type ?? '2D element'}>`;
     warnOnce(`react-pixi-fiber: ${name} can only be inside a 2D element, so it is left out.`);
     return;
   }
+  if (isLayer3D(child)) return;
+  if (child instanceof Anchor2D) {
+    child._host = node;
+    if (takesScreen(node)) {
+      const layer = layers.get(ensureScreen(node))!;
+      if (child.parent !== layer) layer.addChild(child);
+    } else if (child.parent && !isLayer3D(child.parent)) {
+      child.parent.removeChild(child);
+    }
+    return;
+  }
   if (!takesScreen(node)) {
-    warnOnce(
-      `react-pixi-fiber: ${name} is inside a 3D object, which can't hold 2D yet, so it is left out. ` +
-        'Put 2D elements directly in the <Canvas>, or inside other 2D elements.',
-    );
+    adoptIntoAnchor(node, child);
     return;
   }
   addInElementOrder(ensureScreen(node), child);
 }
 
 /**
- * Takes a 2D object off a scene's screen layer
+ * Takes a 2D object off a scene's screen layer, or out of the anchor that follows a 3D node
  * @param node - The 3D node it was added to
  * @param child - The 2D object
  * @internal
  */
 export function removeFromScene(node: Container3D, child: object): void {
+  if (!(child instanceof Container) || isLayer3D(child)) return;
+  if (child instanceof Anchor2D) {
+    if (child._host === node) child._host = null;
+    child.parent?.removeChild(child);
+    return;
+  }
+  if (releaseAnchor(node, child)) return;
   const screen = screens.get(node);
-  if (screen && child instanceof Container && child.parent === screen) screen.removeChild(child);
+  if (screen && child.parent === screen) screen.removeChild(child);
 }
 
 /**

@@ -53,7 +53,7 @@ function ScreenChildren() {
  * The screen layer follows the canvas, here 480 by 240: an orange square sits 10 pixels from its
  * bottom-right corner, placed from `useThree((state) => state.size)`. A steel-blue square spun by
  * `useFrame` has turned 30 degrees after ten frames. White dots count `state.screen`'s children when it
- * drew: the corner and the spinner, before the dots' own graphics joined it.
+ * drew: its 3D layer, the corner and the spinner, before the dots' own graphics joined it.
  */
 export const scene: TestScene = {
   size: { width: 480, height: 240 },

@@ -148,6 +148,14 @@ export { pixiSupport, type PixiSupport } from './support/pixiSupport';
 export { AssetsLoader } from './two-d/AssetsLoader';
 export { useAsset } from './two-d/useAsset';
 export type * from './two-d/types';
+export { Anchor2D, type AnchorCenter, type AnchorTarget } from './two-d/Anchor2D';
+export { Layer3D, type Layer3DProps } from './two-d/bridges/Layer3D';
+export {
+  RenderTexture2D,
+  type RenderTexture2DHandle,
+  type RenderTexture2DProps,
+} from './two-d/bridges/RenderTexture2D';
+export { View3D, type View3DProps } from './two-d/bridges/View3D';
 export {
   useTextures,
   type DisposeOptions,
