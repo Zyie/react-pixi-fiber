@@ -16,6 +16,11 @@ function Texts() {
       <text2D text="pierced fill" x={20} y={110} style={{ fontSize: 24, fontFamily: 'Arial' }} style-fill="#ff69b4" />
       <bitmapText2D text="PIXI 2D" x={20} y={160} style={{ fontFamily: 'Blocks', fontSize: 28, fill: 'white' }} />
       <bitmapText2D text="dynamic" x={220} y={160} style={{ fontFamily: 'Arial', fontSize: 28, fill: '#7ad151' }} />
+      <splitText2D
+        args={[{ text: 'split', style: { fill: '#f58231', fontSize: 30, fontFamily: 'Arial' } }]}
+        x={20}
+        y={230}
+      />
       <text2D
         text="rotated"
         x={300}
@@ -31,8 +36,8 @@ function Texts() {
  * The text elements: a white `<text2D>` set by props; a yellow one from `args` (an options object),
  * right-aligned to x 380 by its anchor; a pink one whose fill is pierced (`style-fill`); a
  * `<bitmapText2D>` in the `Blocks` bitmap font, loaded with `useAsset`, reading "PIXI 2D" in white
- * blocks; a green `<bitmapText2D>` whose font pixi builds from its style; and a blue text turned 20
- * degrees by `angle`.
+ * blocks; a green `<bitmapText2D>` whose font pixi builds from its style; an orange `<splitText2D>`,
+ * a container of one text per character; and a blue text turned 20 degrees by `angle`.
  */
 export const scene: TestScene = {
   render: () => <Texts />,
