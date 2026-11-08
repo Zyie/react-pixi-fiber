@@ -39,4 +39,4 @@ function Pulse() {
 
 For many shapes, keep a ref to the graphics and draw into it in `useFrame` instead: `graphics.clear().circle(...)`.
 
-pixi's `Ticker` isn't what draws: the root's frameloop is, so `frameloop="demand"` and `invalidate()` work for 2D as for 3D. An `<animatedSprite2D>` plays on pixi's shared ticker when you call `play()`; to keep it on the root's clock, set its `currentFrame` in `useFrame`, as [Loading textures and spritesheets](loading-2d.md) does.
+pixi's `Ticker` isn't what draws: the root's frameloop is, so `frameloop="demand"` and `invalidate()` work for 2D as for 3D. Animated sprites play on the same clock: `<animatedSprite2D playing animationSpeed={0.2} />` advances with the root's frames, and a playing sprite keeps a `demand` canvas drawing ([Sprites and spritesheets](sprites-2d.md#animated-sprites)).

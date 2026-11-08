@@ -1,5 +1,6 @@
 // #region result
 import { FillGradient, GraphicsContext } from 'pixi.js';
+import type { Graphics } from 'pixi.js';
 import { Canvas } from 'react-pixi-fiber';
 // #endregion result
 
@@ -27,6 +28,14 @@ const HILLS = new FillGradient({
   ],
 });
 // #endregion gradients
+
+// #region holes
+const drawMoon = (graphics: Graphics) => graphics.circle(0, 0, 34).fill('#f4f1de').circle(14, -10, 30).cut();
+
+function Moon() {
+  return <graphics2D x={300} y={70} draw={drawMoon} />;
+}
+// #endregion holes
 
 // #region context
 const STAR = new GraphicsContext().star(0, 0, 4, 5, 2).fill('#fff6c2');
@@ -58,13 +67,7 @@ function Night() {
     <>
       <graphics2D draw={(graphics) => graphics.rect(0, 0, 400, 300).fill(SKY)} />
       <Stars />
-      {/* #region holes */}
-      <graphics2D
-        x={300}
-        y={70}
-        draw={(graphics) => graphics.circle(0, 0, 34).fill('#f4f1de').circle(14, -10, 30).cut()}
-      />
-      {/* #endregion holes */}
+      <Moon />
       <graphics2D
         draw={(graphics) =>
           graphics

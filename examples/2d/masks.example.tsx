@@ -1,6 +1,7 @@
 // #region result
 import type { Graphics, Spritesheet } from 'pixi.js';
 import { Suspense, useRef } from 'react';
+import type { RefObject } from 'react';
 import { Canvas, useAsset, useTexture } from 'react-pixi-fiber';
 import type { ThreeEvent2D } from 'react-pixi-fiber';
 // #endregion result
@@ -8,6 +9,20 @@ import type { ThreeEvent2D } from 'react-pixi-fiber';
 import type { Example } from '../example';
 
 // #region result
+// #region inverse
+const drawDark = (graphics: Graphics) => graphics.rect(0, 0, 400, 300).fill({ color: '#05050a', alpha: 0.92 });
+const drawSpot = (graphics: Graphics) => graphics.circle(0, 0, 70).fill('white');
+
+function Darkness({ spot }: { spot: RefObject<Graphics | null> }) {
+  return (
+    <container2D mask={{ inverse: true }}>
+      <graphics2D draw={drawDark} />
+      <graphics2D ref={spot} attach="mask" x={200} y={150} draw={drawSpot} />
+    </container2D>
+  );
+}
+// #endregion inverse
+
 function Spotlight() {
   const bricks = useTexture('/textures/bricks.png');
   const sheet = useAsset<Spritesheet>('/sprites/coin.json');
@@ -22,18 +37,7 @@ function Spotlight() {
         onPointerMove={(event: ThreeEvent2D<PointerEvent>) => spot.current!.position.copyFrom(event.global)}
       />
       <animatedSprite2D args={[sheet.animations.spin]} playing animationSpeed={0.15} x={250} y={110} scale={1.5} />
-      {/* #region inverse */}
-      <container2D mask={{ inverse: true }}>
-        <graphics2D draw={(graphics) => graphics.rect(0, 0, 400, 300).fill({ color: '#05050a', alpha: 0.92 })} />
-        <graphics2D
-          ref={spot}
-          attach="mask"
-          x={200}
-          y={150}
-          draw={(graphics) => graphics.circle(0, 0, 70).fill('white')}
-        />
-      </container2D>
-      {/* #endregion inverse */}
+      <Darkness spot={spot} />
     </>
   );
 }

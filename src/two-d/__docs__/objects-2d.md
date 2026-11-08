@@ -12,11 +12,13 @@
 <text2D args={[{ text: 'From args', style: { fill: 'white', fontSize: 32 } }]} x={20} y={20} />
 ```
 
-The object is built again when `args` change, so use them for what a class needs at construction, such as a mesh's geometry or an animated sprite's frames, and props for the rest.
+The object is built again when an item of `args` changes, as in r3f, so use them for what a class needs at construction, such as a mesh's geometry or an animated sprite's frames, and props for the rest. An options object written inline is a new object on every render, which builds the object again each time its component renders: keep it outside the component, or in `useMemo` ([2D performance](performance-2d.md#keep-args-and-options-stable)).
 
 ## Properties
 
 A prop sets the field of the same name: `x`, `y`, `alpha`, `tint`, `rotation`, `angle`, `zIndex`, `visible`, `blendMode`, `eventMode`, `cursor`, `hitArea`, `mask`, `texture`, `text`, `style`. A point takes r3f's forms: one number for both axes (`anchor={0.5}`, `scale={2}`), an array (`position={[10, 20]}`), or a point.
+
+A few of pixi's methods are props as well, so they can be declared: `cacheAsTexture` caches a container as a texture ([2D performance](performance-2d.md#cache-what-doesnt-change)), `renderLayer` draws it in a render layer (below), `mask` takes pixi's mask options as `setMask` does ([Masks](filters-and-masks-2d.md#masks)), and an animated sprite's `playing` plays or stops it. For other methods, r3f's `once()` calls a method when the element mounts: `<colorMatrixFilter2D sepia={once()} />`.
 
 <!-- snippet: examples/2d/args-and-props.example.tsx#props -->
 
@@ -64,71 +66,27 @@ A filter, a mask or a graphics context is no child: it attaches to a field of it
 
 ![A blurred and faded picture with two filters, and the same picture masked to a circle](../../../tests/snapshots/docs/2d/attach.webgl.png)
 
-`<graphicsContext2D attach="context" draw={...} />` gives a graphics a context of its own. To share one context between several graphics, make it once and pass it in `args`: `<graphics2D args={[context]} />`.
+`<graphicsContext2D attach="context" draw={...} />` gives a graphics a context of its own. To share one context between several graphics, pass it as their `context` ([Graphics](graphics-2d.md#sharing-a-context)). [Filters, masks and blend modes](filters-and-masks-2d.md) has more on both.
+
+## Render layers
+
+A `<renderLayer2D>` draws the elements attached to it where the layer is in the tree, not where they are, so a tooltip deep in a list can draw over everything after it. `renderLayer` attaches an element, and `null` detaches it. The layer usually comes after what it lifts, so keep its ref in state, which renders the elements again once it is set:
+
+```tsx
+const [layer, setLayer] = useState<RenderLayer | null>(null);
+
+<>
+  <container2D>
+    <sprite2D texture={card} renderLayer={layer} />
+    <sprite2D texture={card} x={30} />
+  </container2D>
+  <renderLayer2D ref={setLayer} />
+</>;
+```
 
 ## Your own classes
 
-A class of your own, extending one of pixi.js's, becomes an element with r3f's `extend`, under a name ending in `2D`. Type its element by adding it to `ThreeElements`:
-
-<!-- snippet: examples/2d/extend.example.tsx#result -->
-
-```tsx
-import { Container, Graphics, Text } from 'pixi.js';
-import { Canvas, extend } from 'react-pixi-fiber';
-import type { ThreeElement } from 'react-pixi-fiber';
-
-/** A rounded button with a label, built from pixi.js's own classes */
-class Button extends Container {
-  private readonly _background = new Graphics();
-  private readonly _label = new Text({ text: '', style: { fill: 'white', fontSize: 20 } });
-
-  constructor(label = 'Button') {
-    super();
-    this.addChild(this._background, this._label);
-    this.label = label;
-  }
-
-  public set label(value: string) {
-    this._label.text = value;
-    this._label.position.set(16, 10);
-    this._background
-      .clear()
-      .roundRect(0, 0, this._label.width + 32, 44, 12)
-      .fill('royalblue');
-  }
-
-  public get label(): string {
-    return this._label.text;
-  }
-}
-
-extend({ Button2D: Button });
-
-declare module 'react-pixi-fiber' {
-  interface ThreeElements {
-    button2D: ThreeElement<typeof Button>;
-  }
-}
-
-function Toolbar() {
-  return (
-    <>
-      <button2D args={['Play']} x={40} y={40} />
-      <button2D label="Settings" x={40} y={100} />
-    </>
-  );
-}
-
-export function App() {
-  return (
-    <Canvas>
-      <Toolbar />
-    </Canvas>
-  );
-}
-```
-
-![Two blue buttons, Play and Settings](../../../tests/snapshots/docs/2d/extend.webgl.png)
+A class of your own, extending one of pixi.js's, becomes an element with r3f's `extend`, under a name ending in `2D`: `extend({ Button2D: Button })` makes `<button2D>`. [Your own 2D classes](extend-2d.md) shows it, with its types and a filter of your own.
 
 ## Disposal
 
