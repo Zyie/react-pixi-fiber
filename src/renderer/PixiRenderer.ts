@@ -259,7 +259,7 @@ export class PixiRenderer {
   private readonly _antialias: boolean;
   private readonly _powerPreference: PixiRendererParameters['powerPreference'];
   private readonly _views = new Map<Container3D, SceneView>();
-  private readonly _embedded = new Map<View3D, EmbeddedView>();
+  private readonly _embedded: EmbeddedView[] = [];
   /** The embedded views drawn by the render in progress, whose lights are put back once it ends */
   private readonly _drawnEmbedded: View3D[] = [];
   private readonly _emptyClearRect = new ClearRect();
@@ -704,7 +704,7 @@ export class PixiRenderer {
    */
   public embedView(view: View3D, scene: Container3D, stage: Container): void {
     this.releaseEmbeddedView(view);
-    this._embedded.set(view, { view, scene, stage, background: undefined });
+    this._embedded.push({ view, scene, stage, background: undefined });
   }
 
   /**
@@ -713,16 +713,16 @@ export class PixiRenderer {
    * @param view - A view {@link PixiRenderer#embedView | embedView} took
    */
   public releaseEmbeddedView(view: View3D): void {
-    const entry = this._embedded.get(view);
-    if (!entry) return;
-    this._embedded.delete(view);
+    const index = this._embedded.findIndex((entry) => entry.view === view);
+    if (index === -1) return;
+    const [entry] = this._embedded.splice(index, 1);
     releaseBackdrop(entry.stage);
     this._environments?.releaseView(view);
   }
 
   /** Frees every view and the pixi.js renderer; scenes keep their children */
   public dispose(): void {
-    for (const view of this._embedded.keys()) this.releaseEmbeddedView(view);
+    while (this._embedded.length > 0) this.releaseEmbeddedView(this._embedded[0].view);
     for (const scene of this._views.keys()) this.releaseView(scene);
     this._environments?.dispose();
     this._environments = null;
@@ -786,7 +786,9 @@ export class PixiRenderer {
    * @param stage - What is about to be drawn
    */
   private _prepareEmbedded(stage: Container): void {
-    for (const entry of this._embedded.values()) if (isUnder(entry.view, stage)) this._prepareEmbeddedView(entry);
+    const embedded = this._embedded;
+    for (let i = 0; i < embedded.length; i++)
+      if (isUnder(embedded[i].view, stage)) this._prepareEmbeddedView(embedded[i]);
   }
 
   /**
@@ -876,7 +878,7 @@ export class PixiRenderer {
     const clearsColor = clear === true || (typeof clear === 'number' && (clear & CLEAR.COLOR) !== 0);
     this._clearColorOf(background);
 
-    if (this._embedded.size > 0) this._prepareEmbedded(stage);
+    if (this._embedded.length > 0) this._prepareEmbedded(stage);
     let fullClear = clear;
     if (clearsColor && scissorTest) {
       fromBottomLeft(target ? target.scissor : this._scissor, surfaceHeight, scissorRect);

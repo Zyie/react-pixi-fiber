@@ -23,7 +23,8 @@ export type AnchorTarget = Container3D | { readonly current: Container3D | null 
  */
 export type AnchorCenter = boolean | number | readonly [number, number] | PointData | null;
 
-const anchors = new Set<Anchor2D>();
+/** Every live anchor, in no order; each knows its index, so one is taken out by swapping in the last */
+const anchors: Anchor2D[] = [];
 const ownAnchors = new WeakMap<Container, Anchor2D>();
 
 const viewProjection = new Matrix4();
@@ -118,13 +119,16 @@ export class Anchor2D extends Container {
   public depth: number = 0;
   /** The 3D node the anchor was added to by its element, if any @internal */
   public _host: Container3D | null = null;
+  /** Its index in the list of live anchors, or -1 once destroyed @internal */
+  public _index: number = -1;
   private _center: PointData | null = null;
   private _shown = true;
 
   /** @param options - pixi's container options */
   constructor(options?: ContainerOptions) {
     super(options);
-    anchors.add(this);
+    this._index = anchors.length;
+    anchors.push(this);
   }
 
   /**
@@ -150,7 +154,14 @@ export class Anchor2D extends Container {
   }
 
   public override destroy(options?: DestroyOptions): void {
-    anchors.delete(this);
+    if (this._index !== -1) {
+      const last = anchors.pop()!;
+      if (last !== this) {
+        anchors[this._index] = last;
+        last._index = this._index;
+      }
+      this._index = -1;
+    }
     super.destroy(options);
   }
 
@@ -224,8 +235,8 @@ export class Anchor2D extends Container {
     occluders.length = 0;
     if (this.occlude === true) occluders.push(rootOf(node));
     else if (this.occlude !== false) {
-      for (const target of this.occlude) {
-        const object = resolveTarget(target);
+      for (let i = 0; i < this.occlude.length; i++) {
+        const object = resolveTarget(this.occlude[i]);
         if (object) occluders.push(object);
       }
     }
@@ -283,8 +294,8 @@ const nodeOf = (anchor: Anchor2D): Container3D | null => resolveTarget(anchor.ta
  * @internal
  */
 export function hasAnchorsIn(scene: Container3D): boolean {
-  for (const anchor of anchors) {
-    const node = nodeOf(anchor);
+  for (let i = 0; i < anchors.length; i++) {
+    const node = nodeOf(anchors[i]);
     if (node && rootOf(node) === scene) return true;
   }
   return false;
@@ -301,9 +312,9 @@ export function hasAnchorsIn(scene: Container3D): boolean {
  * @internal
  */
 export function placeAnchors(scene: Container3D, camera: Camera3D, view: View3D, layer: Container): void {
-  if (anchors.size === 0) return;
   let ready = false;
-  for (const anchor of anchors) {
+  for (let i = 0; i < anchors.length; i++) {
+    const anchor = anchors[i];
     const node = nodeOf(anchor);
     if (!node || rootOf(node) !== scene) {
       if (anchor.parent === layer) layer.removeChild(anchor);
