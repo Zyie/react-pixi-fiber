@@ -34,6 +34,11 @@ export interface PixiRendererParameters {
   preference?: 'webgl' | 'webgpu';
   /** Power preference passed to the GPU adapter */
   powerPreference?: GPUPowerPreference;
+  /**
+   * Draw WebGL frames into a back buffer, which pixi.js's advanced blend modes (`'overlay'`,
+   * `'difference'`, ...) read from; WebGPU needs none @default false
+   */
+  useBackBuffer?: boolean;
 }
 
 /**
@@ -238,6 +243,7 @@ export class PixiRenderer {
 
   private readonly _antialias: boolean;
   private readonly _powerPreference: PixiRendererParameters['powerPreference'];
+  private readonly _useBackBuffer: boolean;
   private readonly _views = new Map<Container3D, SceneView>();
   private readonly _emptyClearRect = new ClearRect();
   private readonly _empty = new Container({ children: [this._emptyClearRect] });
@@ -270,12 +276,14 @@ export class PixiRenderer {
     alpha = true,
     preference = 'webgl',
     powerPreference,
+    useBackBuffer = false,
   }: PixiRendererParameters) {
     this.domElement = canvas;
     this._antialias = antialias;
     this._clearAlpha = alpha ? 0 : 1;
     this.preference = preference;
     this._powerPreference = powerPreference;
+    this._useBackBuffer = useBackBuffer;
   }
 
   /**
@@ -289,6 +297,7 @@ export class PixiRenderer {
       antialias: this._antialias,
       preference: this.preference,
       powerPreference: this._powerPreference,
+      useBackBuffer: this._useBackBuffer,
       width: this._width,
       height: this._height,
       resolution: this._pixelRatio,
