@@ -1,20 +1,24 @@
 import type { TestScene } from '@test-scene';
 import { Point } from 'pixi.js';
-import type { MeshPlane, PerspectiveMesh } from 'pixi.js';
+import type { MeshPlane, MeshRope, PerspectiveMesh, RopeGeometry } from 'pixi.js';
 import { useMemo, useRef } from 'react';
 import { useFrame, useTexture } from 'react-pixi-fiber';
 
 /** A rope whose points `useFrame` moves along a travelling sine wave; the rope follows them */
 function Snake() {
   const texture = useTexture('/textures/quadrants.png?animated-meshes');
-  const points = useMemo(() => Array.from({ length: 20 }, (_, i) => new Point(i * 8, 0)), []);
-  const rope = useMemo(() => ({ texture, points }), [texture, points]);
+  const rope = useRef<MeshRope>(null);
+  const options = useMemo(
+    () => ({ texture, points: Array.from({ length: 20 }, (_, i) => new Point(i * 8, 0)) }),
+    [texture],
+  );
 
   useFrame((state) => {
+    const { points } = rope.current!.geometry as RopeGeometry;
     for (let i = 0; i < points.length; i++) points[i].y = Math.sin(i * 0.5 + state.elapsed * 10) * 20;
   });
 
-  return <meshRope2D args={[rope]} x={40} y={70} />;
+  return <meshRope2D ref={rope} args={[options]} x={40} y={70} />;
 }
 
 /** A plane whose vertices `useFrame` shifts sideways by row, through its geometry's position buffer */
