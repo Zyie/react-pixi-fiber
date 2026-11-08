@@ -2,6 +2,8 @@
 
 2D elements take react-three-fiber's event handlers, and they run in the same event system as the 3D: one pointer event reaches 2D and 3D objects in one ordered list, so `stopPropagation`, pointer capture and hover work across both.
 
+## Handlers
+
 <!-- snippet: examples/2d/events.example.tsx#button -->
 
 ```tsx

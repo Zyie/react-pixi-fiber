@@ -2,6 +2,8 @@
 
 2D animates the way [3D does in r3f](../../__docs__/basic-animations.md): `useFrame` runs a callback before every frame, with the root's state and the frame's `delta`, and the callback changes objects through their refs. Changing them there, instead of through React state, re-renders nothing.
 
+## Through a ref
+
 <!-- snippet: examples/2d/animation.example.tsx#ref -->
 
 ```tsx
@@ -16,6 +18,8 @@ function Bobbing() {
   return <sprite2D ref={sprite} texture={Texture.WHITE} tint="hotpink" width={60} height={60} anchor={0.5} x={120} />;
 }
 ```
+
+## Through the draw prop
 
 A graphics redraws when it gets a new `draw` function, so drawing that changes every frame can go through state. Each frame re-renders the component and the graphics is cleared and drawn again:
 
