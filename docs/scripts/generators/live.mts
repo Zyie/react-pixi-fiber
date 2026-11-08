@@ -3,7 +3,7 @@
  *
  * - `js/`: ES modules of every package a program can import, built from the repo's sources and the
  *   pinned packages: react-pixi-fiber from its entry in `src`, @pixi/3d from `.repos/pixi-3d`, pixi.js,
- *   React and React DOM, and the frame's own module. A frame imports them from the site by URL, each
+ *   pixi-filters, React and React DOM, and the frame's own module. A frame imports them from the site by URL, each
  *   chunk importing another by its relative path; `manifest.json` lists them, with what each imports.
  * - `assets/`: the images and models of `tests/assets`, when there is one, which a program loads by name
  *   as the visual tests do.
@@ -51,6 +51,7 @@ function modules(): Record<string, string> {
   return {
     ...Object.fromEntries(ENTRIES.map((entry) => [packageName(entry), path.join(ROOT, entryFile(entry, ROOT))])),
     'pixi.js': 'pixi.js',
+    'pixi-filters': 'pixi-filters',
     '@pixi/3d': path.join(PIXI3D, 'index.ts'),
     '@pixi/3d/extras': path.join(PIXI3D, 'extras/index.ts'),
     ...Object.fromEntries(COMMONJS.map((name) => [name, `\0facade:${name}`])),

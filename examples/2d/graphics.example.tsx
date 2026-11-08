@@ -1,0 +1,96 @@
+// #region result
+import { FillGradient, GraphicsContext } from 'pixi.js';
+import { Canvas } from 'react-pixi-fiber';
+// #endregion result
+
+import type { Example } from '../example';
+
+// #region result
+// #region gradients
+const SKY = new FillGradient({
+  type: 'linear',
+  start: { x: 0, y: 0 },
+  end: { x: 0, y: 1 },
+  colorStops: [
+    { offset: 0, color: '#0b1026' },
+    { offset: 1, color: '#3b2667' },
+  ],
+});
+
+const HILLS = new FillGradient({
+  type: 'linear',
+  start: { x: 0, y: 0 },
+  end: { x: 0, y: 1 },
+  colorStops: [
+    { offset: 0, color: '#2a9d8f' },
+    { offset: 1, color: '#14423c' },
+  ],
+});
+// #endregion gradients
+
+// #region context
+const STAR = new GraphicsContext().star(0, 0, 4, 5, 2).fill('#fff6c2');
+
+const STARS = [
+  [40, 40, 1],
+  [110, 70, 0.6],
+  [170, 30, 0.8],
+  [240, 90, 0.5],
+  [345, 150, 1.1],
+  [360, 110, 0.7],
+  [70, 120, 0.5],
+  [210, 140, 0.9],
+] as const;
+
+function Stars() {
+  return (
+    <>
+      {STARS.map(([x, y, scale]) => (
+        <graphics2D key={`${x},${y}`} context={STAR} x={x} y={y} scale={scale} />
+      ))}
+    </>
+  );
+}
+// #endregion context
+
+function Night() {
+  return (
+    <>
+      <graphics2D draw={(graphics) => graphics.rect(0, 0, 400, 300).fill(SKY)} />
+      <Stars />
+      {/* #region holes */}
+      <graphics2D
+        x={300}
+        y={70}
+        draw={(graphics) => graphics.circle(0, 0, 34).fill('#f4f1de').circle(14, -10, 30).cut()}
+      />
+      {/* #endregion holes */}
+      <graphics2D
+        draw={(graphics) =>
+          graphics
+            .moveTo(0, 230)
+            .bezierCurveTo(90, 170, 170, 260, 260, 210)
+            .bezierCurveTo(320, 180, 370, 200, 400, 190)
+            .lineTo(400, 300)
+            .lineTo(0, 300)
+            .fill(HILLS)
+        }
+      />
+    </>
+  );
+}
+
+export function App() {
+  return (
+    <Canvas>
+      <Night />
+    </Canvas>
+  );
+}
+// #endregion result
+
+/** A night sky: gradient fills, a crescent moon cut from a circle, and stars sharing one context */
+export const example: Example = {
+  title: 'A night sky in graphics',
+  render: () => <Night />,
+};

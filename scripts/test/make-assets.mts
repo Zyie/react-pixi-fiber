@@ -32,6 +32,10 @@
  *   glyphs `P`, `I`, `X`, `2`, `D` and a space drawn as 5 by 7 blocks of 4 pixels.
  * - `sprites/coin.png` and `sprites/coin.json`: a spritesheet of eight 48 by 48 frames, `coin-0` to
  *   `coin-7`, a gold coin turning about its upright axis, and the animation `spin` of all eight.
+ * - `textures/panel.png`: 48 by 48, a navy panel with rounded corners and a 4 pixel gold border, for
+ *   nine-slice sprites.
+ * - `textures/bricks.png`: 64 by 32, two rows of red bricks in dark mortar, the second offset by half a
+ *   brick, which tiles seamlessly.
  * - `video/steps.webm`: a VP8 video of four 64 by 64 frames at 4 a second, red, green, blue and
  *   yellow, with a white bar that steps down a quarter of the frame each frame. ffmpeg encodes it,
  *   and is needed only for this file.
@@ -608,6 +612,37 @@ function writeCoin(dir: string): void {
   writeFileSync(path.join(dir, 'coin.json'), `${JSON.stringify(sheet, null, 2)}\n`);
 }
 
+/** The nine-slice panel `textures/panel.png`: a rounded navy panel with a gold border */
+function writePanel(file: string): void {
+  const size = 48;
+  const radius = 12;
+
+  writeRgba(file, size, size, (x, y) => {
+    const cx = Math.min(Math.max(x + 0.5, radius), size - radius);
+    const cy = Math.min(Math.max(y + 0.5, radius), size - radius);
+    const d = Math.hypot(x + 0.5 - cx, y + 0.5 - cy);
+
+    if (d > radius) return [0, 0, 0, 0];
+    if (d > radius - 4 || x < 4 || y < 4 || x >= size - 4 || y >= size - 4) return [244, 211, 94, 255];
+    const shade = 1 - y / size / 3;
+
+    return [Math.round(29 * shade), Math.round(53 * shade), Math.round(87 * shade), 255];
+  });
+}
+
+/** The tile `textures/bricks.png`: two rows of bricks, the second offset by half a brick */
+function writeBricks(file: string): void {
+  writeRgba(file, 64, 32, (x, y) => {
+    const row = Math.floor(y / 16);
+    const bx = (x + row * 16) % 32;
+    const brick = Math.floor((x + row * 16) / 32) % 2;
+
+    if (y % 16 < 2 || bx < 2) return [43, 45, 66, 255];
+
+    return brick ? [181, 84, 60, 255] : [200, 102, 74, 255];
+  });
+}
+
 /** The video `video/steps.webm`: four coloured frames with a bar stepping down, encoded by ffmpeg */
 function writeVideo(dir: string): void {
   const size = 64;
@@ -725,6 +760,8 @@ mkdirSync(path.join(ROOT, 'fonts'), { recursive: true });
 writeSpritesheet(path.join(ROOT, 'sprites'));
 writeCoin(path.join(ROOT, 'sprites'));
 writeBitmapFont(path.join(ROOT, 'fonts'));
+writePanel(path.join(ROOT, 'textures/panel.png'));
+writeBricks(path.join(ROOT, 'textures/bricks.png'));
 mkdirSync(path.join(ROOT, 'video'), { recursive: true });
 writeVideo(path.join(ROOT, 'video'));
 
