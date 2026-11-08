@@ -61,3 +61,5 @@ extensions.add(CullerPlugin);
 ```
 
 Culling walks the 2D tree every frame, so register it when much of the scene is off the canvas.
+
+The bridges between 2D and 3D have costs of their own, such as a pixi-3d view per `<View3D>` and a filter pass over the 3D for `<Layer3D>`; [Mixing 2D and 3D](mixing-2d-and-3d.md#what-they-cost) measures them.

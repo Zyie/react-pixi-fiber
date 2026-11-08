@@ -95,3 +95,4 @@ A 2D element placed directly in the Canvas draws in screen space: its `x` and `y
 - Change the text's `style`, or give the frame a `fill`.
 - Add an `onClick` to the square, as in [2D events](events-2d.md).
 - Put a `<mesh>` beside the 2D, as in [The screen layer and mixing with 3D](screen-layer.md).
+- Put a label on a 3D object, or a 3D model in a 2D card, with [the bridges between 2D and 3D](mixing-2d-and-3d.md).
