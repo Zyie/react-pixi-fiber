@@ -82,8 +82,7 @@ export const GUIDES: readonly Guide[] = [
   },
   {
     id: 'screen-layer',
-    title: 'The screen layer and mixing with 3D',
-    label: 'The screen layer',
+    title: 'The screen layer',
     file: 'src/two-d/__docs__/screen-layer.md',
     section: '2d',
   },

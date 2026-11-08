@@ -1,4 +1,4 @@
-# The screen layer and mixing with 3D
+# The screen layer
 
 The 2D elements placed directly in a `<Canvas>` are children of the root's screen layer, a pixi.js container drawn in screen space: CSS pixels from the canvas's top-left corner, as in pixi. It covers the canvas and follows its size; `useThree` hands out both:
 

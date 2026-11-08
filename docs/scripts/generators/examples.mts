@@ -5,8 +5,8 @@
  *
  * Nothing here is written by hand. An example's title is the `title` of its object, or the heading of
  * the guide section that first shows its code, or its name; its lead is the prose of that section
- * before its snippet; its description is the start of that lead, or the `description` of its object or
- * the JSDoc above it; its alt text that of its picture in the guide. Its pictures are those of
+ * before its snippet, or when there is none the `description` of its object or the JSDoc above it; its
+ * description is the start of that lead; its alt text that of its picture in the guide. Its pictures are those of
  * `examples/pictures.mts`.
  *
  * Each example's code is also a JSON file in `static/example-sources`, listed in its `index.json`, which
@@ -250,16 +250,16 @@ async function generate(shared: Shared): Promise<GeneratedFiles> {
       const section = program.title ?? first?.heading ?? humanize(name);
       const title = titles.has(section) ? `${section} (${name})` : section;
       const site = pictures.get(entry.id);
-      const lead: Flow[] = first
+      const guideLead: Flow[] = first
         ? docNodes(first.lead, {
             source: first.doc,
             output: `${PAGES}/${entry.id}.mdx`,
             names: new Map(),
             quoted: true,
           })
-        : program.description
-          ? [paragraph(program.description)]
-          : [];
+        : [];
+      const lead: Flow[] =
+        guideLead.length > 0 ? guideLead : program.description ? [paragraph(program.description)] : [];
       const alt = entry.alt ?? program.description ?? `What the ${name} example of ${topic.title} draws`;
       const example: GalleryExample = {
         id: entry.id,

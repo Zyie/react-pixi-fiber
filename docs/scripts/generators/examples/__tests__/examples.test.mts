@@ -99,7 +99,7 @@ await test('with no examples, the gallery is the only page and the catalogue is 
   fs.rmSync(root, { recursive: true });
 });
 
-await test("each example gets a page titled by its object, its guide's section, or its name, and its picture when there is one", () => {
+await test("each example gets a page titled by its object, its guide's section, or its name, described by its guide's lead or else its object, and its picture when there is one", () => {
   const root = rootWith({
     'src/__docs__/your-first-scene.md': [
       '# Your first scene',
@@ -126,7 +126,7 @@ await test("each example gets a page titled by its object, its guide's section, 
     ].join('\n'),
     'examples/your-first-scene/box.example.tsx': box,
     'examples/your-first-scene/titled.example.tsx':
-      "export const example = { title: 'A titled box', render: () => null };\n",
+      "export const example = { title: 'A titled box', description: 'A box with a title.', render: () => null };\n",
     'examples/materials/colors.example.tsx': colors,
     'examples/materials/plain-cube.example.tsx': 'export const example = { render: () => null };\n',
     'tests/snapshots/docs/your-first-scene/box.webgl.png': picture(),
@@ -146,6 +146,7 @@ await test("each example gets a page titled by its object, its guide's section, 
   );
   assert.equal(cards[0]!.description, 'The box turns every frame.');
   assert.equal(cards[0]!.alt, 'A pink square');
+  assert.equal(cards[1]!.description, 'A box with a title.');
   assert.equal(cards[2]!.description, 'Three boxes in a row.');
   assert.match(files['content/examples/materials/_category_.json']!, /"label": "Materials"/);
   assert.ok('static/example-pictures/your-first-scene/box.png' in files);
