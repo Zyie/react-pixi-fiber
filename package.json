@@ -93,15 +93,15 @@
       "optional": true
     }
   },
+  "overrides": {
+    "pixi-filters": {
+      "pixi.js": "$pixi.js"
+    }
+  },
   "lint-staged": {
     "*": [
       "oxlint --fix --no-error-on-unmatched-pattern",
       "oxfmt --write --no-error-on-unmatched-pattern"
     ]
-  },
-  "overrides": {
-    "pixi-filters": {
-      "pixi.js": "$pixi.js"
-    }
   }
 }
