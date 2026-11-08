@@ -17,8 +17,9 @@ function Readout() {
 
 /**
  * A canvas of 200 by 150 CSS pixels at a pixel ratio of 2, so 400 by 300 device pixels, captured at its
- * CSS size. 2D stays in CSS pixels: the white frame is 1 pixel wide, 5 from the sides, and the text is
- * rasterized at the canvas's resolution. The readout, from `useThree`, says "200 x 150 at 2x".
+ * CSS size. 2D stays in CSS pixels: the white frame is 1 pixel wide, 5 from the sides. The text is
+ * rasterized at the canvas's resolution, which a capture at CSS size can't show; a unit test in
+ * `tests/unit/two-d.test.tsx` holds it. The readout, from `useThree`, says "200 x 150 at 2x".
  */
 export const scene: TestScene = {
   size: { width: 200, height: 150, dpr: 2 },

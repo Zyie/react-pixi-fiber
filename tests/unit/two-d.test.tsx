@@ -1,6 +1,6 @@
 import { getScheduler } from '@pmndrs/scheduler';
 import { GraphicsContext, Texture } from 'pixi.js';
-import type { BlurFilter, Graphics, Sprite } from 'pixi.js';
+import type { BlurFilter, Filter, Graphics, Sprite, Text } from 'pixi.js';
 import { act } from 'react';
 import type { ReactNode, RefObject } from 'react';
 import { createRoot } from 'react-pixi-fiber';
@@ -58,6 +58,7 @@ it('destroys 2D elements, their children and attached filters and contexts on un
   const [container] = objects;
   const own = ownGraphics.current!;
   const attached = context.current!;
+  const passes = [blur.current!.blurXFilter, blur.current!.blurYFilter] as (Filter & { _destroyed: boolean })[];
 
   expect(container.parent).toBe(state.screen);
   expect(sprite.current!.filters).toEqual([blur.current]);
@@ -67,8 +68,22 @@ it('destroys 2D elements, their children and attached filters and contexts on un
   expect(state.screen.children).not.toContain(container);
   for (const object of objects) expect(object.destroyed).toBe(true);
   expect(attached.destroyed).toBe(true);
+  for (const pass of passes) expect(pass._destroyed).toBe(true);
   expect(texture.destroyed).toBe(false);
   expect(shared.destroyed).toBe(false);
+});
+
+// A capture is taken at the canvas's CSS size, so it can't show text drawn at the canvas's resolution.
+it("rasterizes 2D text at the root's pixel ratio, and again when it changes", async () => {
+  const text: RefObject<Text | null> = { current: null };
+  const state = await mount(<text2D ref={text} text="sharp" />);
+  await act(async () => state.advance(16));
+  expect(text.current!.resolution).toBe(1);
+
+  await act(async () => state.setDpr(2));
+  await act(async () => state.advance(16));
+  expect(state.renderer.pixi!.resolution).toBe(2);
+  expect(text.current!.resolution).toBe(2);
 });
 
 // The view a scene draws with isn't on the picture.
