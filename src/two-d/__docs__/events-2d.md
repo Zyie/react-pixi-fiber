@@ -21,7 +21,7 @@ function Button({ x }: { x: number }) {
       x={x}
       y={150}
       cursor="pointer"
-      onClick={(event: ThreeEvent2D<MouseEvent>) => {
+      onClick={(event) => {
         event.stopPropagation();
         setActive(!active);
       }}
@@ -67,15 +67,15 @@ Capture the pointer on pointerdown and the element keeps getting its moves when 
   anchor={0.5}
   position={position}
   cursor="grab"
-  onPointerDown={(event: ThreeEvent2D<PointerEvent>) => {
+  onPointerDown={(event) => {
     event.target.setPointerCapture(event.pointerId);
     offset.current = { x: position[0] - event.global.x, y: position[1] - event.global.y };
   }}
-  onPointerMove={(event: ThreeEvent2D<PointerEvent>) => {
+  onPointerMove={(event) => {
     if (!event.target.hasPointerCapture(event.pointerId)) return;
     setPosition([event.global.x + offset.current.x, event.global.y + offset.current.y]);
   }}
-  onPointerUp={(event: ThreeEvent2D<PointerEvent>) => event.target.releasePointerCapture(event.pointerId)}
+  onPointerUp={(event) => event.target.releasePointerCapture(event.pointerId)}
 />
 ```
 

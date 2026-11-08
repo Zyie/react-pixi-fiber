@@ -21,7 +21,8 @@ const MODES: BLEND_MODES[] = ['normal', 'multiply', 'screen', 'difference', 'ove
  * add up to white where all three overlap. Beside them, a rainbow band under six white-and-grey
  * squares drawn with `normal`, `multiply`, `screen`, and the advanced `difference`, `overlay` and
  * `color-burn`, which `import 'pixi.js/advanced-blend-modes'` registers; WebGL draws those through the
- * canvas's back buffer, which `renderer={{ useBackBuffer: true }}` turns on.
+ * canvas's back buffer, which `renderer={{ useBackBuffer: true }}` turns on. Bottom left, a yellow
+ * sprite multiplied over a second band darkens it to olive and green.
  */
 export const scene: TestScene = {
   canvas: { renderer: { useBackBuffer: true } },

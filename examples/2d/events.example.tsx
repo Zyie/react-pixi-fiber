@@ -2,7 +2,6 @@
 import { Texture } from 'pixi.js';
 import { useState } from 'react';
 import { Canvas } from 'react-pixi-fiber';
-import type { ThreeEvent2D } from 'react-pixi-fiber';
 // #endregion result
 
 import type { Example } from '../example';
@@ -23,7 +22,7 @@ function Button({ x }: { x: number }) {
       x={x}
       y={150}
       cursor="pointer"
-      onClick={(event: ThreeEvent2D<MouseEvent>) => {
+      onClick={(event) => {
         event.stopPropagation();
         setActive(!active);
       }}

@@ -30,7 +30,8 @@ const HILLS = new FillGradient({
 // #endregion gradients
 
 // #region holes
-const drawMoon = (graphics: Graphics) => graphics.circle(0, 0, 34).fill('#f4f1de').circle(14, -10, 30).cut();
+const drawMoon = (graphics: Graphics) =>
+  graphics.circle(0, 0, 34).fill('#f4f1de').circle(-11, -9, 8).cut().circle(12, 4, 10).cut().circle(-6, 17, 5).cut();
 
 function Moon() {
   return <graphics2D x={300} y={70} draw={drawMoon} />;
@@ -92,7 +93,7 @@ export function App() {
 }
 // #endregion result
 
-/** A night sky: gradient fills, a crescent moon cut from a circle, and stars sharing one context */
+/** A night sky: gradient fills, a moon with craters cut from it, and stars sharing one context */
 export const example: Example = {
   title: 'A night sky in graphics',
   render: () => <Night />,

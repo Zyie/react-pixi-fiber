@@ -3,7 +3,6 @@ import type { Graphics, Spritesheet } from 'pixi.js';
 import { Suspense, useRef } from 'react';
 import type { RefObject } from 'react';
 import { Canvas, useAsset, useTexture } from 'react-pixi-fiber';
-import type { ThreeEvent2D } from 'react-pixi-fiber';
 // #endregion result
 
 import type { Example } from '../example';
@@ -34,7 +33,7 @@ function Spotlight() {
         texture={bricks}
         width={400}
         height={300}
-        onPointerMove={(event: ThreeEvent2D<PointerEvent>) => spot.current!.position.copyFrom(event.global)}
+        onPointerMove={(event) => spot.current!.position.copyFrom(event.global)}
       />
       <animatedSprite2D args={[sheet.animations.spin]} playing animationSpeed={0.15} x={250} y={110} scale={1.5} />
       <Darkness spot={spot} />

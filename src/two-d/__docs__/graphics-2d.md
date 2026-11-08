@@ -42,12 +42,13 @@ const HILLS = new FillGradient({
 
 ## Holes
 
-`cut()` cuts the shape drawn last out of the one before it. A crescent moon is a circle with a second circle cut from it:
+`cut()` cuts the shape drawn last out of the one before it, and each further `cut()` adds another hole. A hole has to lie inside the shape it's cut from: one that crosses its edge doesn't triangulate. The moon's craters are circles cut from it, so the sky shows through:
 
 <!-- snippet: examples/2d/graphics.example.tsx#holes -->
 
 ```tsx
-const drawMoon = (graphics: Graphics) => graphics.circle(0, 0, 34).fill('#f4f1de').circle(14, -10, 30).cut();
+const drawMoon = (graphics: Graphics) =>
+  graphics.circle(0, 0, 34).fill('#f4f1de').circle(-11, -9, 8).cut().circle(12, 4, 10).cut().circle(-6, 17, 5).cut();
 
 function Moon() {
   return <graphics2D x={300} y={70} draw={drawMoon} />;
@@ -85,7 +86,7 @@ function Stars() {
 }
 ```
 
-![A night sky with a gradient, stars sharing one context, a crescent moon and green hills](../../../tests/snapshots/docs/2d/graphics.webgl.png)
+![A night sky with a gradient, stars sharing one context, a moon with craters and green hills](../../../tests/snapshots/docs/2d/graphics.webgl.png)
 
 A context you make yourself is yours to free: React doesn't destroy a context passed in as a prop. Call `context.destroy()` when nothing uses it any more, as in an effect's cleanup.
 

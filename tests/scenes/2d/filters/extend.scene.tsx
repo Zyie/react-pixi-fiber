@@ -173,11 +173,11 @@ function Filtered() {
 
 /**
  * Filters from outside pixi.js, made elements with `extend`. Top row, from pixi-filters: a yellow star
- * glowing pink, built from `args` since its shader is, the quadrants texture with a blue drop shadow 10 pixels down and right, and the coin
- * outlined in white. Bottom row: this scene's own `WaveFilter` class, whose rows `useFrame` has moved
- * along a sine wave for twenty frames; pixi-filters' bevel, 6 pixels of light and shadow on the edges;
- * and a `<filter2D>` built
- * from `args` alone, a GLSL and WGSL program that inverts colours.
+ * glowing pink, its glow built from `args` since pixi-filters compiles its shader from `distance` and `quality`; the
+ * quadrants texture with a blue drop shadow 10 pixels down and right; and the coin outlined in white.
+ * Bottom row: this scene's own `WaveFilter` class, whose rows `useFrame` has moved along a sine wave
+ * for twenty frames; pixi-filters' bevel, 6 pixels of light and shadow on the edges; and a
+ * `<filter2D>` built from `args` alone, a GLSL and WGSL program that inverts colours.
  */
 export const scene: TestScene = {
   frames: 20,

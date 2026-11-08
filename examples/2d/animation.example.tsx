@@ -1,7 +1,7 @@
 // #region result
 import { Texture } from 'pixi.js';
-import type { Sprite } from 'pixi.js';
-import { useRef, useState } from 'react';
+import type { Graphics, Sprite } from 'pixi.js';
+import { useRef } from 'react';
 import { Canvas, useFrame } from 'react-pixi-fiber';
 // #endregion result
 
@@ -23,11 +23,14 @@ function Bobbing() {
 
 // #region draw
 function Pulse() {
-  const [radius, setRadius] = useState(20);
+  const graphics = useRef<Graphics>(null);
 
-  useFrame((state) => setRadius(40 + Math.sin(state.elapsed * 3) * 20));
+  useFrame((state) => {
+    const radius = 40 + Math.sin(state.elapsed * 3) * 20;
+    graphics.current!.clear().circle(0, 0, radius).fill('royalblue');
+  });
 
-  return <graphics2D x={280} y={150} draw={(graphics) => graphics.circle(0, 0, radius).fill('royalblue')} />;
+  return <graphics2D ref={graphics} x={280} y={150} />;
 }
 // #endregion draw
 
