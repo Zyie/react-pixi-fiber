@@ -1,6 +1,7 @@
 import type { Container3D } from '@pixi/3d';
 import {
   AnimatedSprite,
+  BlurFilter,
   Container,
   FederatedEvent,
   Filter,
@@ -180,7 +181,8 @@ function runDraw<T extends Graphics | GraphicsContext>(target: T, draw: DrawCall
  * - `Graphics` and `GraphicsContext` take a `draw` prop: a callback that draws into them after they are
  *   cleared, run again whenever a new function is passed.
  * - `Particle` is a child r3f adds to a `ParticleContainer` and removes from it.
- * - `GraphicsContext` and `Filter` free themselves with `dispose`, as r3f calls it.
+ * - `GraphicsContext` and `Filter` free themselves with `dispose`, as r3f calls it. A `BlurFilter` frees
+ *   its two passes too, which its own `destroy` leaves bound to the renderer's uniform buffers.
  * @internal
  */
 export function install2DSurface(): void {
@@ -370,6 +372,17 @@ export function install2DSurface(): void {
       },
     });
   }
+
+  Object.defineProperty(BlurFilter.prototype, 'dispose', {
+    configurable: true,
+    writable: true,
+    value(this: BlurFilter & { _destroyed: boolean }) {
+      if (this._destroyed) return;
+      this.blurXFilter.destroy();
+      this.blurYFilter.destroy();
+      this.destroy();
+    },
+  });
 }
 
 /**

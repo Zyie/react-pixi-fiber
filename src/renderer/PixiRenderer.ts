@@ -184,6 +184,17 @@ const aspectOf = (camera: Camera3D): number | null => {
 };
 
 /**
+ * Destroys a pixi.js renderer, its filter system first: that system's bind group holds the uniform
+ * buffers and pooled textures of the last filter pass, which pixi frees before it, and pixi warns about
+ * each one freed while still bound
+ * @param pixi - The renderer
+ */
+function destroyPixi(pixi: Renderer): void {
+  pixi.filter.destroy();
+  pixi.destroy();
+}
+
+/**
  * three's renderer surface over a pixi.js renderer and pixi-3d views
  *
  * r3f's core drives a renderer through `init`, `setSize`, `setPixelRatio`, `render(scene, camera)`
@@ -743,7 +754,7 @@ export class PixiRenderer {
     this._twins?.destroy();
     this._twins = null;
     this._empty.destroy({ children: true });
-    this.pixi?.destroy();
+    if (this.pixi) destroyPixi(this.pixi);
     this.pixi = null;
   }
 

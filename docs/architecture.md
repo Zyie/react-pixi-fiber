@@ -248,3 +248,8 @@ None of these block us; each would let the library run on published `@react-thre
 - `getThree()` resolved per root from `state.internal.support`, so different renderers can share a page.
 - A generic `RootState`, so a support can type it without re-declaring the hooks.
 - A click-type event matched to its pointerdown when it has no `pointerId` (Chrome's `dblclick`), so `onDoubleClick` fires; our event layer does it for now.
+
+pixi.js asks, found through the 2D:
+
+- `BlurFilter.destroy` should destroy its two passes. They stay bound to the WebGPU renderer's uniform buffers; our `dispose` on `BlurFilter` frees them.
+- `Renderer.destroy` frees the uniform batch pipe's buffers and the texture pool before the filter system, whose bind group still holds them, and each one warns `[BindGroup] a '...' was destroyed while still bound to a shader`. `PixiRenderer.dispose` destroys the filter system first. A filter still alive when the renderer goes warns the same way, and r3f disposes elements at idle priority, after a root's renderer is released, so unmounting a root whose tree has filters still logs these warnings on WebGPU.
