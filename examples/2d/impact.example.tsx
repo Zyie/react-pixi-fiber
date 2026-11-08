@@ -46,7 +46,7 @@ function Impact() {
   const blur = useRef<BlurFilter>(null);
   const wave = useRef<DisplacementFilter>(null);
   const [ring, setRing] = useState<Sprite | null>(null);
-  const texture = useMemo(ringTexture, []);
+  const texture = useMemo(() => ringTexture(), []);
   const hit = useRef({ pending: false, at: -Infinity });
 
   useEffect(() => () => texture.destroy(true), [texture]);
