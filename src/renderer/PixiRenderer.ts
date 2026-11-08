@@ -7,8 +7,9 @@ import { EnvironmentMaps, isEnvironmentBackground } from '../environment/Environ
 import type { EnvironmentScene } from '../environment/EnvironmentMaps';
 import { Color as ThreeColor, toPixiColor } from '../math/Color';
 import { Vector4 } from '../math/Vector4';
-import { VIEW_Z_INDEX, screenOf } from '../two-d/screen';
-import { releaseBackdrop, updateBackdrop } from './backdrop';
+import { hasAnchorsIn, placeAnchors } from '../two-d/Anchor2D';
+import { VIEW_IN_LAYER_Z_INDEX, ensureScreen, layerOf, screenOf } from '../two-d/screen';
+import { releaseBackdrop, updateBackdrop, updateBackdropColor } from './backdrop';
 import { ProxyCamera } from './ProxyCamera';
 import { ClearRect, CubeFaceWriter, TargetTwins, coversSurface, fromBottomLeft, surfaceOf } from './renderTargets';
 import type { DrawableTarget, PixelRect } from './renderTargets';
@@ -55,6 +56,19 @@ export interface PixiShadowMap {
   autoUpdate: boolean;
   /** Kept for three's shape; pixi-3d renders shadows every frame */
   needsUpdate: boolean;
+}
+
+/** What the scene settings of a view are kept in: the view, what it is drawn from, and its last background */
+interface ViewSettings {
+  readonly view: View3D;
+  /** The container the view is drawn from, which a backdrop goes into under the view */
+  readonly stage: Container;
+  background: unknown;
+}
+
+/** A view drawn inside the 2D tree, which gets its scene's settings as it draws */
+interface EmbeddedView extends ViewSettings {
+  readonly scene: Container3D;
 }
 
 interface SceneView {
@@ -151,6 +165,12 @@ const drawsIn3D = (scene: EnvironmentScene): boolean => {
   return (background !== null && background !== undefined && !isColorBackground(background)) || !!scene.environment;
 };
 
+/** Whether a 2D object is a container or inside it */
+const isUnder = (object: Container, ancestor: Container): boolean => {
+  for (let at: Container | null = object; at; at = at.parent) if (at === ancestor) return true;
+  return false;
+};
+
 const isDescendant = (node: Container3D, root: Container3D): boolean => {
   for (let parent = node.parent; parent; parent = parent.parent) if (parent === root) return true;
   return false;
@@ -245,6 +265,9 @@ export class PixiRenderer {
   private readonly _powerPreference: PixiRendererParameters['powerPreference'];
   private readonly _useBackBuffer: boolean;
   private readonly _views = new Map<Container3D, SceneView>();
+  private readonly _embedded: EmbeddedView[] = [];
+  /** The embedded views drawn by the render in progress, whose lights are put back once it ends */
+  private readonly _drawnEmbedded: View3D[] = [];
   private readonly _emptyClearRect = new ClearRect();
   private readonly _empty = new Container({ children: [this._emptyClearRect] });
   private readonly _clearColor = new Color(0x000000);
@@ -421,7 +444,8 @@ export class PixiRenderer {
     }
     entry ??= this._createEntry(scene);
     entry.drawnAt = this._frame;
-    const screen = screenOf(scene);
+    let screen = screenOf(scene);
+    if (!screen && hasAnchorsIn(scene)) screen = ensureScreen(scene);
     if (!entry.view && (!screen || drawsIn3D(scene as EnvironmentScene))) this._createView(entry, scene, camera);
     if (screen) this._placeScreen(entry, screen);
     if (!hasView(entry)) {
@@ -440,6 +464,7 @@ export class PixiRenderer {
       entry.proxy.aspect = aspect;
       view.camera = entry.proxy;
     }
+    if (screen) placeAnchors(scene, camera, view, layerOf(screen)!);
 
     const background = (scene as Container3D & { background?: SceneBackground }).background;
     const clearToBackground = target ? isColorBackground(background) : this._applyBackground(pixi, background);
@@ -676,8 +701,37 @@ export class PixiRenderer {
     entry.stage.destroy();
   }
 
+  /**
+   * Makes a view drawn inside the 2D tree, such as a `<View3D>`'s, draw its scene as `render` draws
+   * one: three's tone mapping and output, the scene's lights, fog, environment and background, and the
+   * 2D anchored to its 3D. Before each draw of a stage the view is in, they are applied, so the view
+   * draws wherever it is in the tree: on the canvas, or in a scene drawn into a target. A colour
+   * background fills the view's rect, under it in `stage`, since the view can't clear the canvas.
+   * @param view - The view, whose camera is in its scene
+   * @param scene - The scene it draws, its `root`
+   * @param stage - The container that holds the view, which backdrops go into under it
+   */
+  public embedView(view: View3D, scene: Container3D, stage: Container): void {
+    this.releaseEmbeddedView(view);
+    this._embedded.push({ view, scene, stage, background: undefined });
+  }
+
+  /**
+   * Stops giving an embedded view its scene's settings and frees what they made for it: its backdrop
+   * and environment. The view stays its owner's to destroy.
+   * @param view - A view {@link PixiRenderer#embedView | embedView} took
+   */
+  public releaseEmbeddedView(view: View3D): void {
+    const index = this._embedded.findIndex((entry) => entry.view === view);
+    if (index === -1) return;
+    const [entry] = this._embedded.splice(index, 1);
+    releaseBackdrop(entry.stage);
+    this._environments?.releaseView(view);
+  }
+
   /** Frees every view and the pixi.js renderer; scenes keep their children */
   public dispose(): void {
+    while (this._embedded.length > 0) this.releaseEmbeddedView(this._embedded[0].view);
     for (const scene of this._views.keys()) this.releaseView(scene);
     this._environments?.dispose();
     this._environments = null;
@@ -717,8 +771,8 @@ export class PixiRenderer {
   }
 
   /**
-   * Puts a scene's screen layer in its stage, where the view was, and the view inside it, just under
-   * the 2D at zIndex 0
+   * Puts a scene's screen layer in its stage, where the view was, and the view in the screen layer's 3D
+   * layer, just under the 2D at zIndex 0 and under the 2D anchored to the 3D
    * @param entry - The scene's view
    * @param screen - The scene's screen layer
    */
@@ -728,10 +782,47 @@ export class PixiRenderer {
       if (view?.parent === stage) stage.addChildAt(screen, stage.getChildIndex(view));
       else stage.addChild(screen);
     }
-    if (view && view.parent !== screen) {
-      view.zIndex = VIEW_Z_INDEX;
-      screen.addChildAt(view, 0);
+    const layer = layerOf(screen)!;
+    if (view && view.parent !== layer) {
+      view.zIndex = VIEW_IN_LAYER_Z_INDEX;
+      layer.addChildAt(view, 0);
     }
+  }
+
+  /**
+   * Gives the embedded views in a stage about to be drawn their scenes' settings, and places the 2D
+   * anchored to their 3D; their lights are put back when the draw ends
+   * @param stage - What is about to be drawn
+   */
+  private _prepareEmbedded(stage: Container): void {
+    const embedded = this._embedded;
+    for (let i = 0; i < embedded.length; i++)
+      if (isUnder(embedded[i].view, stage)) this._prepareEmbeddedView(embedded[i]);
+  }
+
+  /**
+   * Gives an embedded view its scene's settings for the next draw, and places the 2D anchored to its 3D
+   * @param entry - The embedded view
+   */
+  private _prepareEmbeddedView(entry: EmbeddedView): void {
+    const { view, scene, stage } = entry;
+    if (view.destroyed) return;
+    const background = (scene as Container3D & { background?: SceneBackground }).background;
+    this._applySettings(entry, scene as EnvironmentScene, background);
+    this._applySceneSettings(entry, scene as EnvironmentScene);
+    if (isColorBackground(background) && background !== null && background !== undefined) {
+      updateBackdropColor(stage, view, background instanceof ThreeColor ? toPixiColor(background) : background);
+    }
+    const screen = screenOf(scene);
+    if (screen) placeAnchors(scene, view.camera, view, layerOf(screen)!);
+    this._drawnEmbedded.push(view);
+  }
+
+  /** Puts back the lights of the embedded views the last draw prepared */
+  private _finishEmbedded(): void {
+    const drawn = this._drawnEmbedded;
+    for (let i = 0; i < drawn.length; i++) if (!drawn[i].destroyed) finishLights(drawn[i]);
+    drawn.length = 0;
   }
 
   /**
@@ -796,6 +887,7 @@ export class PixiRenderer {
     const clearsColor = clear === true || (typeof clear === 'number' && (clear & CLEAR.COLOR) !== 0);
     this._clearColorOf(background);
 
+    if (this._embedded.length > 0) this._prepareEmbedded(stage);
     let fullClear = clear;
     if (clearsColor && scissorTest) {
       fromBottomLeft(target ? target.scissor : this._scissor, surfaceHeight, scissorRect);
@@ -826,6 +918,7 @@ export class PixiRenderer {
       pixi.render({ container: stage, clear: fullClear });
     }
     clearRect.visible = false;
+    this._finishEmbedded();
   }
 
   /** Writes the colour a clear goes to, a colour background or the clear colour, into `clearRGBA` */
@@ -885,7 +978,7 @@ export class PixiRenderer {
    * What three reads off the scene itself: its lights, its fog, and a 2D texture background, which is
    * stretched over the view
    */
-  private _applySceneSettings(entry: SceneView3D, scene: EnvironmentScene): void {
+  private _applySceneSettings(entry: ViewSettings, scene: EnvironmentScene): void {
     const { view } = entry;
     prepareLights(view, scene);
     applyFog(view, scene);
@@ -902,7 +995,7 @@ export class PixiRenderer {
    * @param scene - The scene
    * @param background - The scene's background
    */
-  private _applySettings(entry: SceneView3D, scene: EnvironmentScene, background: SceneBackground): void {
+  private _applySettings(entry: ViewSettings, scene: EnvironmentScene, background: SceneBackground): void {
     const { view } = entry;
     const toTarget = this._renderTarget !== null;
     if (toTarget) applyToneMapping(view, 0, 1, TARGET_OUTPUT);

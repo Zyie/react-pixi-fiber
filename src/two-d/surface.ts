@@ -18,8 +18,10 @@ import {
   addInElementOrder,
   addToScene,
   indexByElementOrder,
+  isLayer3D,
   isNode3D,
   screenOf,
+  screenOfLayer,
   warnOnce,
 } from './screen';
 import type { Linked } from './screen';
@@ -109,6 +111,10 @@ function reinsert(child: Linked<Container>, event: { type: string }): void {
   if (event.type !== 'added' || !parent) return;
   const index = (parent.children as unknown[]).indexOf(child);
   if (index !== -1) parent.children.splice(index, 1);
+  if (isLayer3D(child)) {
+    holder.parent = screenOfLayer(child) ?? null;
+    return;
+  }
   if (isNode3D(parent)) {
     const screen = screenOf(parent);
     holder.parent = screen?.children.includes(child) ? screen : null;
@@ -204,6 +210,7 @@ export function install2DSurface(): void {
       configurable: true,
       value(this: Container, ...objects: Linked<object>[]) {
         for (const object of objects) {
+          if (isLayer3D(object)) continue;
           if (object instanceof Particle) {
             if (this instanceof ParticleContainer) addParticleInOrder(this, object);
             else warnOnce('react-pixi-fiber: a <particle2D> must be inside a <particleContainer2D>.');
@@ -217,6 +224,7 @@ export function install2DSurface(): void {
       configurable: true,
       value(this: Container, ...objects: object[]) {
         for (const object of objects) {
+          if (isLayer3D(object)) continue;
           if (object instanceof Particle && this instanceof ParticleContainer) this.removeParticle(object);
           else if (object instanceof Container && object.parent === this) this.removeChild(object);
         }

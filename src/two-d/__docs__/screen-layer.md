@@ -12,7 +12,7 @@ const pixi = useThree((state) => state.renderer.pixi);
 
 ## Over and behind the 3D
 
-The scene's 3D is drawn by a pixi-3d view, which sits in the screen layer at a `zIndex` just under 0. A 2D element at the default `zIndex` of 0, or above, draws over the 3D: a HUD. One with a negative `zIndex` draws behind it: a backdrop. Only the `zIndex` of the 2D elements directly in the Canvas counts; nested ones sort among their siblings.
+The scene's 3D is drawn by a pixi-3d view, which sits in the screen layer's 3D layer, at a `zIndex` just under 0. A 2D element at the default `zIndex` of 0, or above, draws over the 3D: a HUD. One with a negative `zIndex` draws behind it: a backdrop. Only the `zIndex` of the 2D elements directly in the Canvas counts; nested ones sort among their siblings.
 
 <!-- snippet: examples/2d/hud.example.tsx#hud -->
 
@@ -54,6 +54,6 @@ A colour `background` on the Canvas, or the scene's, is behind everything; a 2D 
 
 A Canvas whose scene holds only 2D (and the default camera) makes no pixi-3d view: it costs a 2D renderer and nothing more, until a 3D object joins it.
 
-## 2D inside 3D
+## 2D inside 3D, and 3D inside 2D
 
-A 2D element inside a 3D object, such as a `<sprite2D>` in a `<mesh>`, isn't supported yet: it is left out, with a warning, and so is a 3D element inside a 2D one. Put 2D directly in the Canvas, or in other 2D elements. A scene that a portal renders, such as a HUD scene of its own, has a screen layer too.
+A 2D element inside a 3D object, such as a `<sprite2D>` in a `<mesh>`, follows the object on screen, and `<anchor2D>` does the same with more control. A 3D element can't be a child of a 2D one: it is left out with a warning. To draw 3D inside the 2D, use `<View3D>`. Both, and the 3D layer that holds the canvas's 3D, are in [Mixing 2D and 3D](mixing-2d-and-3d.md). A scene that a portal renders, such as a HUD scene of its own, has a screen layer too.

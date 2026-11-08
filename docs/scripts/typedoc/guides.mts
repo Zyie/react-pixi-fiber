@@ -107,6 +107,13 @@ export const GUIDES: readonly Guide[] = [
     file: 'src/two-d/__docs__/screen-layer.md',
     section: '2d',
   },
+  {
+    id: 'mixing-2d-and-3d',
+    title: 'Mixing 2D and 3D',
+    label: '2D and 3D bridges',
+    file: 'src/two-d/__docs__/mixing-2d-and-3d.md',
+    section: '2d',
+  },
   { id: 'events-2d', title: '2D events', file: 'src/two-d/__docs__/events-2d.md', section: '2d' },
   { id: 'animation-2d', title: 'Animating 2D', file: 'src/two-d/__docs__/animation-2d.md', section: '2d' },
   {
