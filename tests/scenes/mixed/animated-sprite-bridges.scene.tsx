@@ -6,21 +6,13 @@ function Walker({ x = 0, y = 0 }: { x?: number; y?: number }) {
   const sheet = useAsset<Spritesheet>('/sprites/walk.json');
 
   return (
-    <animatedSprite2D
-      args={[sheet.animations.walk]}
-      playing
-      animationSpeed={1 / 6}
-      x={x}
-      y={y}
-      scale={2}
-      anchor={0.5}
-    />
+    <animatedSprite2D args={[sheet.animations.walk]} playing animationSpeed={0.2} x={x} y={y} scale={2} anchor={0.5} />
   );
 }
 
 /**
  * Animated sprites play on the root's clock wherever a bridge puts them. Thirteen frames give twelve
- * ticks at `animationSpeed` 1/6, two frames of the walk sheet, so every sprite shows its third frame,
+ * ticks at `animationSpeed` 0.2, 2.4 frames of the walk sheet, so every sprite shows its third frame,
  * the white bar three quarters of the way down:
  *
  * - top left, directly in the canvas, for comparison;
