@@ -36,7 +36,7 @@ A `<meshPlane2D>` is a grid of `verticesX` by `verticesY` points over its textur
 
 ```tsx
 function Flag() {
-  const texture = useTexture('/textures/bricks.png');
+  const texture = useTexture('/textures/bricks.png?flag');
   const plane = useRef<MeshPlane>(null);
   const options = useMemo(() => ({ texture, verticesX: 12, verticesY: 6 }), [texture]);
 

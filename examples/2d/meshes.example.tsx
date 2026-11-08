@@ -28,7 +28,7 @@ function Snake() {
 
 // #region plane
 function Flag() {
-  const texture = useTexture('/textures/bricks.png');
+  const texture = useTexture('/textures/bricks.png?flag');
   const plane = useRef<MeshPlane>(null);
   const options = useMemo(() => ({ texture, verticesX: 12, verticesY: 6 }), [texture]);
 
