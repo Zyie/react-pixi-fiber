@@ -26,7 +26,7 @@ export default defineConfig({
     forwardConsole: { unhandledErrors: true, logLevels: ['error', 'log', 'info', 'debug'] },
   },
   optimizeDeps: {
-    exclude: ['pixi.js'],
+    exclude: ['pixi.js', 'pixi-filters'],
     // Listed so a cold cache doesn't optimize them mid-run, which reloads the page and fails that run.
     include: [
       'pixi.js > eventemitter3',

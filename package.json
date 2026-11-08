@@ -71,6 +71,7 @@
     "oxlint": "^1.91.0",
     "oxlint-tsgolint": "^7.0.2005",
     "pixelmatch": "^8.0.0",
+    "pixi-filters": "^6.1.5",
     "pixi.js": "8.22.0-dev.50a266e",
     "playwright": "^1.62.1",
     "pngjs": "^7.0.0",
@@ -97,5 +98,10 @@
       "oxlint --fix --no-error-on-unmatched-pattern",
       "oxfmt --write --no-error-on-unmatched-pattern"
     ]
+  },
+  "overrides": {
+    "pixi-filters": {
+      "pixi.js": "$pixi.js"
+    }
   }
 }
