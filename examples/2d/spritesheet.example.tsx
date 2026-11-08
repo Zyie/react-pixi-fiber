@@ -1,7 +1,7 @@
 // #region result
-import type { AnimatedSprite, Spritesheet } from 'pixi.js';
-import { Suspense, useRef } from 'react';
-import { Canvas, useAsset, useFrame, useTexture } from 'react-pixi-fiber';
+import type { Spritesheet } from 'pixi.js';
+import { Suspense } from 'react';
+import { Canvas, useAsset, useTexture } from 'react-pixi-fiber';
 // #endregion result
 
 import type { Example } from '../example';
@@ -10,13 +10,8 @@ import type { Example } from '../example';
 // #region walker
 function Walker() {
   const sheet = useAsset<Spritesheet>('/sprites/walk.json');
-  const sprite = useRef<AnimatedSprite>(null);
 
-  useFrame((state) => {
-    sprite.current!.currentFrame = Math.floor(state.elapsed * 8) % sprite.current!.totalFrames;
-  });
-
-  return <animatedSprite2D ref={sprite} args={[sheet.animations.walk]} x={40} y={90} scale={4} />;
+  return <animatedSprite2D args={[sheet.animations.walk]} playing animationSpeed={0.13} x={40} y={90} scale={4} />;
 }
 // #endregion walker
 

@@ -15,13 +15,13 @@ import { AssetsLoader } from './AssetsLoader';
  *   return <animatedSprite2D args={[sheet.animations.walk]} animationSpeed={0.2} />;
  * }
  * ```
- * @param input - One URL, or a list
+ * @param input - One URL or `Assets` alias, or a list
  * @returns The asset, or the assets in the order of the URLs
  * @category hooks
  * @standard
  */
-export function useAsset<T = unknown, Input extends string | string[] = string>(
-  input: Input,
-): Input extends string[] ? T[] : T {
-  return useLoader(AssetsLoader, input) as Input extends string[] ? T[] : T;
+export function useAsset<T = unknown>(input: string): T;
+export function useAsset<T = unknown>(input: readonly string[]): T[];
+export function useAsset<T = unknown>(input: string | readonly string[]): T | T[] {
+  return useLoader(AssetsLoader, input as string | string[]) as T | T[];
 }

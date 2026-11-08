@@ -5,6 +5,7 @@ import { WebGLCubeRenderTarget } from '../environment/WebGLCubeRenderTarget';
 import { WebGLRenderTarget } from '../environment/WebGLRenderTarget';
 import { registerRootExtension } from '../r3f/src/core/extensions';
 import { PixiRenderer } from '../renderer/PixiRenderer';
+import { releaseFrame2D, setupFrame2D } from '../two-d/frame';
 import { ensureScreen, releaseScreen } from '../two-d/screen';
 import { install2DDispatch, install2DSurface } from '../two-d/surface';
 import type { RootState, RootStore } from '../types/state';
@@ -52,14 +53,21 @@ export const pixiSupport: PixiSupport = {
   occlusion: undefined,
 };
 
-/** Gives each root's scene its screen layer, as `state.screen`, and frees it when the root unmounts */
+/**
+ * Gives each root's scene its screen layer, as `state.screen`, and the root its 2D frame jobs, and frees
+ * both when the root unmounts
+ */
 const screenExtension = {
   name: 'react-pixi-fiber:screen',
   setup: (store: RootStore): Partial<RootState> => {
     install2DDispatch();
+    setupFrame2D(store);
     return { screen: ensureScreen(store.getState().scene) };
   },
-  dispose: (store: RootStore): void => releaseScreen(store.getState().scene),
+  dispose: (store: RootStore): void => {
+    releaseFrame2D(store);
+    releaseScreen(store.getState().scene);
+  },
 };
 
 /**

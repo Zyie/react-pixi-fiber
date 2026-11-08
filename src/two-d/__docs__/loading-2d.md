@@ -25,13 +25,8 @@ function Picture() {
 ```tsx
 function Walker() {
   const sheet = useAsset<Spritesheet>('/sprites/walk.json');
-  const sprite = useRef<AnimatedSprite>(null);
 
-  useFrame((state) => {
-    sprite.current!.currentFrame = Math.floor(state.elapsed * 8) % sprite.current!.totalFrames;
-  });
-
-  return <animatedSprite2D ref={sprite} args={[sheet.animations.walk]} x={40} y={90} scale={4} />;
+  return <animatedSprite2D args={[sheet.animations.walk]} playing animationSpeed={0.13} x={40} y={90} scale={4} />;
 }
 ```
 
@@ -47,4 +42,25 @@ function Score() {
 }
 ```
 
+`useAsset` takes a list as well, and suspends until all of it is ready: `const [sheet, font] = useAsset(['/sprites/coin.json', '/fonts/blocks.fnt'])`.
+
 `useLoader.clear` forgets an asset in React only; `Assets.unload` frees it.
+
+## Video
+
+A video loads as a texture, which plays on its own by default. To choose, add it to `Assets` under an alias with pixi's video options, and load the alias:
+
+```tsx
+import { Assets } from 'pixi.js';
+import type { Texture } from 'pixi.js';
+
+Assets.add({ alias: 'intro', src: '/video/intro.webm', data: { autoPlay: false, muted: true } });
+
+function Screen() {
+  const texture = useAsset<Texture>('intro');
+
+  return <sprite2D texture={texture} width={320} height={180} />;
+}
+```
+
+The video element is `texture.source.resource`: call `play()` on it, or seek it with `currentTime`, then `texture.source.update()` to upload the frame it shows.

@@ -70,7 +70,7 @@ export default defineConfig({
   plugins: [fiberPerFrame(), watchScenes()],
   resolve: { alias: sharedAliases },
   optimizeDeps: {
-    exclude: ['pixi.js'],
+    exclude: ['pixi.js', 'pixi-filters'],
     // A frame's entry is loaded by a URL the scanner can't follow, so what it reaches is named here, and a
     // first visit doesn't optimize mid-load and reload the page.
     entries: ['index.html', 'src/**/*.{ts,tsx}', '../tests/scenes/**/*.tsx', '../examples/**/*.tsx'],

@@ -1,5 +1,5 @@
 import type { Container3D } from '@pixi/3d';
-import type { Color as PixiColor, ColorSource, Container } from 'pixi.js';
+import type { Color as PixiColor, ColorSource, Container, Particle } from 'pixi.js';
 import type * as React from 'react';
 
 import type { Color as ThreeColor } from '../math/Color';
@@ -150,13 +150,13 @@ export interface Catalogue {
 
 /**
  * Constructor arguments of a class, as the `args` prop; for a pixi.js 2D class, those of any of its
- * constructor's overloads
+ * constructor's overloads, and none for a particle, which its props can build alone
  * @category types
  * @advanced
  */
 export type Args<T> = T extends ConstructorRepresentation
   ? Is2D<InstanceType<T>> extends true
-    ? OverloadArgs<T>
+    ? OverloadArgs<T> | (InstanceType<T> extends Particle ? [] : never)
     : ConstructorParameters<T>
   : unknown[];
 

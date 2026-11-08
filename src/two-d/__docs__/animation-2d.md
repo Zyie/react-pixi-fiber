@@ -19,24 +19,25 @@ function Bobbing() {
 }
 ```
 
-## Through the draw prop
+## Redrawing a graphics
 
-A graphics redraws when it gets a new `draw` function, so drawing that changes every frame can go through state. Each frame re-renders the component and the graphics is cleared and drawn again:
+A shape that changes every frame is redrawn the same way: clear the graphics through its ref and draw it again in `useFrame`. The `draw` prop is for drawings that follow props and state; setting state every frame would re-render the component each time for nothing, as [r3f's pitfalls](https://r3f.docs.pmnd.rs/advanced/pitfalls#avoid-setstate-in-loops) warn:
 
 <!-- snippet: examples/2d/animation.example.tsx#draw -->
 
 ```tsx
 function Pulse() {
-  const [radius, setRadius] = useState(20);
+  const graphics = useRef<Graphics>(null);
 
-  useFrame((state) => setRadius(40 + Math.sin(state.elapsed * 3) * 20));
+  useFrame((state) => {
+    const radius = 40 + Math.sin(state.elapsed * 3) * 20;
+    graphics.current!.clear().circle(0, 0, radius).fill('royalblue');
+  });
 
-  return <graphics2D x={280} y={150} draw={(graphics) => graphics.circle(0, 0, radius).fill('royalblue')} />;
+  return <graphics2D ref={graphics} x={280} y={150} />;
 }
 ```
 
 ![A pink square bobbing and turning, and a blue circle growing and shrinking](../../../tests/snapshots/docs/2d/animation.webgl.png)
 
-For many shapes, keep a ref to the graphics and draw into it in `useFrame` instead: `graphics.clear().circle(...)`.
-
-pixi's `Ticker` isn't what draws: the root's frameloop is, so `frameloop="demand"` and `invalidate()` work for 2D as for 3D. An `<animatedSprite2D>` plays on pixi's shared ticker when you call `play()`; to keep it on the root's clock, set its `currentFrame` in `useFrame`, as [Loading textures and spritesheets](loading-2d.md) does.
+pixi's `Ticker` isn't what draws: the root's frameloop is, so `frameloop="demand"` and `invalidate()` work for 2D as for 3D. Animated sprites play on the same clock: `<animatedSprite2D playing animationSpeed={0.2} />` advances with the root's frames, and a playing sprite keeps a `demand` canvas drawing ([Sprites and spritesheets](sprites-2d.md#animated-sprites)).
