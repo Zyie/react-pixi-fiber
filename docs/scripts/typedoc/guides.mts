@@ -5,7 +5,7 @@
  */
 
 /** A section of the Docs sidebar, which is also the folder of its guides' pages: `/docs/<section>/<id>/` */
-export type GuideSection = 'getting-started' | 'tutorials' | 'reference' | 'advanced';
+export type GuideSection = 'getting-started' | 'tutorials' | '2d' | 'reference' | 'advanced';
 
 /** One guide of the docs site */
 export interface Guide {
@@ -24,6 +24,7 @@ export interface Guide {
 export const SECTIONS: Readonly<Record<GuideSection, string>> = {
   'getting-started': 'Getting started',
   tutorials: 'Tutorials',
+  '2d': '2D',
   reference: 'Reference',
   advanced: 'Advanced',
 };
@@ -65,6 +66,35 @@ export const GUIDES: readonly Guide[] = [
     title: 'Camera controls',
     file: 'src/addons/controls/__docs__/camera-controls.md',
     section: 'tutorials',
+  },
+  {
+    id: 'your-first-2d-scene',
+    title: 'Your first 2D scene',
+    file: 'src/two-d/__docs__/your-first-2d-scene.md',
+    section: '2d',
+  },
+  {
+    id: 'objects-2d',
+    title: '2D objects, properties and arguments',
+    label: '2D objects',
+    file: 'src/two-d/__docs__/objects-2d.md',
+    section: '2d',
+  },
+  {
+    id: 'screen-layer',
+    title: 'The screen layer and mixing with 3D',
+    label: 'Mixing with 3D',
+    file: 'src/two-d/__docs__/screen-layer.md',
+    section: '2d',
+  },
+  { id: 'events-2d', title: '2D events', file: 'src/two-d/__docs__/events-2d.md', section: '2d' },
+  { id: 'animation-2d', title: 'Animating 2D', file: 'src/two-d/__docs__/animation-2d.md', section: '2d' },
+  {
+    id: 'loading-2d',
+    title: 'Loading textures and spritesheets',
+    label: 'Loading 2D assets',
+    file: 'src/two-d/__docs__/loading-2d.md',
+    section: '2d',
   },
   { id: 'canvas', title: 'Canvas', file: 'src/__docs__/canvas.md', section: 'reference' },
   {

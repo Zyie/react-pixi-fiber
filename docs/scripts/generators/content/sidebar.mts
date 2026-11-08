@@ -16,6 +16,7 @@ export const INTRODUCTION = 'docs/index';
 export const SECTION_INDEX: Readonly<Record<GuideSection, string>> = {
   'getting-started': INTRODUCTION,
   tutorials: 'docs/tutorials/index',
+  '2d': 'docs/2d/index',
   reference: 'docs/reference/index',
   advanced: 'docs/advanced/index',
 };

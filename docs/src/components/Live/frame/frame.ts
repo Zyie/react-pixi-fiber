@@ -182,7 +182,7 @@ export async function run(message: RunMessage, program: string): Promise<void> {
   watchFirstFrame();
 
   try {
-    Assets.add(message.assets.map(({ alias, file }) => ({ alias, src: file })));
+    Assets.add(message.assets.map(({ alias, file }) => ({ alias: [alias, `/${alias}`], src: file })));
     serveAssets(message);
 
     const module = (await import(/* @vite-ignore */ program)) as Parameters<typeof mount>[0];

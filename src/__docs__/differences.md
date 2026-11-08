@@ -56,6 +56,15 @@ The objects behind the elements are pixi-3d's. Declarative props work as in r3f,
 - **glTF models.** `GLTFLoader` gives three's `GLTF`, with bones as nodes and `nodes` and `materials` for gltfjsx. Materials are `MeshStandardMaterial`, with their maps, or `MeshPhysicalMaterial` with the factors of the clear coat, sheen, transmission, volume, iridescence, specular, anisotropy and IOR extensions; a material whose extension has a texture of its own keeps pixi-3d's material, without three's fields. Punctual lights are `DirectionalLight`, `PointLight` and `SpotLight`. A skinned mesh draws relative to its parent, so it belongs beside its root bone, where files and gltfjsx put it. pixi-3d morphs a geometry on the first renderer that draws it only: a cached model with morph targets shown in a second `<Canvas>` draws unmorphed, so clear it from `useLoader`'s cache when its canvas unmounts. Draco and meshopt decode with pixi-3d's decoders; loader plugins (`register`) aren't supported.
 - **Animation.** `AnimationMixer`, `AnimationAction`, `AnimationClip` and the keyframe tracks match three's numbers, including fades, warps, loop modes and their events. three's `InterpolateSmooth` samples linearly, additive blending plays as normal, and there is no `StringKeyframeTrack`.
 
+## What it adds: pixi.js 2D
+
+r3f has no 2D; react-pixi-fiber adds pixi.js's under r3f's rules. Every pixi.js display class, filter, `GraphicsContext` and `Particle` is an element named after its class with a `2D` suffix (`<sprite2D>`, `<blurFilter2D attach="filters-0" />`), takes `args`, props, piercing and `attach` as three's elements do, and gets r3f's events in the same event system as the 3D. 2D in the canvas draws in screen space, over the 3D or, with a negative `zIndex`, under it. See [Your first 2D scene](../two-d/__docs__/your-first-2d-scene.md) and [The screen layer and mixing with 3D](../two-d/__docs__/screen-layer.md). What's different from pixi.js on its own:
+
+- pixi's `EventSystem` is off: r3f's handlers replace `on('pointerdown')` and `onpointerdown`, and every handler under the pointer runs, front to back, until one stops propagation, where pixi delivers to the topmost hit only.
+- A 2D element can't be inside a 3D object yet, nor a 3D one inside 2D; either is left out with a warning.
+- The root's frameloop draws, not pixi's `Ticker`; an `<animatedSprite2D>` that `play()`s still advances on pixi's shared ticker.
+- There is no three.js picture to hold 2D to: its scenes are held to their own WebGL and WebGPU references.
+
 ## What the package exports
 
 The package exports what r3f v10 does, under the same names, typed against pixi-3d. `Vector3`, `Euler`, `Color` and the other math types are what a prop takes, as in r3f. three's classes, with the same names, come from `react-pixi-fiber/three` (see [The three entry](three-entry.md)). Left out until they work on pixi-3d:

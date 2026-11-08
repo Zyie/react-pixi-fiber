@@ -2,7 +2,7 @@
   "name": "react-pixi-fiber",
   "version": "0.0.0",
   "private": true,
-  "description": "A React renderer for pixi-3d, ported from react-three-fiber v10",
+  "description": "A React renderer for pixi.js 2D and pixi-3d with react-three-fiber v10's API for both",
   "license": "MIT",
   "author": "PixiJS",
   "workspaces": [

@@ -40,8 +40,8 @@ const BUILT_WITH = [LOCKFILE, 'docs/scripts/generators/live.mts'];
 /** The CommonJS packages a program imports by name, each given ES exports by a facade */
 const COMMONJS = ['react', 'react/jsx-runtime', 'react-dom', 'react-dom/client'];
 
-/** The files a runtime asset may be: what a scene loads as a texture or a model */
-const ASSET_FILES = '**/*.{png,jpg,jpeg,webp,ktx2,glb,gltf,bin,hdr}';
+/** The files a runtime asset may be: what a scene loads as a texture, a model, a spritesheet or a bitmap font */
+const ASSET_FILES = '**/*.{png,jpg,jpeg,webp,ktx2,glb,gltf,bin,hdr,json,fnt}';
 
 /**
  * Every module a program can import, by its specifier, with what the build reads for it: a package

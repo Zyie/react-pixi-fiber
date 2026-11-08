@@ -62,6 +62,21 @@ export const scene: TestScene = {
 
 A scene imports `react`, `react-pixi-fiber`, `react-pixi-fiber/three`, `react-pixi-fiber/addons` and `@test-scene`, and nothing from `three` or `@pixi/3d` directly: either would tie it to one renderer, and it runs on both. Classes, math and constants come from `react-pixi-fiber/three` (`import { Color, Vector3 } from 'react-pixi-fiber/three'`), which is `three` itself on the three.js side, and addons from `react-pixi-fiber/addons`. A scene names only what both sides have: r3f's API, three's element names and the classes `react-pixi-fiber/three` shares with `three`. The library's own extras, such as `PixiRenderer` or pixi-3d's element names (`<cubeGeometry>`, `<material3D>`), exist only on pixi-3d, so a scene that uses them skips three.js and sets `parity: false`, as `tests/scenes/core/native-names.scene.tsx` does.
 
+### 2D and mixed scenes
+
+pixi.js 2D has no three.js counterpart, so a scene with 2D elements in it has nothing to measure parity against. Put it in a 2D folder: `tests/scenes/2d` for 2D alone, `tests/scenes/mixed` for 2D with 3D, and `examples/2d` for a docs example. Their scenes are `PIXI_ONLY` without saying so (`PIXI_ONLY_FOLDERS` in `tests/harness/scene-constants.ts`, applied by `withFolderDefaults`): they skip three.js and leave out the parity comparison, the `three` project doesn't load them, and the playground's three.js frame shows them as skipped. Such a scene may import `pixi.js` (`Texture`, `Rectangle`, types) and this library's own names (`useAsset`, `ThreeEvent2D`), which a parity scene can't. A 2D scene anywhere else spreads `PIXI_ONLY` from `@test-scene` into its object.
+
+Each is held to its own WebGL and WebGPU references, which should agree with each other: when you write one, look at both, and compare them (the playground's Diff between pixi WebGL and pixi WebGPU). A 2D element's `x` and `y` are CSS pixels from the canvas's top-left corner, so `mouse.move(x, y)` in `act` lands on it at the same numbers.
+
+```tsx
+import type { TestScene } from '@test-scene';
+import { Texture } from 'pixi.js';
+
+export const scene: TestScene = {
+  render: () => <sprite2D texture={Texture.WHITE} tint="orange" width={80} height={80} x={20} y={20} />,
+};
+```
+
 For each renderer of the vitest project, the harness (`tests/harness/scene-runner.tsx`):
 
 1. Puts a 400 by 300 canvas at a device pixel ratio of 1 on the page, over a black background. Both renderers clear to transparent, so the black shows through.
@@ -246,10 +261,10 @@ A unit test is for what no picture shows: that `react-pixi-fiber/three`'s math g
 
 ## Assets
 
-Scenes load textures from `tests/assets`, which vitest and the playground both serve at `/`: `tests/assets/textures/quadrants.png` is `/textures/quadrants.png`. Nothing is fetched from the network. `scripts/test/make-assets.mts` writes the models in `tests/assets/models` and the textures besides `quadrants.png` from code, so every file there is the repo's own; run it again after changing it, and look at the scenes that load what changed. A scene that loads a file `useLoader` caches by URL shares it with every scene on the page, so give its URL a query of its own (`/models/box.glb?primitive`).
+Scenes load textures from `tests/assets`, which vitest and the playground both serve at `/`: `tests/assets/textures/quadrants.png` is `/textures/quadrants.png`. 2D scenes load the spritesheet `/sprites/walk.json` and the bitmap font `/fonts/blocks.fnt` with `useAsset`. Nothing is fetched from the network. `scripts/test/make-assets.mts` writes the models in `tests/assets/models` and the textures besides `quadrants.png` from code, so every file there is the repo's own; run it again after changing it, and look at the scenes that load what changed. A scene that loads a file `useLoader` caches by URL shares it with every scene on the page, so give its URL a query of its own (`/models/box.glb?primitive`).
 
 ## The playground
 
-`npm start` serves `playground/` on http://localhost:5181. It lists every scene and example, and builds the one you pick three times, each in a hidden frame of its own on the runner the tests use: pixi WebGL, pixi WebGPU and three.js, side by side. Diff compares any two of them and measures the difference as the tests measure parity. Each pane's `open` link shows that frame on its own, and an example's `live` link runs it as an app.
+`npm start` serves `playground/` on http://localhost:5181. It lists every scene and example, 2D ones included, and builds the one you pick three times, each in a hidden frame of its own on the runner the tests use: pixi WebGL, pixi WebGPU and three.js, side by side. Diff compares any two of them and measures the difference as the tests measure parity. Each pane's `open` link shows that frame on its own, and an example's `live` link runs it as an app.
 
 A frame on three.js loads its entry with `?fiber=three`. The playground's Vite plugin carries that query through every script the frame reaches outside `node_modules`, so those modules are copies of their own in that frame and the package's names resolve to `FIBER_TARGETS.three` there. Frames are built one after another, since each loads pixi-3d and r3f from source.
