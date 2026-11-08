@@ -1,3 +1,4 @@
+import { getScheduler } from '@pmndrs/scheduler';
 import { GraphicsContext, Texture } from 'pixi.js';
 import type { BlurFilter, Graphics, Sprite } from 'pixi.js';
 import { act } from 'react';
@@ -119,4 +120,15 @@ it('gives each root a screen layer and frees it when the root unmounts', async (
   await act(async () => root!.unmount());
   root = undefined;
   expect(screen.destroyed).toBe(true);
+});
+
+// Scheduler jobs aren't on the picture.
+it("registers a root's 2D frame jobs and unregisters them when the root unmounts", async () => {
+  const state = await mount(null);
+  const jobs = [`${state.internal.rootId}_animatedSprites2D`, `${state.internal.rootId}_cull2D`];
+  expect(getScheduler().getJobIds()).toEqual(expect.arrayContaining(jobs));
+
+  await act(async () => root!.unmount());
+  root = undefined;
+  for (const job of jobs) expect(getScheduler().getJobIds()).not.toContain(job);
 });
