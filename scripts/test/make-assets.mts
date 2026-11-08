@@ -30,7 +30,13 @@
  *   animation `walk` of all four.
  * - `fonts/blocks.png` and `fonts/blocks.fnt`: a bitmap font named `Blocks`, 28 pixels high, with the
  *   glyphs `P`, `I`, `X`, `2`, `D` and a space drawn as 5 by 7 blocks of 4 pixels.
+ * - `sprites/coin.png` and `sprites/coin.json`: a spritesheet of eight 48 by 48 frames, `coin-0` to
+ *   `coin-7`, a gold coin turning about its upright axis, and the animation `spin` of all eight.
+ * - `video/steps.webm`: a VP8 video of four 64 by 64 frames at 4 a second, red, green, blue and
+ *   yellow, with a white bar that steps down a quarter of the frame each frame. ffmpeg encodes it,
+ *   and is needed only for this file.
  */
+import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -562,6 +568,99 @@ function writeSpritesheet(dir: string): void {
   writeFileSync(path.join(dir, 'walk.json'), `${JSON.stringify(sheet, null, 2)}\n`);
 }
 
+/** The spritesheet `sprites/coin.json`: a gold coin turning, eight frames side by side, and the `spin` animation */
+function writeCoin(dir: string): void {
+  const size = 48;
+  const frames = 8;
+  const radius = 20;
+
+  writeRgba(path.join(dir, 'coin.png'), size * frames, size, (x, y) => {
+    const frame = Math.floor(x / size);
+    const half = Math.max(2, Math.abs(Math.cos((frame / frames) * Math.PI)) * radius);
+    const dx = (x % size) - size / 2 + 0.5;
+    const dy = y - size / 2 + 0.5;
+    const d = (dx / half) ** 2 + (dy / radius) ** 2;
+
+    if (d > 1) return [0, 0, 0, 0];
+    if (d > 0.72) return [190, 120, 20, 255];
+    const shine = Math.max(0, 1 - Math.hypot(dx / half + 0.35, dy / radius + 0.35) * 1.6);
+
+    return [Math.min(255, 245 + shine * 10), Math.min(255, 190 + shine * 60), Math.min(255, 40 + shine * 180), 255];
+  });
+  const names = Array.from({ length: frames }, (_, i) => `coin-${i}`);
+  const sheet = {
+    frames: Object.fromEntries(
+      names.map((name, i) => [
+        name,
+        {
+          frame: { x: i * size, y: 0, w: size, h: size },
+          rotated: false,
+          trimmed: false,
+          spriteSourceSize: { x: 0, y: 0, w: size, h: size },
+          sourceSize: { w: size, h: size },
+        },
+      ]),
+    ),
+    animations: { spin: names },
+    meta: { image: 'coin.png', format: 'RGBA8888', size: { w: size * frames, h: size }, scale: '1' },
+  };
+
+  writeFileSync(path.join(dir, 'coin.json'), `${JSON.stringify(sheet, null, 2)}\n`);
+}
+
+/** The video `video/steps.webm`: four coloured frames with a bar stepping down, encoded by ffmpeg */
+function writeVideo(dir: string): void {
+  const size = 64;
+  const colours = [
+    [220, 60, 60],
+    [60, 170, 90],
+    [70, 110, 220],
+    [230, 190, 50],
+  ];
+  const data = Buffer.alloc(size * size * 4 * colours.length);
+
+  colours.forEach((colour, frame) => {
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const bar = y >= frame * 16 && y < frame * 16 + 16 && x >= 8 && x < 56;
+        data.set(bar ? [255, 255, 255, 255] : [...colour, 255], ((frame * size + y) * size + x) * 4);
+      }
+    }
+  });
+  execFileSync(
+    'ffmpeg',
+    [
+      '-y',
+      '-loglevel',
+      'error',
+      '-f',
+      'rawvideo',
+      '-pix_fmt',
+      'rgba',
+      '-s',
+      `${size}x${size}`,
+      '-r',
+      '4',
+      '-i',
+      '-',
+      '-c:v',
+      'libvpx',
+      '-b:v',
+      '1M',
+      '-pix_fmt',
+      'yuv420p',
+      '-auto-alt-ref',
+      '0',
+      '-fflags',
+      '+bitexact',
+      '-flags',
+      '+bitexact',
+      path.join(dir, 'steps.webm'),
+    ],
+    { input: data },
+  );
+}
+
 /** The bitmap font `fonts/blocks.fnt`: a few glyphs as 5 by 7 blocks, 4 pixels each */
 function writeBitmapFont(dir: string): void {
   const glyphs: Record<string, string[]> = {
@@ -624,7 +723,10 @@ for (const [name, colour] of Object.entries(faces)) {
 mkdirSync(path.join(ROOT, 'sprites'), { recursive: true });
 mkdirSync(path.join(ROOT, 'fonts'), { recursive: true });
 writeSpritesheet(path.join(ROOT, 'sprites'));
+writeCoin(path.join(ROOT, 'sprites'));
 writeBitmapFont(path.join(ROOT, 'fonts'));
+mkdirSync(path.join(ROOT, 'video'), { recursive: true });
+writeVideo(path.join(ROOT, 'video'));
 
 writeBox(path.join(ROOT, 'models/box.glb'));
 writeTexturedBox(path.join(ROOT, 'models/textured-box.glb'));

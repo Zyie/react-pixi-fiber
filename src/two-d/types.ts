@@ -1,6 +1,7 @@
 import type {
   AnimatedSprite,
   AnimatedSpriteFrames,
+  CacheAsTextureOptions,
   ColorSource,
   Container,
   Filter,
@@ -10,9 +11,11 @@ import type {
   HTMLTextStyle,
   HTMLTextStyleOptions,
   Mask,
+  MaskOptionsAndMask,
   Particle,
   Point,
   PointData,
+  RenderLayer,
   TextString,
   TextStyle,
   TextStyleOptions,
@@ -105,21 +108,42 @@ export interface EventHandlers2D {
 }
 
 /**
- * The props of a 2D object whose setter takes more than its getter returns: `tint` any colour,
- * `filters` one filter or a list, `mask` a container or a colour mask, and text's `text` and `style`
- * what their setters take
+ * The props this package adds to every 2D container: what its mask, render layer and texture cache
+ * take as props
+ * @category types
+ * @advanced
+ */
+export interface ContainerProps2D {
+  /** One filter or a list; `attach="filters-0"` puts a filter element in it */
+  filters: Filter | readonly Filter[] | null;
+  /**
+   * A container or a colour mask, or pixi's mask options as `setMask` takes them
+   * (`{ mask, inverse: true }`); options without a `mask` keep the current one, such as an
+   * `attach="mask"` child's
+   */
+  mask: Mask | Partial<MaskOptionsAndMask>;
+  /** The render layer that draws this container, or `null` for none; `layer.attach(this)` as a prop */
+  renderLayer: RenderLayer | null;
+  /** Caches the container and its children as one texture: `cacheAsTexture(value)` as a prop */
+  cacheAsTexture: boolean | CacheAsTextureOptions;
+}
+
+/**
+ * The props of a 2D object whose setter takes more than its getter returns: `tint` any colour, a
+ * container's {@link ContainerProps2D}, text's `text` and `style` what their setters take, and an
+ * animated sprite's `textures` and `playing`, which plays or stops it
  * @category types
  * @advanced
  */
 export type SetterProps2D<P> = (P extends { tint: number } ? { tint: ColorSource } : {}) &
-  (P extends Container ? { filters: Filter | readonly Filter[] | null; mask: Mask } : {}) &
+  (P extends Container ? ContainerProps2D : {}) &
   (P extends { text: string; style: object }
     ? {
         text: TextString;
         style: P extends HTMLText ? HTMLTextStyle | HTMLTextStyleOptions : TextStyle | TextStyleOptions;
       }
     : {}) &
-  (P extends AnimatedSprite ? { textures: AnimatedSpriteFrames } : {});
+  (P extends AnimatedSprite ? { textures: AnimatedSpriteFrames; playing: boolean } : {});
 
 /**
  * The `draw` prop of a graphics or a graphics context: a callback that draws into it after it is

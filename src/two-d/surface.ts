@@ -1,5 +1,15 @@
 import type { Container3D } from '@pixi/3d';
-import { Container, FederatedEvent, Filter, Graphics, GraphicsContext, Particle, ParticleContainer } from 'pixi.js';
+import {
+  AnimatedSprite,
+  Container,
+  FederatedEvent,
+  Filter,
+  Graphics,
+  GraphicsContext,
+  Particle,
+  ParticleContainer,
+} from 'pixi.js';
+import type { CacheAsTextureOptions, MaskOptionsAndMask, RenderLayer } from 'pixi.js';
 
 import type { Intersection } from '../compat/Raycaster';
 import { raycastScreen } from './hitTest';
@@ -125,6 +135,13 @@ function addParticleInOrder(container: ParticleContainer, particle: Linked<Parti
 }
 
 /**
+ * Whether a `mask` value is pixi's mask options, `setMask`'s argument, rather than a mask
+ * @param value - What the `mask` prop got
+ */
+const isMaskOptions = (value: unknown): value is Partial<MaskOptionsAndMask> =>
+  typeof value === 'object' && value !== null && !(value instanceof Container);
+
+/**
  * Runs a `draw` callback on a graphics or a context, after clearing it
  * @param target - The graphics or context
  * @param draw - The callback, or `undefined` to leave it as it is
@@ -148,7 +165,12 @@ function runDraw<T extends Graphics | GraphicsContext>(target: T, draw: DrawCall
  * - `filters` hands out a list that `attach="filters-0"` can write into and r3f's detach can delete
  *   from; every change sets the container's filters to the list without its gaps.
  * - `mask` reads `null` when there is none, so a detached mask element clears it, and a mask element
- *   with no parent is added as a child of what it masks, which places it in that object's space.
+ *   with no parent is added as a child of what it masks, which places it in that object's space. It
+ *   also takes pixi's mask options, `setMask`'s argument (`{ mask, inverse: true }`); options without a
+ *   `mask` keep the current one, such as a mask element attached as `attach="mask"`.
+ * - `renderLayer` attaches a container to a `RenderLayer`, or detaches it with `null`.
+ * - `cacheAsTexture` is a prop as well as a method: setting it calls the method.
+ * - `AnimatedSprite`'s `playing` plays or stops it when set.
  * - `Graphics` and `GraphicsContext` take a `draw` prop: a callback that draws into them after they are
  *   cleared, run again whenever a new function is passed.
  * - `Particle` is a child r3f adds to a `ParticleContainer` and removes from it.
@@ -160,6 +182,8 @@ export function install2DSurface(): void {
   installed = true;
   const filters = descriptorOf(Container.prototype, 'filters');
   const mask = descriptorOf(Container.prototype, 'mask');
+  const cacheAsTexture = descriptorOf(Container.prototype, 'cacheAsTexture').value as Container['cacheAsTexture'];
+  const playing = descriptorOf(AnimatedSprite.prototype, 'playing');
 
   const applyFilters = (container: Container, list: readonly (Filter | undefined)[]): void => {
     filters.set!.call(
@@ -251,7 +275,11 @@ export function install2DSurface(): void {
       get(this: Container) {
         return (mask.get!.call(this) as Container | number | undefined) ?? null;
       },
-      set(this: Linked<Container>, value: Linked<Container> | number | null) {
+      set(this: Linked<Container>, value: Linked<Container> | number | null | Partial<MaskOptionsAndMask>) {
+        if (isMaskOptions(value)) {
+          this.setMask(value);
+          return;
+        }
         const adopted = adoptedMasks.get(this);
         if (adopted && adopted !== value) {
           adoptedMasks.delete(this);
@@ -266,6 +294,39 @@ export function install2DSurface(): void {
         }
         mask.set!.call(this, value);
       },
+    },
+    renderLayer: {
+      configurable: true,
+      get(this: Container) {
+        return this.parentRenderLayer;
+      },
+      set(this: Container, layer: RenderLayer | null) {
+        if (layer === this.parentRenderLayer) return;
+        if (layer) layer.attach(this);
+        else this.parentRenderLayer?.detach(this);
+      },
+    },
+    cacheAsTexture: {
+      configurable: true,
+      get() {
+        return cacheAsTexture;
+      },
+      set(this: Container, value: boolean | CacheAsTextureOptions | typeof cacheAsTexture) {
+        const cache = typeof value === 'function' ? false : value;
+        if (cache === false && !this.isCachedAsTexture) return;
+        cacheAsTexture.call(this, cache);
+      },
+    },
+  });
+
+  Object.defineProperty(AnimatedSprite.prototype, 'playing', {
+    configurable: true,
+    get(this: AnimatedSprite) {
+      return playing.get!.call(this) as boolean;
+    },
+    set(this: AnimatedSprite, value: boolean) {
+      if (value) this.play();
+      else this.stop();
     },
   });
 

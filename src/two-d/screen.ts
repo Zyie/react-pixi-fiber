@@ -1,7 +1,8 @@
 import { Container3D } from '@pixi/3d';
-import { Container, warn } from 'pixi.js';
+import { AnimatedSprite, Container, warn } from 'pixi.js';
 
 import type { Instance } from '../types/elements';
+import { driveOnRootClock } from './frame';
 
 /**
  * The zIndex of a scene's 3D view in its screen layer: just under 0, so 2D at the default zIndex of 0
@@ -143,7 +144,8 @@ export function indexByElementOrder<T>(list: readonly T[], child: Linked<T>): nu
 }
 
 /**
- * Adds a 2D child to a 2D container where its element is among its siblings, or moves it there
+ * Adds a 2D child to a 2D container where its element is among its siblings, or moves it there. An
+ * animated sprite joins its root's clock.
  * @param parent - The container
  * @param child - The child
  * @internal
@@ -153,6 +155,7 @@ export function addInElementOrder(parent: Container, child: Linked<Container>): 
   const index = indexByElementOrder(parent.children, child);
   if (index === -1) parent.addChild(child);
   else parent.addChildAt(child, index);
+  if (child instanceof AnimatedSprite) driveOnRootClock(child);
 }
 
 /**
