@@ -83,7 +83,7 @@ Capture the pointer on pointerdown and the element keeps getting its moves when 
 
 ## The cursor
 
-`cursor` sets the canvas's CSS cursor while the pointer is over the element, or over a child of it that is hit, as pixi does.
+`cursor` sets the canvas's CSS cursor while the pointer is over the element, or over a child of it that is hit, as pixi does. It is cleared as soon as that element unmounts; a change that moves another element under a resting pointer, or changes `cursor`, shows on the next pointer move.
 
 ## pixi's own event system
 

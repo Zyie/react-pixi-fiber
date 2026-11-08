@@ -3,6 +3,7 @@ import { AnimatedSprite, Container, warn } from 'pixi.js';
 
 import type { Instance } from '../types/elements';
 import { Anchor2D, adoptIntoAnchor, releaseAnchor } from './Anchor2D';
+import { clearCursorsUnder } from './cursor';
 import { driveOnRootClock } from './frame';
 
 /**
@@ -241,6 +242,7 @@ export function addToScene(node: Container3D, child: Linked<object>): void {
  */
 export function removeFromScene(node: Container3D, child: object): void {
   if (!(child instanceof Container) || isLayer3D(child)) return;
+  clearCursorsUnder(child);
   if (child instanceof Anchor2D) {
     if (child._host === node) child._host = null;
     child.parent?.removeChild(child);

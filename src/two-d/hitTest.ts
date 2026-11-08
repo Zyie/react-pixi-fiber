@@ -234,22 +234,22 @@ export function raycastScreen(container: Container, intersects: Intersection[]):
 }
 
 /**
- * The cursor for a point of a screen layer: the `cursor` of the frontmost object there that takes
- * events, or of the nearest container above it that has one, as pixi picks it
+ * The object whose cursor a point of a screen layer shows: the frontmost object there that takes
+ * events, or the nearest container above it that has a `cursor`, as pixi picks it
  * @param screen - The screen layer
  * @param x - The point's x, in CSS pixels
  * @param y - The point's y, in CSS pixels
  * @internal
  */
-export function cursorAt(screen: Container, x: number, y: number): string | null {
+export function cursorSourceAt(screen: Container, x: number, y: number): Container | null {
   const { order } = screenHits(screen, x, y);
   for (const front of order.keys()) {
     if (sceneOfScreen(front)) {
-      const nested = cursorAt(front, x, y);
+      const nested = cursorSourceAt(front, x, y);
       if (nested) return nested;
     }
     for (let node: Container | null = front; node && node !== screen; node = node.parent) {
-      if (node.cursor) return node.cursor;
+      if (node.cursor) return node;
     }
     return null;
   }
