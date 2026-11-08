@@ -153,6 +153,10 @@ export class Anchor2D extends Container {
     return this._shown;
   }
 
+  /**
+   * Destroys the anchor, as a container's `destroy`, and stops placing it
+   * @param options - pixi's destroy options
+   */
   public override destroy(options?: DestroyOptions): void {
     if (this._index !== -1) {
       const last = anchors.pop()!;
