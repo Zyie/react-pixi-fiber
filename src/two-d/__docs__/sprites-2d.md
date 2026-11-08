@@ -1,6 +1,6 @@
 # Sprites and spritesheets
 
-A sprite draws a texture. pixi.js has four kinds, and each is an element: `<sprite2D>` draws it once, `<tilingSprite2D>` repeats it across an area, `<nineSliceSprite2D>` stretches it without stretching its borders, and `<animatedSprite2D>` plays a list of textures. Textures load with `useTexture`, and spritesheets with `useAsset`, as [Loading 2D assets](loading-2d.md) shows.
+A sprite draws a texture, and each of pixi.js's four kinds is an element: `<sprite2D>` draws it once, `<tilingSprite2D>` repeats it across an area, `<nineSliceSprite2D>` stretches it without stretching its borders, and `<animatedSprite2D>` plays a list of textures. Textures load with `useTexture`, and spritesheets with `useAsset`, as [Loading 2D assets](loading-2d.md) shows.
 
 ## Sprite
 
