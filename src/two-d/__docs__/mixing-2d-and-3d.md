@@ -105,6 +105,7 @@ Its children are the view's scene, rendered through r3f's `createPortal`:
 - The scene draws as a Canvas draws one: tone mapping, lights, shadows, fog, environment, and a background, where a colour fills the view's rect.
 - 2D among its children draws on the view's own screen layer, over its 3D, or under it with a negative `zIndex`. `<anchor2D>` works inside it too.
 - Its other props are those of the 2D container that holds the view (`x`, `y`, `scale`, `alpha`, handlers), and its `ref` gets that container. Its children go into the portal, so put filters and masks on a 2D container around it.
+- Its `alpha`, or a parent's, fades its 3D with its 2D. Below 1 the 3D is drawn through an alpha filter of its own, one more pass while it is faded, and fades as one picture: its back faces don't show through its front ones.
 - Events reach its 3D and 2D through its camera, at the place the view has in the 2D's draw order: 2D over the view is hit first, and a parent's mask or `hitArea` clips its hits. A 3D hit inside it has a `distance` in the 2D's draw order, like a 2D hit; `point` is still where the ray hit, in the view's world.
 
 Each `<View3D>` is a pixi-3d view of its own, drawn in the canvas's pass with no extra canvas. It costs what a canvas's scene costs, so a handful on screen is cheap, and a grid of hundreds is better drawn as one scene. Unmounting frees the view.
@@ -171,6 +172,7 @@ function Impact() {
 - The 2D placed directly in the Canvas isn't in the layer, so a HUD stays sharp and still while the 3D shakes.
 - Pointer events follow the layer's transform: scale the 3D into a corner as a minimap and its objects are picked where they are drawn. A mask on the layer doesn't clip 3D picking.
 - `zIndex` places the 3D among the screen's 2D; it is just under 0 by default.
+- `alpha` fades the 3D and the anchored 2D. The 3D fades as one picture, as a `<View3D>`'s does.
 - `<Layer3D>` acts on the scene of the Canvas or portal it is in, wherever in the tree it is, so inside a `<View3D>` it filters that view's 3D. When it unmounts the layer goes back as it was.
 
 ## 2D in a texture

@@ -17,6 +17,7 @@ import { applyFog } from './sceneFog';
 import { finishLights, prepareLights } from './sceneLights';
 import { setShadowsEnabled } from './shadowViews';
 import { TARGET_OUTPUT, applyToneMapping } from './toneMapping';
+import { applyViewAlpha, releaseViewAlpha } from './viewAlpha';
 
 /**
  * What the renderer is built with; r3f passes `canvas` and `antialias`, and the `renderer` (or
@@ -694,6 +695,7 @@ export class PixiRenderer {
     releaseBackdrop(entry.stage);
     if (entry.view) {
       this._environments?.releaseView(entry.view);
+      releaseViewAlpha(entry.view);
       const children = scene.children.slice();
       entry.view.destroy();
       if (!scene.destroyed) for (const child of children) if (!child.destroyed) scene.addChild(child);
@@ -727,6 +729,7 @@ export class PixiRenderer {
     const [entry] = this._embedded.splice(index, 1);
     releaseBackdrop(entry.stage);
     this._environments?.releaseView(view);
+    releaseViewAlpha(view);
   }
 
   /** Frees every view and the pixi.js renderer; scenes keep their children */
@@ -997,6 +1000,7 @@ export class PixiRenderer {
    */
   private _applySettings(entry: ViewSettings, scene: EnvironmentScene, background: SceneBackground): void {
     const { view } = entry;
+    applyViewAlpha(view);
     const toTarget = this._renderTarget !== null;
     if (toTarget) applyToneMapping(view, 0, 1, TARGET_OUTPUT);
     else applyToneMapping(view, this.toneMapping, this.toneMappingExposure, this.outputColorSpace);

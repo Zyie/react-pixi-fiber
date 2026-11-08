@@ -25,19 +25,27 @@ function Spinner({ color }: { color: string }) {
 
 /**
  * 3D inside 2D. The canvas draws its own green box in the middle. Each card is a 2D container holding a
- * `<View3D>` of a scene of its own. The left card is turned 8 degrees and faded to 80%; its view has a
- * dark blue `<color attach="background">`, which fills the view's rect, an orange box, a white 2D bar
- * over its 3D and a pink 2D disc behind it (`zIndex={-1}`). The right card's view, a purple box on
- * nothing, is in a container masked by a circle, so only a round window of it shows.
+ * `<View3D>` of a scene of its own. The left card is turned 8 degrees and faded to 80%, and its view to
+ * 70% of that by its own `alpha`, so the stripes behind show through the 3D as through the 2D; the view
+ * has a dark blue `<color attach="background">`, which fills the view's rect, an orange box, a white 2D
+ * bar over its 3D and a pink 2D disc behind it (`zIndex={-1}`). The right card's view, a purple box on
+ * nothing, is in a container masked by a circle, so only a round window of it shows. Grey stripes run behind
+ * everything.
  */
 export const scene: TestScene = {
   frames: 30,
   render: () => (
     <>
       <Spinner color="#5ec27a" />
+      <graphics2D
+        zIndex={-1}
+        draw={(graphics) => {
+          for (let i = 0; i < 10; i++) graphics.rect(i * 40, 0, 20, 300).fill('#2b2d42');
+        }}
+      />
       <container2D x={30} y={60} angle={8} alpha={0.8}>
         <graphics2D draw={(graphics) => graphics.roundRect(0, 0, 130, 170, 10).fill('#e0e0e0')} />
-        <View3D x={10} y={10} width={110} height={110}>
+        <View3D x={10} y={10} width={110} height={110} alpha={0.7}>
           <color attach="background" args={['#1d3557']} />
           <Spinner color="#f4a261" />
           <sprite2D texture={Texture.WHITE} x={10} y={90} width={90} height={10} />

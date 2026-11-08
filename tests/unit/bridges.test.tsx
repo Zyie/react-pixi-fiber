@@ -1,5 +1,5 @@
 import type { View3D as PixiView3D } from '@pixi/3d';
-import { Texture } from 'pixi.js';
+import { AlphaFilter, Texture } from 'pixi.js';
 import type { Container, Sprite } from 'pixi.js';
 import { act } from 'react';
 import type { ReactNode, RefObject } from 'react';
@@ -49,11 +49,11 @@ const viewIn = (holder: Container): PixiView3D => {
 };
 
 // A freed view, and the scene objects a portal leaves behind, aren't on the picture.
-it('frees the view of a <View3D> and its scene on unmount, and destroys the 3D in it', async () => {
+it('frees the view of a <View3D>, its scene and its alpha filter on unmount, and destroys the 3D in it', async () => {
   const holder: RefObject<Container | null> = { current: null };
   const mesh: RefObject<Mesh | null> = { current: null };
   const state = await mount(
-    <View3D ref={holder} width={32} height={32}>
+    <View3D ref={holder} width={32} height={32} alpha={0.5}>
       <mesh ref={mesh}>
         <boxGeometry />
       </mesh>
@@ -63,8 +63,11 @@ it('frees the view of a <View3D> and its scene on unmount, and destroys the 3D i
   const view = viewIn(holder.current!);
   const scene = mesh.current!.parent!;
   expect(view.root).toBe(scene);
+  const [fade] = view.filters;
+  expect(fade).toBeInstanceOf(AlphaFilter);
 
   await act(async () => root!.render(null));
+  expect((fade as AlphaFilter & { _destroyed: boolean })._destroyed).toBe(true);
   expect(view.destroyed).toBe(true);
   expect(scene.destroyed).toBe(true);
   expect(mesh.current).toBeNull();
