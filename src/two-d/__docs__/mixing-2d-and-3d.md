@@ -252,4 +252,4 @@ A small check on an M3 Pro in headless Chromium: the median of five runs of 200 
 | A box, with a `<Layer3D>` blur                | 41 / 219 µs                 | 1.60 / 1.89 ms                         |
 | A plane with a `<RenderTexture2D>` each frame | 45 / 73 µs                  | 0.79 / 0.90 ms                         |
 
-Anchoring adds no cost the check could tell from noise. Six views cost about twice the CPU of the same boxes in one scene, a filter on the 3D layer costs what that filter costs on any 2D of the canvas's size, and a texture drawn each frame costs a 2D draw of its size. The per-frame code of the bridges reuses its own scratch objects and makes no new ones.
+Anchoring adds no cost the check could tell from noise. Six views cost about twice the CPU of the same boxes in one scene, a filter on the 3D layer costs what that filter costs on any 2D of the canvas's size, and a texture drawn each frame costs a 2D draw of its size. The per-frame code of the bridges reuses its own scratch objects and makes no new ones. An anchor's `occlude` raycast makes intersections only when something is in the way, as three's raycaster does.

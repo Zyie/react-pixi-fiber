@@ -253,7 +253,7 @@ export class Raycaster {
     intersects: Intersection<T>[] = [],
   ): Intersection<T>[] {
     const from = intersects.length;
-    for (const object of objects) this._intersect(object, recursive, intersects as Intersection[]);
+    for (let i = 0; i < objects.length; i++) this._intersect(objects[i], recursive, intersects as Intersection[]);
     this._toSlot(intersects as Intersection[], from);
     return intersects.sort(byDistance);
   }
@@ -277,44 +277,87 @@ export class Raycaster {
   private _intersect(object: Container3D, recursive: boolean, intersects: Intersection[]): void {
     const stop = (object.raycast(this, intersects) as unknown) === false;
     if (stop || !recursive) return;
-    for (const child of object.children) this._intersect(child, true, intersects);
+    const { children } = object;
+    for (let i = 0; i < children.length; i++) this._intersect(children[i], true, intersects);
   }
-}
-
-/** Reads one vertex attribute of a geometry, whatever its format, stride and offset */
-interface AttributeReader {
-  readonly components: number;
-  /** Reads a vertex's components into `out`, decoding normalised integers to -1 to 1 or 0 to 1 */
-  read(vertex: number, out: number[]): void;
 }
 
 const NORMALISED: Partial<Record<string, number>> = { snorm8: 127, unorm8: 255, snorm16: 32767, unorm16: 65535 };
 
+/** CPU-side vertex data, a typed array */
+type VertexData = ArrayLike<number> & { readonly BYTES_PER_ELEMENT: number };
+
+/** Reads one vertex attribute of a geometry, whatever its format, stride and offset */
+class AttributeReader {
+  public readonly components: number;
+  private readonly _attribute: Attribute;
+  private readonly _data: VertexData;
+  private readonly _format: string;
+  private readonly _byteStride: number | undefined;
+  private readonly _byteOffset: number | undefined;
+  private readonly _scale: number | undefined;
+  private readonly _stride: number;
+  private readonly _offset: number;
+
+  /**
+   * @param attribute - The attribute
+   * @param format - Its format
+   * @param data - Its CPU-side data
+   */
+  constructor(attribute: Attribute, format: string, data: VertexData) {
+    const [type, count] = format.split('x');
+    const bytes = data.BYTES_PER_ELEMENT;
+    this._attribute = attribute;
+    this._data = data;
+    this._format = format;
+    this._byteStride = attribute.stride;
+    this._byteOffset = attribute.offset;
+    this.components = Number(count ?? 1);
+    this._scale = NORMALISED[type];
+    this._stride = attribute.stride ? attribute.stride / bytes : this.components;
+    this._offset = (attribute.offset ?? 0) / bytes;
+  }
+
+  /** Whether its attribute still has the data and layout it was made for */
+  public fits(): boolean {
+    const attribute = this._attribute;
+    return (
+      attribute.buffer.data === this._data &&
+      attribute.format === this._format &&
+      attribute.stride === this._byteStride &&
+      attribute.offset === this._byteOffset
+    );
+  }
+
+  /**
+   * Reads a vertex's components into `out`, decoding normalised integers to -1 to 1 or 0 to 1
+   * @param vertex - The vertex
+   * @param out - Receives the components
+   */
+  public read(vertex: number, out: number[]): void {
+    const start = this._offset + vertex * this._stride;
+    for (let i = 0; i < this.components; i++) {
+      const value = this._data[start + i];
+      out[i] = this._scale ? Math.max(value / this._scale, -1) : value;
+    }
+  }
+}
+
+const readers = new WeakMap<Attribute, AttributeReader>();
+
 /**
- * A reader for an attribute, or `null` when it has none or no CPU-side data
+ * A reader for an attribute, kept with it while its data and layout stay, or `null` when it has none
+ * or no CPU-side data
  * @param attribute - The attribute
  */
 function attributeReader(attribute: Attribute | undefined): AttributeReader | null {
-  const data = attribute?.buffer.data as ArrayLike<number> & { BYTES_PER_ELEMENT?: number };
+  const data = attribute?.buffer.data as Partial<VertexData> | undefined;
   if (!attribute?.format || !data?.BYTES_PER_ELEMENT) return null;
-
-  const [type, count] = attribute.format.split('x');
-  const components = Number(count ?? 1);
-  const bytes = data.BYTES_PER_ELEMENT;
-  const scale = NORMALISED[type];
-  const stride = attribute.stride ? attribute.stride / bytes : components;
-  const offset = (attribute.offset ?? 0) / bytes;
-
-  return {
-    components,
-    read(vertex, out) {
-      const start = offset + vertex * stride;
-      for (let i = 0; i < components; i++) {
-        const value = data[start + i];
-        out[i] = scale ? Math.max(value / scale, -1) : value;
-      }
-    },
-  };
+  const kept = readers.get(attribute);
+  if (kept?.fits()) return kept;
+  const reader = new AttributeReader(attribute, attribute.format, data as VertexData);
+  readers.set(attribute, reader);
+  return reader;
 }
 
 const worldSphere = new Sphere();
@@ -510,8 +553,6 @@ export function raycastGeometry(
 
   const stride = position.stride ? position.stride / 4 : 3;
   const offset = (position.offset ?? 0) / 4;
-  const uvs = attributeReader(geometry.attributes.aUV);
-  const normals = attributeReader(geometry.attributes.aNormal);
   const indices = geometry.indexBuffer?.data as Uint16Array | Uint32Array | undefined;
   const side = sideOf(material);
   const corners = indices ? indices.length : Math.floor((data.length - offset) / stride);
@@ -538,6 +579,9 @@ export function raycastGeometry(
   shear[5] = 1 / dz;
 
   const crossings = crossTriangles(data, indices ?? null, corners, stride, offset, kx, ky, kz, side);
+  if (crossings === 0) return 0;
+  const uvs = attributeReader(geometry.attributes.aUV);
+  const normals = attributeReader(geometry.attributes.aNormal);
 
   for (let n = 0; n < crossings; n++) {
     const i = crossed[n * 2] * 3;

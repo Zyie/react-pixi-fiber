@@ -35,7 +35,6 @@ const direction = new Vector3();
 const screenPoint = new Point();
 const occlusion = new Raycaster();
 const occlusionHits: Intersection[] = [];
-const occluders: Container3D[] = [];
 
 /**
  * The object a target names, or `null` while a ref is empty
@@ -236,19 +235,16 @@ export class Anchor2D extends Container {
     direction.copyFrom(worldPoint).subtract(cameraPosition).normalize();
     occlusion.set(cameraPosition, direction);
     occlusion.far = depth * (1 - 1e-4);
-    occluders.length = 0;
-    if (this.occlude === true) occluders.push(rootOf(node));
-    else if (this.occlude !== false) {
-      for (let i = 0; i < this.occlude.length; i++) {
-        const object = resolveTarget(this.occlude[i]);
-        if (object) occluders.push(object);
+    const { occlude } = this;
+    if (occlude === true) occlusion.intersectObject(rootOf(node), true, occlusionHits);
+    else if (occlude !== false) {
+      for (let i = 0; i < occlude.length && occlusionHits.length === 0; i++) {
+        const object = resolveTarget(occlude[i]);
+        if (object) occlusion.intersectObject(object, true, occlusionHits);
       }
     }
-    occlusionHits.length = 0;
-    occlusion.intersectObjects(occluders, true, occlusionHits);
     const occluded = occlusionHits.length > 0;
-    occlusionHits.length = 0;
-    occluders.length = 0;
+    if (occluded) occlusionHits.length = 0;
     return occluded;
   }
 }
