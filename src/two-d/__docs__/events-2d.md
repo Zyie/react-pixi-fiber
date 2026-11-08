@@ -34,7 +34,7 @@ function Button({ x }: { x: number }) {
 
 ![Two squares; the right one was clicked and is under the pointer, so it is bigger and pink](../../../tests/snapshots/docs/2d/events.webgl.png)
 
-The handlers are r3f's: `onClick`, `onDoubleClick`, `onContextMenu`, `onWheel`, `onPointerDown`, `onPointerUp`, `onPointerMove`, `onPointerOver`, `onPointerOut`, `onPointerEnter`, `onPointerLeave`, `onPointerCancel`, `onPointerMissed` and `onLostPointerCapture`, with r3f's meanings. A handler on a container gets the events of its children too, as r3f bubbles them up the tree.
+The handlers are r3f's: `onClick`, `onDoubleClick`, `onContextMenu`, `onWheel`, `onPointerDown`, `onPointerUp`, `onPointerMove`, `onPointerOver`, `onPointerOut`, `onPointerEnter`, `onPointerLeave`, `onPointerCancel`, `onPointerMissed` and `onLostPointerCapture`, and for a file or anything else dragged onto the canvas `onDragOverEnter`, `onDragOver`, `onDragOverLeave`, `onDrop`, `onDragOverMissed` and `onDropMissed`, with r3f's meanings. A handler on a container gets the events of its children too, as r3f bubbles them up the tree.
 
 ## What is hit
 

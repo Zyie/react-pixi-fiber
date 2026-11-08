@@ -16,7 +16,7 @@ The object is built again when an item of `args` changes, as in r3f, so use them
 
 ## Properties
 
-A prop sets the field of the same name: `x`, `y`, `alpha`, `tint`, `rotation`, `angle`, `zIndex`, `visible`, `blendMode`, `eventMode`, `cursor`, `hitArea`, `mask`, `texture`, `text`, `style`. A point takes r3f's forms: one number for both axes (`anchor={0.5}`, `scale={2}`), an array (`position={[10, 20]}`), or a point.
+A prop sets the field of the same name: `x`, `y`, `alpha`, `tint`, `rotation`, `angle`, `zIndex`, `visible`, `blendMode`, `eventMode`, `cursor`, `hitArea`, `mask`, `texture`, `text`, `style`. A point takes r3f's forms: one number for both axes (`anchor={0.5}`, `scale={2}`), an array (`position={[10, 20]}`), or a point. A colour, such as `tint`, a fill or a text style's `fill`, takes anything pixi's `Color` takes, and a three `Color` from `react-pixi-fiber/three` too, as a material's `color` does.
 
 A few of pixi's methods are props as well, so they can be declared: `cacheAsTexture` caches a container as a texture ([2D performance](performance-2d.md#cache-what-doesnt-change)), `renderLayer` draws it in a render layer (below), `mask` takes pixi's mask options as `setMask` does ([Masks](filters-and-masks-2d.md#masks)), and an animated sprite's `playing` plays or stops it. For other methods, r3f's `once()` calls a method when the element mounts: `<colorMatrixFilter2D sepia={once()} />`.
 

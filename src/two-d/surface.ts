@@ -2,6 +2,7 @@ import type { Container3D } from '@pixi/3d';
 import {
   AnimatedSprite,
   BlurFilter,
+  Color,
   Container,
   FederatedEvent,
   Filter,
@@ -10,9 +11,11 @@ import {
   Particle,
   ParticleContainer,
 } from 'pixi.js';
-import type { CacheAsTextureOptions, MaskOptionsAndMask, RenderLayer } from 'pixi.js';
+import type { CacheAsTextureOptions, ColorSource, MaskOptionsAndMask, RenderLayer } from 'pixi.js';
 
 import type { Intersection } from '../compat/Raycaster';
+import { toPixiColor } from '../math/Color';
+import type { Color as ThreeColor } from '../math/Color';
 import { raycastScreen } from './hitTest';
 import {
   THREE_IN_2D,
@@ -149,6 +152,13 @@ const isMaskOptions = (value: unknown): value is Partial<MaskOptionsAndMask> =>
   typeof value === 'object' && value !== null && !(value instanceof Container);
 
 /**
+ * Whether a colour is a three `Color` from `react-pixi-fiber/three`, rather than one of pixi's
+ * @param value - The colour
+ */
+const isThreeColor = (value: unknown): value is ThreeColor =>
+  typeof value === 'object' && value !== null && (value as { isColor?: unknown }).isColor === true;
+
+/**
  * Runs a `draw` callback on a graphics or a context, after clearing it
  * @param target - The graphics or context
  * @param draw - The callback, or `undefined` to leave it as it is
@@ -181,6 +191,8 @@ function runDraw<T extends Graphics | GraphicsContext>(target: T, draw: DrawCall
  * - `Graphics` and `GraphicsContext` take a `draw` prop: a callback that draws into them after they are
  *   cleared, run again whenever a new function is passed.
  * - `Particle` is a child r3f adds to a `ParticleContainer` and removes from it.
+ * - pixi's `Color` takes a three `Color` from `react-pixi-fiber/three`, in sRGB, so every 2D colour prop
+ *   (`tint`, a fill, a filter's colour) takes what a material's `color` takes.
  * - `GraphicsContext` and `Filter` free themselves with `dispose`, as r3f calls it. A `BlurFilter` frees
  *   its two passes too, which its own `destroy` leaves bound to the renderer's uniform buffers.
  * @internal
@@ -192,6 +204,7 @@ export function install2DSurface(): void {
   const mask = descriptorOf(Container.prototype, 'mask');
   const cacheAsTexture = descriptorOf(Container.prototype, 'cacheAsTexture').value as Container['cacheAsTexture'];
   const playing = descriptorOf(AnimatedSprite.prototype, 'playing');
+  const colorValue = descriptorOf(Color.prototype, 'value');
 
   const applyFilters = (container: Container, list: readonly (Filter | undefined)[]): void => {
     filters.set!.call(
@@ -326,6 +339,14 @@ export function install2DSurface(): void {
         if (cache === false && !this.isCachedAsTexture) return;
         cacheAsTexture.call(this, cache);
       },
+    },
+  });
+
+  Object.defineProperty(Color.prototype, 'value', {
+    configurable: true,
+    get: colorValue.get,
+    set(this: Color, value: ColorSource | ThreeColor | null) {
+      colorValue.set!.call(this, isThreeColor(value) ? toPixiColor(value) : value);
     },
   });
 

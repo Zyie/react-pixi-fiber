@@ -22,6 +22,7 @@ import type {
 } from 'pixi.js';
 
 import type { Intersection as RaycastIntersection } from '../compat/Raycaster';
+import type { Color as ThreeColor } from '../math/Color';
 import type { IntersectionEvent } from '../types/events';
 import type { Properties } from '../types/utils';
 
@@ -83,6 +84,18 @@ export interface EventHandlers2D {
   onContextMenu?: (event: ThreeEvent2D<MouseEvent>) => void;
   /** Fires on a double click on the element */
   onDoubleClick?: (event: ThreeEvent2D<MouseEvent>) => void;
+  /** Fires continuously while dragging over the element */
+  onDragOver?: (event: ThreeEvent2D<DragEvent>) => void;
+  /** Fires once when a drag enters the element */
+  onDragOverEnter?: (event: ThreeEvent2D<DragEvent>) => void;
+  /** Fires once when a drag leaves the element */
+  onDragOverLeave?: (event: ThreeEvent2D<DragEvent>) => void;
+  /** Fires when a drag misses the element */
+  onDragOverMissed?: (event: DragEvent) => void;
+  /** Fires when something is dropped on the element */
+  onDrop?: (event: ThreeEvent2D<DragEvent>) => void;
+  /** Fires when a drop misses the element */
+  onDropMissed?: (event: DragEvent) => void;
   /** Fires when a button is released over the element */
   onPointerUp?: (event: ThreeEvent2D<PointerEvent>) => void;
   /** Fires when a button is pressed over the element */
@@ -129,13 +142,14 @@ export interface ContainerProps2D {
 }
 
 /**
- * The props of a 2D object whose setter takes more than its getter returns: `tint` any colour, a
+ * The props of a 2D object whose setter takes more than its getter returns: `tint` any colour or a
+ * three `Color` from `react-pixi-fiber/three`, a
  * container's {@link ContainerProps2D}, text's `text` and `style` what their setters take, and an
  * animated sprite's `textures` and `playing`, which plays or stops it
  * @category types
  * @advanced
  */
-export type SetterProps2D<P> = (P extends { tint: number } ? { tint: ColorSource } : {}) &
+export type SetterProps2D<P> = (P extends { tint: number } ? { tint: ColorSource | ThreeColor } : {}) &
   (P extends Container ? ContainerProps2D : {}) &
   (P extends { text: string; style: object }
     ? {
