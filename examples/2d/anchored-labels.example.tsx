@@ -74,7 +74,7 @@ function Arena() {
 
 export function App() {
   return (
-    <Canvas camera={{ position: [0, 2, 6] }}>
+    <Canvas camera={{ position: [0, 4.5, 5.5] }}>
       <Arena />
     </Canvas>
   );
@@ -87,12 +87,12 @@ export function App() {
  */
 export const example: Example = {
   title: 'Health bars anchored to 3D objects',
-  camera: { position: [0, 2, 6] },
+  camera: { position: [0, 4.5, 5.5] },
   render: () => <Arena />,
   act: async ({ mouse, frames }) => {
-    await mouse.click(200, 220);
+    await mouse.click(200, 240);
     await frames();
-    await mouse.click(200, 220);
+    await mouse.click(200, 240);
     await frames();
   },
 };
