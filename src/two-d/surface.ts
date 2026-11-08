@@ -1,14 +1,5 @@
 import type { Container3D } from '@pixi/3d';
-import {
-  Container,
-  FederatedEvent,
-  Filter,
-  Graphics,
-  GraphicsContext,
-  MeshGeometry,
-  Particle,
-  ParticleContainer,
-} from 'pixi.js';
+import { Container, FederatedEvent, Filter, Graphics, GraphicsContext, Particle, ParticleContainer } from 'pixi.js';
 
 import type { Intersection } from '../compat/Raycaster';
 import { raycastScreen } from './hitTest';
@@ -161,7 +152,7 @@ function runDraw<T extends Graphics | GraphicsContext>(target: T, draw: DrawCall
  * - `Graphics` and `GraphicsContext` take a `draw` prop: a callback that draws into them after they are
  *   cleared, run again whenever a new function is passed.
  * - `Particle` is a child r3f adds to a `ParticleContainer` and removes from it.
- * - `GraphicsContext`, `Filter` and `MeshGeometry` free themselves with `dispose`, as r3f calls it.
+ * - `GraphicsContext` and `Filter` free themselves with `dispose`, as r3f calls it.
  * @internal
  */
 export function install2DSurface(): void {
@@ -301,7 +292,7 @@ export function install2DSurface(): void {
     },
   });
 
-  for (const Disposable of [GraphicsContext, Filter, MeshGeometry]) {
+  for (const Disposable of [GraphicsContext, Filter]) {
     Object.defineProperty(Disposable.prototype, 'dispose', {
       configurable: true,
       writable: true,

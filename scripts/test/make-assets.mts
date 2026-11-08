@@ -23,6 +23,13 @@
  *   flip show.
  * - `cube/px.png` to `cube/nz.png`: 32 by 32 faces of a cube map, one colour each, with a white
  *   square at the top left of each.
+ *
+ * 2D assets, which pixi's `Assets` loads:
+ * - `sprites/walk.png` and `sprites/walk.json`: a spritesheet of four 32 by 32 frames, `walk-0` to
+ *   `walk-3`, a teal square with a white bar that steps down a quarter of it each frame, and the
+ *   animation `walk` of all four.
+ * - `fonts/blocks.png` and `fonts/blocks.fnt`: a bitmap font named `Blocks`, 28 pixels high, with the
+ *   glyphs `P`, `I`, `X`, `2`, `D` and a space drawn as 5 by 7 blocks of 4 pixels.
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -509,6 +516,86 @@ function writePng(file: string, size: number, pixel: (x: number, y: number) => [
   writeFileSync(file, PNG.sync.write(png));
 }
 
+function writeRgba(
+  file: string,
+  width: number,
+  height: number,
+  pixel: (x: number, y: number) => [number, number, number, number],
+): void {
+  const png = new PNG({ width, height });
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) png.data.set(pixel(x, y), (y * width + x) * 4);
+  }
+  writeFileSync(file, PNG.sync.write(png));
+}
+
+/** The spritesheet `sprites/walk.json`: four frames side by side and the `walk` animation */
+function writeSpritesheet(dir: string): void {
+  const size = 32;
+  const frames = 4;
+
+  writeRgba(path.join(dir, 'walk.png'), size * frames, size, (x, y) => {
+    const frame = Math.floor(x / size);
+    const bar = y >= frame * 8 && y < frame * 8 + 8 && x % size >= 4 && x % size < 28;
+
+    return bar ? [255, 255, 255, 255] : [40, 170, 160, 255];
+  });
+  const names = Array.from({ length: frames }, (_, i) => `walk-${i}`);
+  const sheet = {
+    frames: Object.fromEntries(
+      names.map((name, i) => [
+        name,
+        {
+          frame: { x: i * size, y: 0, w: size, h: size },
+          rotated: false,
+          trimmed: false,
+          spriteSourceSize: { x: 0, y: 0, w: size, h: size },
+          sourceSize: { w: size, h: size },
+        },
+      ]),
+    ),
+    animations: { walk: names },
+    meta: { image: 'walk.png', format: 'RGBA8888', size: { w: size * frames, h: size }, scale: '1' },
+  };
+
+  writeFileSync(path.join(dir, 'walk.json'), `${JSON.stringify(sheet, null, 2)}\n`);
+}
+
+/** The bitmap font `fonts/blocks.fnt`: a few glyphs as 5 by 7 blocks, 4 pixels each */
+function writeBitmapFont(dir: string): void {
+  const glyphs: Record<string, string[]> = {
+    P: ['####.', '#...#', '#...#', '####.', '#....', '#....', '#....'],
+    I: ['#####', '..#..', '..#..', '..#..', '..#..', '..#..', '#####'],
+    X: ['#...#', '#...#', '.#.#.', '..#..', '.#.#.', '#...#', '#...#'],
+    '2': ['.###.', '#...#', '....#', '...#.', '..#..', '.#...', '#####'],
+    D: ['####.', '#...#', '#...#', '#...#', '#...#', '#...#', '####.'],
+    ' ': ['.....', '.....', '.....', '.....', '.....', '.....', '.....'],
+  };
+  const block = 4;
+  const cell = { w: 5 * block, h: 7 * block };
+  const chars = Object.keys(glyphs);
+
+  writeRgba(path.join(dir, 'blocks.png'), cell.w * chars.length, cell.h, (x, y) => {
+    const rows = glyphs[chars[Math.floor(x / cell.w)]];
+    const on = rows[Math.floor(y / block)][Math.floor((x % cell.w) / block)] === '#';
+
+    return on ? [255, 255, 255, 255] : [0, 0, 0, 0];
+  });
+  const lines = [
+    `info face="Blocks" size=${cell.h} bold=0 italic=0 charset="" unicode=1 stretchH=100 smooth=0 aa=1 padding=0,0,0,0 spacing=0,0`,
+    `common lineHeight=${cell.h + 4} base=${cell.h} scaleW=${cell.w * chars.length} scaleH=${cell.h} pages=1 packed=0`,
+    'page id=0 file="blocks.png"',
+    `chars count=${chars.length}`,
+    ...chars.map(
+      (char, i) =>
+        `char id=${char.charCodeAt(0)} x=${i * cell.w} y=0 width=${cell.w} height=${cell.h} xoffset=0 yoffset=0 xadvance=${cell.w + block} page=0 chnl=15`,
+    ),
+  ];
+
+  writeFileSync(path.join(dir, 'blocks.fnt'), `${lines.join('\n')}\n`);
+}
+
 mkdirSync(path.join(ROOT, 'models'), { recursive: true });
 mkdirSync(path.join(ROOT, 'textures/cube'), { recursive: true });
 
@@ -533,6 +620,11 @@ const faces: Record<string, [number, number, number]> = {
 for (const [name, colour] of Object.entries(faces)) {
   writePng(path.join(ROOT, `textures/cube/${name}.png`), 32, (x, y) => (x < 10 && y < 10 ? [255, 255, 255] : colour));
 }
+
+mkdirSync(path.join(ROOT, 'sprites'), { recursive: true });
+mkdirSync(path.join(ROOT, 'fonts'), { recursive: true });
+writeSpritesheet(path.join(ROOT, 'sprites'));
+writeBitmapFont(path.join(ROOT, 'fonts'));
 
 writeBox(path.join(ROOT, 'models/box.glb'));
 writeTexturedBox(path.join(ROOT, 'models/textured-box.glb'));

@@ -15,7 +15,6 @@ export {
   GraphicsContext as GraphicsContext2D,
   HTMLText as HtmlText2D,
   Mesh as Mesh2D,
-  MeshGeometry as MeshGeometry2D,
   MeshPlane as MeshPlane2D,
   MeshRope as MeshRope2D,
   MeshSimple as MeshSimple2D,
