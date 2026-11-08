@@ -5,6 +5,6 @@
  * anything those files import, imports vitest, and a scene imports the harness by no other name. The
  * tests get the same names from `@test-utils`, with the rest of the harness.
  */
-export { FRAME_STEP, SCENE_BACKGROUND, SCENE_HEIGHT, SCENE_WIDTH } from './scene-constants';
+export { FRAME_STEP, PIXI_ONLY, SCENE_BACKGROUND, SCENE_HEIGHT, SCENE_WIDTH } from './scene-constants';
 export type { SceneInput, SceneMouse } from './scene-input';
 export type { RendererType, SceneParity, SceneSkip, TestScene } from './scene-runner';

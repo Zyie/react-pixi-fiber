@@ -22,6 +22,7 @@ import { MATRIX4_MEMBERS, Matrix4 } from '../math/Matrix4';
 import { QUATERNION_MEMBERS, Quaternion, setQuaternionFromEuler } from '../math/Quaternion';
 import type { EulerLike } from '../math/Quaternion';
 import { VECTOR3_MEMBERS, Vector3 } from '../math/Vector3';
+import { THREE_IN_2D, addToScene, removeFromScene, warnOnce } from '../two-d/screen';
 import { cameraProjection, cameraProjectionInverse, cameraWorldInverse } from './cameraMatrices';
 import { installMaterialSurface } from './materialSurface';
 import { placeholderGeometry, placeholderMaterial } from './placeholders';
@@ -82,7 +83,11 @@ export interface Object3DMembers {
   renderOrder: number;
   /** Kept for three's shape: pixi-3d's view culls every mesh, by its `cull` setting @default true */
   frustumCulled: boolean;
-  /** Adds children, three's name for `addChild` */
+  /**
+   * Adds children, three's name for `addChild`. A pixi.js 2D container added to a scene goes on the
+   * scene's screen layer, drawn over the 3D in CSS pixels; under any other node it is left out, with a
+   * warning.
+   */
   add(...objects: Container3D[]): this;
   /** Removes children, three's name for `removeChild` */
   remove(...objects: Container3D[]): this;
@@ -493,14 +498,20 @@ const object3D: Members<Object3DMembers & Container3D> = {
     },
   },
   add: {
-    value(this: Container3D, ...objects: Container3D[]) {
-      for (const object of objects) this.addChild(object);
+    value(this: Container3D, ...objects: object[]) {
+      for (const object of objects) {
+        if (object instanceof Container3D) this.addChild(object);
+        else addToScene(this, object);
+      }
       return this;
     },
   },
   remove: {
-    value(this: Container3D, ...objects: Container3D[]) {
-      for (const object of objects) this.removeChild(object);
+    value(this: Container3D, ...objects: object[]) {
+      for (const object of objects) {
+        if (object instanceof Container3D) this.removeChild(object);
+        else removeFromScene(this, object);
+      }
       return this;
     },
   },
@@ -525,7 +536,8 @@ const object3D: Members<Object3DMembers & Container3D> = {
       if (index === -1) return;
       parent.children.splice(index, 1);
       this.parent = null;
-      parent.addChildAt(this, index);
+      if (parent instanceof Container3D) parent.addChildAt(this, index);
+      else warnOnce(THREE_IN_2D);
     },
   },
   getObjectById: {

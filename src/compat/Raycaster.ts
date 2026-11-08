@@ -79,6 +79,15 @@ export interface RaycasterParameters {
 
 const byDistance = (a: Intersection, b: Intersection): number => a.distance - b.distance;
 
+let casts = 0;
+
+/**
+ * How many times any raycaster has been pointed, by `set` or `setFromCamera`. Every pointer event points
+ * the root's raycaster first, so the screen layer's hit test keeps what it found until this changes.
+ * @internal
+ */
+export const castCount = (): number => casts;
+
 /**
  * three's `Raycaster` over pixi-3d's scene graph
  *
@@ -141,6 +150,7 @@ export class Raycaster {
    * @param direction - Which way it points; normalised
    */
   public set(origin: PointData3D, direction: PointData3D): void {
+    casts++;
     this.ray.origin.copyFrom(origin);
     this.ray.direction.copyFrom(direction).normalize();
   }
@@ -155,6 +165,7 @@ export class Raycaster {
     const projectionInverse = cameraProjectionInverse(camera);
     const world = cameraWorld(camera);
     const { origin, direction } = this.ray;
+    casts++;
     this.camera = camera;
     if (camera.mode === 'orthographic') {
       origin

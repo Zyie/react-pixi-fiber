@@ -1,5 +1,5 @@
-import { Matrix4, Quaternion, Vector3, View3D } from '@pixi/3d';
-import type { Camera3D, Container3D, ShadowFilter } from '@pixi/3d';
+import { Camera3D, Matrix4, Quaternion, Vector3, View3D } from '@pixi/3d';
+import type { Container3D, ShadowFilter } from '@pixi/3d';
 import { CLEAR, Color, Container, CubeTexture, Texture, autoDetectRenderer } from 'pixi.js';
 import type { ColorSource, Renderer, WebGPURenderer } from 'pixi.js';
 
@@ -7,6 +7,7 @@ import { EnvironmentMaps, isEnvironmentBackground } from '../environment/Environ
 import type { EnvironmentScene } from '../environment/EnvironmentMaps';
 import { Color as ThreeColor, toPixiColor } from '../math/Color';
 import { Vector4 } from '../math/Vector4';
+import { VIEW_Z_INDEX, screenOf } from '../two-d/screen';
 import { releaseBackdrop, updateBackdrop } from './backdrop';
 import { ProxyCamera } from './ProxyCamera';
 import { ClearRect, CubeFaceWriter, TargetTwins, coversSurface, fromBottomLeft, surfaceOf } from './renderTargets';
@@ -52,7 +53,8 @@ export interface PixiShadowMap {
 }
 
 interface SceneView {
-  readonly view: View3D;
+  /** The scene's 3D view, or `null` while the scene has only 2D to draw */
+  view: View3D | null;
   readonly stage: Container;
   readonly clearRect: ClearRect;
   readonly release: () => void;
@@ -68,6 +70,12 @@ interface SceneView {
  * @advanced
  */
 export type PixiRenderTarget = DrawableTarget;
+
+/**
+ * pixi's own `EventSystem` stays off: r3f's event layer handles the canvas's pointer events for 2D and
+ * 3D alike, and sets the cursor
+ */
+const PIXI_EVENTS_OFF = { move: false, globalMove: false, click: false, wheel: false };
 
 const SHADOW_FILTERS: readonly ShadowFilter[] = ['hard', 'pcf', 'pcf-high', 'pcf-high'];
 
@@ -123,6 +131,21 @@ const isColorBackground = (background: SceneBackground): background is ThreeColo
 const isEnvironmentTexture = (value: unknown): value is Texture | CubeTexture =>
   value instanceof Texture || value instanceof CubeTexture;
 
+/** A scene's view once it draws 3D */
+type SceneView3D = SceneView & { view: View3D };
+
+const hasView = (entry: SceneView): entry is SceneView3D => entry.view !== null;
+
+/**
+ * Whether a scene with 2D content has 3D to draw too: a node other than a camera, a texture background
+ * or an environment. A scene with only 2D draws without a 3D view.
+ */
+const drawsIn3D = (scene: EnvironmentScene): boolean => {
+  for (const child of scene.children) if (!(child instanceof Camera3D)) return true;
+  const background = (scene as EnvironmentScene & { background?: SceneBackground }).background;
+  return (background !== null && background !== undefined && !isColorBackground(background)) || !!scene.environment;
+};
+
 const isDescendant = (node: Container3D, root: Container3D): boolean => {
   for (let parent = node.parent; parent; parent = parent.parent) if (parent === root) return true;
   return false;
@@ -145,6 +168,12 @@ const aspectOf = (camera: Camera3D): number | null => {
  * scene's view is freed when the scene is destroyed, or once it has gone
  * {@link PixiRenderer#viewMaxIdleFrames | viewMaxIdleFrames} frames undrawn, and is made again if
  * the scene is drawn after that.
+ *
+ * A scene with 2D elements draws its screen layer (`state.screen`) with the view inside it, at a zIndex
+ * just under 0: 2D at zIndex 0 and above draws over the 3D, and 2D with a negative zIndex under it, in
+ * CSS pixels from the canvas's top-left corner. A scene with only 2D to draw, nothing in it but
+ * cameras and no texture background or environment, gets no view until it has 3D. pixi's own
+ * `EventSystem` is off; r3f's event layer handles 2D and 3D.
  *
  * three's renderer settings are forwarded to each view as it draws: `toneMapping`,
  * `toneMappingExposure` and `outputColorSpace` become three's own tone curve, exposure and output
@@ -266,6 +295,7 @@ export class PixiRenderer {
       autoDensity: false,
       backgroundColor: this._clearColor,
       backgroundAlpha: this._clearAlpha,
+      eventFeatures: PIXI_EVENTS_OFF,
     });
     if (this.pixi.name === 'webgpu') this.backend = { isWebGPUBackend: true };
     return this;
@@ -361,7 +391,7 @@ export class PixiRenderer {
    * @returns The scene's view, or `undefined` before its first `render` and after it is freed
    */
   public getView(scene: Container3D): View3D | undefined {
-    return this._views.get(scene)?.view;
+    return this._views.get(scene)?.view ?? undefined;
   }
 
   /**
@@ -380,8 +410,15 @@ export class PixiRenderer {
       this._frame++;
       this._views.forEach(this._releaseIfIdle);
     }
-    entry ??= this._createView(scene, camera);
+    entry ??= this._createEntry(scene);
     entry.drawnAt = this._frame;
+    const screen = screenOf(scene);
+    if (!entry.view && (!screen || drawsIn3D(scene as EnvironmentScene))) this._createView(entry, scene, camera);
+    if (screen) this._placeScreen(entry, screen);
+    if (!hasView(entry)) {
+      this._drawScreenOnly(entry, scene);
+      return;
+    }
     const { view } = entry;
 
     this._placeView(view, target);
@@ -620,11 +657,13 @@ export class PixiRenderer {
     scene.off('destroyed', entry.release);
     if (entry.proxy) scene.removeChild(entry.proxy);
     entry.proxy?.destroy();
-    this._environments?.releaseView(entry.view);
     releaseBackdrop(entry.stage);
-    const children = scene.children.slice();
-    entry.view.destroy();
-    if (!scene.destroyed) for (const child of children) if (!child.destroyed) scene.addChild(child);
+    if (entry.view) {
+      this._environments?.releaseView(entry.view);
+      const children = scene.children.slice();
+      entry.view.destroy();
+      if (!scene.destroyed) for (const child of children) if (!child.destroyed) scene.addChild(child);
+    }
     entry.stage.destroy();
   }
 
@@ -642,18 +681,15 @@ export class PixiRenderer {
     this.pixi = null;
   }
 
-  private _createView(scene: Container3D, camera: Camera3D): SceneView {
-    const inScene = isDescendant(camera, scene);
-    const proxy = inScene ? null : new ProxyCamera();
-    const view = new View3D({ root: scene, camera: proxy ?? camera, autoResize: false });
+  private _createEntry(scene: Container3D): SceneView {
     const stage = new Container();
     const clearRect = new ClearRect();
-    stage.addChild(clearRect, view);
+    stage.addChild(clearRect);
     const entry: SceneView = {
-      view,
+      view: null,
       stage,
       clearRect,
-      proxy,
+      proxy: null,
       background: undefined,
       drawnAt: this._frame,
       release: () => this.releaseView(scene),
@@ -661,6 +697,50 @@ export class PixiRenderer {
     scene.once('destroyed', entry.release);
     this._views.set(scene, entry);
     return entry;
+  }
+
+  private _createView(entry: SceneView, scene: Container3D, camera: Camera3D): void {
+    const inScene = isDescendant(camera, scene);
+    const proxy = inScene ? null : new ProxyCamera();
+    entry.proxy = proxy;
+    entry.view = new View3D({ root: scene, camera: proxy ?? camera, autoResize: false });
+    entry.stage.addChild(entry.view);
+  }
+
+  /**
+   * Puts a scene's screen layer in its stage, where the view was, and the view inside it, just under
+   * the 2D at zIndex 0
+   * @param entry - The scene's view
+   * @param screen - The scene's screen layer
+   */
+  private _placeScreen(entry: SceneView, screen: Container): void {
+    const { stage, view } = entry;
+    if (screen.parent !== stage) {
+      if (view?.parent === stage) stage.addChildAt(screen, stage.getChildIndex(view));
+      else stage.addChild(screen);
+    }
+    if (view && view.parent !== screen) {
+      view.zIndex = VIEW_Z_INDEX;
+      screen.addChildAt(view, 0);
+    }
+  }
+
+  /**
+   * Draws a scene that has only 2D: its screen layer, over the clear colour or its colour background
+   * @param entry - The scene's stage
+   * @param scene - The scene
+   */
+  private _drawScreenOnly(entry: SceneView, scene: Container3D): void {
+    const background = (scene as Container3D & { background?: SceneBackground }).background;
+    const clearToBackground = this._renderTarget
+      ? isColorBackground(background)
+      : this._applyBackground(this.pixi!, background);
+    this._draw(
+      entry.stage,
+      entry.clearRect,
+      this.autoClear || clearToBackground,
+      clearToBackground ? background : null,
+    );
   }
 
   private _syncProxy(proxy: ProxyCamera, camera: Camera3D, scene: Container3D): void {
@@ -796,7 +876,7 @@ export class PixiRenderer {
    * What three reads off the scene itself: its lights, its fog, and a 2D texture background, which is
    * stretched over the view
    */
-  private _applySceneSettings(entry: SceneView, scene: EnvironmentScene): void {
+  private _applySceneSettings(entry: SceneView3D, scene: EnvironmentScene): void {
     const { view } = entry;
     prepareLights(view, scene);
     applyFog(view, scene);
@@ -813,7 +893,7 @@ export class PixiRenderer {
    * @param scene - The scene
    * @param background - The scene's background
    */
-  private _applySettings(entry: SceneView, scene: EnvironmentScene, background: SceneBackground): void {
+  private _applySettings(entry: SceneView3D, scene: EnvironmentScene, background: SceneBackground): void {
     const { view } = entry;
     const toTarget = this._renderTarget !== null;
     if (toTarget) applyToneMapping(view, 0, 1, TARGET_OUTPUT);

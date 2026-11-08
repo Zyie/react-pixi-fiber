@@ -1,8 +1,9 @@
 /**
- * react-pixi-fiber: react-three-fiber v10 rendering with pixi-3d
+ * react-pixi-fiber: a React renderer for pixi.js 2D and pixi-3d, with react-three-fiber v10's API for both
  *
  * The values are r3f's own core, unchanged (vendored in `src/r3f`), re-exported with types that
- * name pixi-3d instead of three. An r3f app should only have to swap its import.
+ * name pixi-3d and pixi.js instead of three. An r3f app should only have to swap its import, and 2D
+ * elements (`<sprite2D>`, `<graphics2D>`, `<text2D>`, ...) join the same tree, hooks and events.
  */
 import type { Container3D } from '@pixi/3d';
 import { getScheduler as pmndrsGetScheduler, Scheduler as PmndrsScheduler } from '@pmndrs/scheduler';
@@ -144,6 +145,9 @@ export {
   type PixiShadowMap,
 } from './renderer/PixiRenderer';
 export { pixiSupport, type PixiSupport } from './support/pixiSupport';
+export { AssetsLoader } from './two-d/AssetsLoader';
+export { useAsset } from './two-d/useAsset';
+export type * from './two-d/types';
 export {
   useTextures,
   type DisposeOptions,

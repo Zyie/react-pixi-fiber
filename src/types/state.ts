@@ -1,6 +1,6 @@
 import type { Container3D } from '@pixi/3d';
 import type { SchedulerApi } from '@pmndrs/scheduler';
-import type { Texture } from 'pixi.js';
+import type { Container, Texture } from 'pixi.js';
 import type { RefObject } from 'react';
 import type { StoreApi } from 'zustand';
 import type { UseBoundStoreWithEqualityFn } from 'zustand/traditional';
@@ -198,6 +198,12 @@ export interface RootState {
   scene: Scene;
   /** The root's scene, even inside a portal */
   rootScene: Scene;
+  /**
+   * The screen layer: the pixi.js container the 2D elements placed directly in the canvas are children
+   * of, drawn over the 3D in CSS pixels from the canvas's top-left corner. Its 3D view sits at a zIndex
+   * just under 0, so a top-level 2D element with a negative `zIndex` draws behind the 3D.
+   */
+  screen: Container;
   /** The raycaster pointer events use */
   raycaster: Raycaster;
   /** The event layer */

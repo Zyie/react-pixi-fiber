@@ -5,6 +5,19 @@ import type { Container } from 'pixi.js';
 const backdrops = new WeakMap<Container, Sprite>();
 
 /**
+ * Where in a view's stage what draws under the view goes: the view's own index, or that of the screen
+ * layer holding the view when the scene has 2D
+ * @param stage - The view's stage
+ * @param view - The view
+ * @internal
+ */
+export function indexUnderView(stage: Container, view: View3D): number {
+  let slot: Container = view;
+  while (slot.parent && slot.parent !== stage) slot = slot.parent;
+  return stage.getChildIndex(slot);
+}
+
+/**
  * Draws a 2D texture background behind a scene's view, stretched over the view's rect, as three draws
  * a `Texture` background: a sprite just under the view in its stage. An sRGB texture shows as it is,
  * as in three. `intensity` dims it in display space, so 0 to 1 only.
@@ -24,7 +37,7 @@ export function updateBackdrop(stage: Container, view: View3D, background: unkno
   if (!sprite) {
     sprite = new Sprite();
     backdrops.set(stage, sprite);
-    stage.addChildAt(sprite, stage.getChildIndex(view));
+    stage.addChildAt(sprite, indexUnderView(stage, view));
   }
   sprite.visible = true;
   sprite.texture = background;

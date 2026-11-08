@@ -26,3 +26,17 @@ export const DEFAULT_PARITY_MAX_DIFF = 0.02;
 
 /** How many pixels of a scene may differ from its reference image unless it sets `pixelMatch` */
 export const DEFAULT_PIXEL_MATCH = 16;
+
+/**
+ * What a scene or an example with pixi.js 2D in it spreads in: three.js has no 2D elements, so it skips
+ * three.js and leaves the parity comparison out, and is held to its own WebGL and WebGPU references,
+ * which have to agree with each other
+ * @example
+ * ```tsx
+ * export const scene: TestScene = { ...PIXI_ONLY, render: () => <sprite2D texture={Texture.WHITE} /> };
+ * ```
+ */
+export const PIXI_ONLY = {
+  skip: { renderers: ['three'], reason: 'three.js has no pixi.js 2D elements' },
+  parity: false,
+} as const satisfies { skip: { renderers: ['three']; reason: string }; parity: false };

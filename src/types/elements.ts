@@ -1,9 +1,10 @@
 import type { Container3D } from '@pixi/3d';
-import type { Color as PixiColor, ColorSource } from 'pixi.js';
+import type { Color as PixiColor, ColorSource, Container } from 'pixi.js';
 import type * as React from 'react';
 
 import type { Color as ThreeColor } from '../math/Color';
 import type { EulerOrder } from '../math/Euler';
+import type { DrawProps2D, EventHandlers2D, Is2D, OverloadArgs, SetterProps2D } from '../two-d/types';
 import type { EventHandlers } from './events';
 import type { Color } from './math';
 import type { RootStore } from './state';
@@ -104,11 +105,23 @@ export interface ReactProps<P> {
 }
 
 /**
- * Event props, for scene nodes
+ * Event props: r3f's handlers on scene nodes, and their 2D form on pixi.js containers
  * @category types
  * @advanced
  */
-export type EventProps<P> = P extends Container3D ? Partial<EventHandlers> : {};
+export type EventProps<P> = P extends Container3D
+  ? Partial<EventHandlers>
+  : P extends Container
+    ? Partial<EventHandlers2D>
+    : {};
+
+/**
+ * The props a 2D object adds to its fields: what its setters take beyond their getters' types, and a
+ * graphics' `draw`
+ * @category types
+ * @advanced
+ */
+export type Props2D<P> = Is2D<P> extends true ? SetterProps2D<P> & DrawProps2D<P> : {};
 
 /**
  * A function that attaches a child to its parent and returns the detach
@@ -136,14 +149,19 @@ export interface Catalogue {
 }
 
 /**
- * Constructor arguments of a class, as the `args` prop
+ * Constructor arguments of a class, as the `args` prop; for a pixi.js 2D class, those of any of its
+ * constructor's overloads
  * @category types
  * @advanced
  */
-export type Args<T> = T extends ConstructorRepresentation ? ConstructorParameters<T> : unknown[];
+export type Args<T> = T extends ConstructorRepresentation
+  ? Is2D<InstanceType<T>> extends true
+    ? OverloadArgs<T>
+    : ConstructorParameters<T>
+  : unknown[];
 
 type ArgsProp<P> = P extends ConstructorRepresentation
-  ? IsAllOptional<ConstructorParameters<P>> extends true
+  ? true extends IsAllOptional<Args<P>>
     ? { args?: Args<P> }
     : { args: Args<P> }
   : { args: unknown[] };
@@ -163,12 +181,13 @@ export type InstanceProps<T = unknown, P = unknown> = ArgsProp<P> & {
 };
 
 /**
- * The props of an element for class `T`: its fields, math and colour props, React props and events
+ * The props of an element for class `T`: its fields, math and colour props, React props and events,
+ * and for a pixi.js 2D class the props its setters take
  * @category types
  * @advanced
  */
 export type ElementProps<T extends ConstructorRepresentation, P = InstanceType<T>> = Partial<
-  Overwrite<P, MathProps<P> & ColorProps<P> & ReactProps<P> & EventProps<P>>
+  Overwrite<P, MathProps<P> & ColorProps<P> & Props2D<P> & ReactProps<P> & EventProps<P>>
 >;
 
 /**

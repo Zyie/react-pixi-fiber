@@ -7,6 +7,7 @@ import { CubeTexture as ThreeCubeTexture } from '../catalog/textures/CubeTexture
 import type { EulerOrder } from '../math/Euler';
 import { MathUtils } from '../math/MathUtils';
 import { Matrix4 } from '../math/Matrix4';
+import { indexUnderView } from '../renderer/backdrop';
 import { backdropPrograms, bakePrograms, blurPrograms } from './environmentShaders';
 import type { EnvironmentTexture } from './environmentTexture';
 
@@ -488,7 +489,7 @@ export class EnvironmentMaps {
       }),
       label: 'EnvironmentBackdrop',
     });
-    stage.addChildAt(mesh, stage.getChildIndex(view));
+    stage.addChildAt(mesh, indexUnderView(stage, view));
     const backdrop = { mesh, uniforms };
     this._backdrops.set(view, backdrop);
     return backdrop;
