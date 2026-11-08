@@ -52,7 +52,8 @@ export function updateBackdropColor(stage: Container, view: View3D, color: Color
 }
 
 /**
- * Shows the backdrop sprite of a stage over a view's rect, made the first time
+ * Shows the backdrop sprite of a stage over a view's rect, made the first time. It takes no events: a
+ * `<View3D>`'s own hit covers its rect.
  * @param stage - The view's stage
  * @param view - The view
  * @param texture - What it shows
@@ -61,7 +62,7 @@ export function updateBackdropColor(stage: Container, view: View3D, color: Color
 function showBackdrop(stage: Container, view: View3D, texture: Texture, tint: ColorSource): void {
   let sprite = backdrops.get(stage);
   if (!sprite) {
-    sprite = new Sprite();
+    sprite = new Sprite({ eventMode: 'none' });
     backdrops.set(stage, sprite);
     stage.addChildAt(sprite, indexUnderView(stage, view));
   }

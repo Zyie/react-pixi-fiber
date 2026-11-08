@@ -488,6 +488,7 @@ export class EnvironmentMaps {
         },
       }),
       label: 'EnvironmentBackdrop',
+      eventMode: 'none',
     });
     stage.addChildAt(mesh, indexUnderView(stage, view));
     const backdrop = { mesh, uniforms };

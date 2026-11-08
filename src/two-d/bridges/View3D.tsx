@@ -111,8 +111,10 @@ function SyncSize({ width, height }: { width: number; height: number }): null {
  * Canvas. It draws in the same pass as the rest of the 2D, with no extra canvas or render target.
  *
  * Events reach its 3D and 2D through its own camera, at the place the view has in the 2D's draw order:
- * 2D over the view is hit first, and a mask or `hitArea` above it clips its hits. Its 2D props and
- * handlers are those of the container holding the view, whose `ref` it takes. Unmounting it frees the
+ * 2D over the view is hit first, and a mask or `hitArea` above it clips its hits. A click anywhere on
+ * the view reaches its own handlers after the 3D and 2D inside it and before the 2D around it, as a
+ * child's before its parent's, with that container as the event's `object`. Its 2D props and handlers
+ * are those of the container holding the view, whose `ref` it takes. Unmounting it frees the
  * view; its scene's children are the elements', which free themselves.
  * @example
  * ```tsx

@@ -135,7 +135,7 @@ export function screenHits(screen: Container, x: number, y: number): ScreenHits 
 /**
  * Where a hit sorts in r3f's `distance`: on the root's screen layer, before every 3D hit when it is
  * drawn over the 3D and after them all when it is drawn under it; in a slot, in the slot's first
- * quarter over its layer's 3D and its last quarter under it
+ * quarter over its layer's 3D, and after its 3D, short of {@link NESTED_OWN_HIT}, under it
  * @param slot - The slot of the screen layer's portal, or `undefined` on the root's
  * @param order - The hit's place from the front
  * @param behind - Whether it is drawn under the 3D
@@ -143,7 +143,25 @@ export function screenHits(screen: Container, x: number, y: number): ScreenHits 
 function distanceOf(slot: LayerSlot | undefined, order: number, behind: boolean): number {
   if (!slot) return behind ? BEHIND + order : FRONT + order;
   const along = order / (order + 1);
-  return slot.base + slot.span * (behind ? 0.75 + 0.25 * along : 0.25 * along);
+  return slot.base + slot.span * (behind ? 0.75 + 0.2 * along : 0.25 * along);
+}
+
+/**
+ * Where in its slot the hit of a `<View3D>`'s own screen layer sorts: after every hit inside the view,
+ * so the view's 3D and 2D get an event before the view and the 2D around it, as a child does before
+ * its parent
+ */
+const NESTED_OWN_HIT = 0.975;
+
+/**
+ * The `distance` of a nested screen layer's own hit: near the end of the slot its view's hits sort in
+ * @param slot - The slot of the screen layer it is on, or `undefined` on the root's
+ * @param order - Its place from the front
+ * @param behind - Whether it is drawn under the 3D
+ */
+function nestedDistanceOf(slot: LayerSlot | undefined, order: number, behind: boolean): number {
+  const base = distanceOf(slot, order, behind);
+  return base + (distanceOf(slot, order + 1, behind) - base) * NESTED_OWN_HIT;
 }
 
 /**
@@ -181,7 +199,8 @@ const isWithin = (node: Container, ancestor: Container): boolean => {
 /**
  * Adds a hit to `intersects` for each object under the pointer in a 2D element's subtree, the element
  * included, for r3f's event layer. Hits sort by draw order: in front of every 3D hit for 2D drawn over
- * the 3D, behind them for 2D drawn under it.
+ * the 3D, behind them for 2D drawn under it. A `<View3D>`'s screen layer is hit as the container that
+ * holds it, sorted after the hits inside the view.
  * @param container - The 2D element r3f asks
  * @param intersects - r3f's list of hits
  * @internal
@@ -195,10 +214,13 @@ export function raycastScreen(container: Container, intersects: Intersection[]):
   const hits = screenHits(screen, x, y);
   const global = hits.location;
   const slot = layerSlotOf(state.raycaster as Raycaster);
-  for (const [object, order] of hits.order) {
-    if (!isWithin(object, container)) continue;
+  for (const [hitObject, order] of hits.order) {
+    if (!isWithin(hitObject, container)) continue;
+    const nested = sceneOfScreen(hitObject) !== undefined;
+    const object = nested ? (hitObject.parent ?? hitObject) : hitObject;
+    const behind = order >= hits.behindFrom;
     const hit: Intersection2D = {
-      distance: distanceOf(slot, order, order >= hits.behindFrom),
+      distance: nested ? nestedDistanceOf(slot, order, behind) : distanceOf(slot, order, behind),
       point: new Vector3(x, y, 0),
       face: null,
       object,
