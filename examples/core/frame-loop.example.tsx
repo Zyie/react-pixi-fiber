@@ -70,9 +70,13 @@ export function App() {
 }
 // #endregion result
 
-/** A cube turned by `useFrame`, the root's clock printed at the top left, and an animated 2D coin the same clock plays; here after 40 frames */
+/**
+ * A cube turned by `useFrame`, the root's clock printed at the top left, and an animated 2D coin the same
+ * clock plays, here after 41 frames: 8.2 of the coin's frames, between two of them, so the rounding of a
+ * frame's delta can't tip it onto another
+ */
 export const example: Example = {
   title: 'One clock for 2D and 3D',
-  frames: 41,
+  frames: 42,
   render: () => <Scene />,
 };

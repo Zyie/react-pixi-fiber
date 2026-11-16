@@ -56,7 +56,7 @@ function Coin() {
 }
 ```
 
-![A blue cube turned by useFrame, the clock at 0.67 s at the top left, and a gold coin](../../../../tests/snapshots/docs/core/frame-loop.webgl.png)
+![A blue cube turned by useFrame, the clock at 0.68 s at the top left, and a gold coin](../../../../tests/snapshots/docs/core/frame-loop.webgl.png)
 
 An animated sprite that sets `autoUpdate` keeps pixi's ticker instead.
 
