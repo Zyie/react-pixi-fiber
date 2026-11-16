@@ -59,7 +59,7 @@ Each package is an npm workspace with its own `package.json`, `tsconfig.json` (e
 
 ## The forked core
 
-`packages/r3f` is `packages/fiber` of react-three-fiber (`src` and `types`) at the commit `scripts/repos/manifest.mts` pins, which `.repos/react-three-fiber` is checked out at. Its core asks the root's renderer support where it used to reach into three.js objects. `packages/r3f/README.md`, written for r3f's maintainers, gives the interface, each hook, what core did before and why. The whole change is `packages/r3f/fork.diff`: `npm run diff:r3f` writes it, `scripts/r3f/fork.mts --check` fails when it is stale and runs in `npm run test:lint`, and `git apply` takes it at the root of a clone of r3f at that commit. r3f's own test suite passes on the fork as on upstream.
+`packages/r3f` is `packages/fiber` of react-three-fiber (`src` and `types`, and `tests/renderer-hooks.test.tsx`, our test of a support that isn't three's) at the commit `scripts/repos/manifest.mts` pins, which `.repos/react-three-fiber` is checked out at. Its core asks the root's renderer support where it used to reach into three.js objects. `packages/r3f/README.md`, written for r3f's maintainers, gives the interface, each hook, what core did before and why. The whole change is `packages/r3f/fork.diff`: `npm run diff:r3f` writes it, `scripts/r3f/fork.mts --check` fails when it is stale and runs in `npm run test:lint`, and `git apply` takes it at the root of a clone of r3f at that commit. r3f's own test suite passes on the fork as on upstream, and the fork's test runs a root on a support whose hooks are spies.
 
 Besides the diff, the fork holds files of ours, listed in the script's `EXTRAS`:
 
