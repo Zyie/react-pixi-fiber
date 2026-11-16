@@ -20,7 +20,7 @@ The packages take `@react-fiber/core`, and threejs-compat `@react-fiber/3d`, as 
 
 ## Installing a package
 
-A package installs its elements when it is imported, as a pixi.js plugin does. Import it once, anywhere in the program, before the first `<Canvas>` renders:
+A package installs its elements when it is imported, as a pixi.js plugin does. Import it once, anywhere in the program, before the first `<Canvas>` that uses it renders; one imported later, by a code-split route, installs as it loads:
 
 ```tsx
 import { Canvas } from '@react-fiber/core';

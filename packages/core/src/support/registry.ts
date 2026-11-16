@@ -105,8 +105,9 @@ export interface ObjectHooks {
 
 /**
  * The parts of the renderer support a package gives roots. A root loads the support once, during its
- * first `configure()`; each part's `install` runs then, the first time, and the renderer and targets
- * of the highest priority package that gives them are the root's.
+ * first `configure()`; each part's `install` runs then, the first time, or as the package registers when
+ * a root has already loaded it. The renderer and targets of the highest priority package that gives them
+ * are those of the roots configured after it.
  * @category renderer
  * @advanced
  */
@@ -191,9 +192,14 @@ function merge(target: Record<string, unknown>, list: readonly Entry<Record<stri
   for (let i = list.length - 1; i >= 0; i--) Object.assign(target, list[i].ref);
 }
 
+/** Whether a root has loaded the support, after which a package's `install` runs as it registers */
+let supportLoaded = false;
+
 handleSorted(FiberExtensionType.Catalog, catalogs, () => merge(catalog, catalogs));
 handleSorted(FiberExtensionType.Classes, classLists, () => merge(classes, classLists));
-handleSorted(FiberExtensionType.Support, parts);
+handleSorted(FiberExtensionType.Support, parts, () => {
+  if (supportLoaded) installParts();
+});
 
 /**
  * The hooks of the highest priority package whose `test` takes an object
@@ -215,10 +221,13 @@ export function supportPart<K extends keyof SupportParts>(key: K): SupportParts[
 }
 
 /**
- * Runs every package's `install`, once each, lowest priority first
+ * Runs every package's `install`, once each, lowest priority first. A root's first load of the support
+ * calls it, and from then on so does each package that registers, such as one a code-split route
+ * imports, so its install doesn't wait for the next root.
  * @internal
  */
 export function installParts(): void {
+  supportLoaded = true;
   for (let i = parts.length - 1; i >= 0; i--) {
     const { ref } = parts[i];
     if (installed.has(ref)) continue;
