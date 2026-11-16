@@ -58,7 +58,8 @@ export interface PixiHooks {
    * is also a prop or a slot of a list it keeps, and returns whether it did; core writes the rest
    * @param object - An element's object, or the parent an element attaches to
    * @param key - The prop as written, or the child's `attach`
-   * @param value - The value, the attached child, or on detach what the attach replaced
+   * @param value - The value, `undefined` for a removed prop, the attached child, or on detach what the
+   * attach replaced
    */
   applyProp(object: object, key: string, value: unknown): boolean;
   /**

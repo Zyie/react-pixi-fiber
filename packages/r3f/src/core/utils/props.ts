@@ -268,6 +268,9 @@ export function diffProps<T = any>(instance: Instance<T>, newProps: Instance<T>[
   for (const prop in instance.props) {
     if (RESERVED_PROPS.includes(prop) || newProps.hasOwnProperty(prop)) continue
 
+    // The renderer resets a removed prop it handles itself
+    if (instance.root.getState().internal.support?.applyProp(instance.object, prop, undefined)) continue
+
     const { root, key } = resolve(instance.object, prop)
 
     // https://github.com/mrdoob/three.js/issues/21209

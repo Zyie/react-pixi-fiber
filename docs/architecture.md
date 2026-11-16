@@ -285,6 +285,7 @@ pixi.js's 2D classes are elements of the same r3f tree as the 3D, under r3f's ru
   - `mask` and `attach="mask"`: a detach clears the mask, which r3f's `delete` can't, since pixi's getter reads `undefined` when unset. A mask element with no parent, as an attached one is, becomes a child of what it masks, so its transform follows that object. `mask` also takes `setMask`'s options (`{ mask, inverse: true }`); options without a `mask` keep the current one.
   - Methods that are props: `cacheAsTexture` calls the method, `parentRenderLayer` calls `layer.attach` or, with `null`, `detach`, and an `AnimatedSprite`'s `playing`, whose getter is read-only, calls `play()` or `stop()`.
   - `draw` on a `Graphics` or a `GraphicsContext` clears it and draws, when a new function is passed.
+  - A prop an update removes reaches it as `undefined` before core's reset to a new object's value, which would skip pixi's `mask` and `filters`: each goes back to what a new object has (no filters, no mask, no layer, no cache, stopped, cleared).
 
 A colour prop takes what pixi's `Color` takes. A three `Color` isn't one: pixi reads its channels as 0 to 255, so convert it, with `getHex()` or `getStyle()`.
 

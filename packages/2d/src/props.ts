@@ -94,16 +94,16 @@ function setRenderLayer(container: Container, layer: RenderLayer | null): void {
 }
 
 /**
- * The `cacheAsTexture` prop: calls the method. The method itself, which r3f writes back when the prop
- * is removed, turns the cache off.
+ * The `cacheAsTexture` prop: calls the method. `undefined`, a removed prop, and the method itself turn
+ * the cache off.
  * @param container - The container
  * @param value - Whether to cache, or the cache's options
  */
 function setCacheAsTexture(
   container: Container,
-  value: boolean | CacheAsTextureOptions | Container['cacheAsTexture'],
+  value: boolean | CacheAsTextureOptions | Container['cacheAsTexture'] | undefined,
 ): void {
-  const cache = typeof value === 'function' ? false : value;
+  const cache = typeof value === 'function' ? false : (value ?? false);
   if (cache === false && !container.isCachedAsTexture) return;
   container.cacheAsTexture(cache);
 }
@@ -119,18 +119,19 @@ function setCacheAsTexture(
  * - Methods that are props: `parentRenderLayer` (`layer.attach`, or `detach` with `null`),
  *   `cacheAsTexture`, and an animated sprite's `playing` (`play()` or `stop()`).
  * - `draw` on a graphics or a graphics context: clears it and calls the function with it.
+ *
+ * A prop an update removes comes with `undefined`, which leaves each as a new object has it: no filters,
+ * no mask, no render layer, no cache, stopped and cleared.
  * @param object - The element's object, or the parent an element attaches to
  * @param key - The prop, or the child's `attach`
- * @param value - The value, the attached child, or `undefined` on detach
+ * @param value - The value, the attached child, or `undefined` on detach and when the prop is removed
  * @returns Whether the key was written here; core writes any other
  * @internal
  */
 export function applyProp2D(object: object, key: string, value: unknown): boolean {
   if (key === 'draw' && (object instanceof Graphics || object instanceof GraphicsContext)) {
-    if (typeof value === 'function') {
-      object.clear();
-      (value as (target: Graphics | GraphicsContext) => void)(object);
-    }
+    object.clear();
+    if (typeof value === 'function') (value as (target: Graphics | GraphicsContext) => void)(object);
     return true;
   }
   if (object instanceof AnimatedSprite && key === 'playing') {
@@ -150,7 +151,7 @@ export function applyProp2D(object: object, key: string, value: unknown): boolea
       setRenderLayer(object, value as RenderLayer | null);
       return true;
     case 'cacheAsTexture':
-      setCacheAsTexture(object, value as boolean | CacheAsTextureOptions);
+      setCacheAsTexture(object, value as boolean | CacheAsTextureOptions | undefined);
       return true;
   }
   const slot = FILTER_SLOT.exec(key);

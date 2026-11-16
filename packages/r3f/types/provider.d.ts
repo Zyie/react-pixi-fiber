@@ -56,7 +56,8 @@ export interface RendererHooks {
   /**
    * Writes `value` at `key` of `object` when the renderer handles that key itself, such as a method that
    * is also a prop or a slot of a list it keeps, and returns whether it did; core then skips its own
-   * write. Core asks for each prop it applies, with the key as written, and for each string `attach`:
+   * write. Core asks for each prop it applies, with the key as written, for each prop an update removes,
+   * with `undefined`, before it resets the prop to a fresh instance's value, and for each string `attach`:
    * with the child's object to attach it, and with the value it replaced to detach it.
    */
   applyProp(object: object, key: string, value: unknown): boolean

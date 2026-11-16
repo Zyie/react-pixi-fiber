@@ -487,7 +487,7 @@ index 0000000..990ad39
 +  return id
 +}
 diff --git a/packages/fiber/src/core/utils/props.ts b/packages/fiber/src/core/utils/props.ts
-index 3566163..2561d5f 100644
+index 3566163..c623cc1 100644
 --- a/packages/fiber/src/core/utils/props.ts
 +++ b/packages/fiber/src/core/utils/props.ts
 @@ -172,6 +172,9 @@ export function resolve(root: any, key: string): { root: any; key: string; targe
@@ -523,7 +523,17 @@ index 3566163..2561d5f 100644
    } else {
      child.previousAttach?.(parent.object, child.object)
    }
-@@ -374,6 +380,9 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
+@@ -262,6 +268,9 @@ export function diffProps<T = any>(instance: Instance<T>, newProps: Instance<T>[
+   for (const prop in instance.props) {
+     if (RESERVED_PROPS.includes(prop) || newProps.hasOwnProperty(prop)) continue
+ 
++    // The renderer resets a removed prop it handles itself
++    if (instance.root.getState().internal.support?.applyProp(instance.object, prop, undefined)) continue
++
+     const { root, key } = resolve(instance.object, prop)
+ 
+     // https://github.com/mrdoob/three.js/issues/21209
+@@ -374,6 +383,9 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
        continue
      }
  
@@ -533,7 +543,7 @@ index 3566163..2561d5f 100644
      let { root, key, target } = resolve(object, prop)
  
      // Throw an error if we attempted to set a pierced prop to a non-object
-@@ -476,7 +485,7 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
+@@ -476,7 +488,7 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
    if (
      instance?.parent &&
      rootState?.internal &&
@@ -542,7 +552,7 @@ index 3566163..2561d5f 100644
      prevHandlers !== instance.eventCount
    ) {
      const object = instance.object as unknown as THREE.Object3D
-@@ -496,11 +505,7 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
+@@ -496,11 +508,7 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
    // count unchanged and the block never runs — and the registry keeps a snapshot of the OLD
    // closure. Inline handlers (`onFramed={() => …}`) produce a new function every render, which
    // is the common case, so the user's updated callback would simply never fire.
@@ -555,7 +565,7 @@ index 3566163..2561d5f 100644
      const object = instance.object as unknown as THREE.Object3D
      const root = findInitialRoot(instance)
      const visibilityHandlers = {
-@@ -522,10 +527,10 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
+@@ -522,10 +530,10 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
      }
    }
  
@@ -722,7 +732,7 @@ index 130ce89..3d8328d 100644
    RenderTarget: THREE.RenderTarget,
    CubeRenderTarget: THREE.CubeRenderTarget,
 diff --git a/packages/fiber/types/provider.d.ts b/packages/fiber/types/provider.d.ts
-index 2b15b2a..83edd82 100644
+index 2b15b2a..2122d52 100644
 --- a/packages/fiber/types/provider.d.ts
 +++ b/packages/fiber/types/provider.d.ts
 @@ -1,6 +1,7 @@
@@ -733,7 +743,7 @@ index 2b15b2a..83edd82 100644
  
  //* Renderer Support ==============================
  // Core has no static imports from `three` or `three/webgpu`. Both are separate bundles built on one
-@@ -28,11 +29,68 @@ export interface OcclusionSupport {
+@@ -28,11 +29,69 @@ export interface OcclusionSupport {
    nodeObject: typeof nodeObject
  }
  
@@ -764,7 +774,8 @@ index 2b15b2a..83edd82 100644
 +  /**
 +   * Writes `value` at `key` of `object` when the renderer handles that key itself, such as a method that
 +   * is also a prop or a slot of a list it keeps, and returns whether it did; core then skips its own
-+   * write. Core asks for each prop it applies, with the key as written, and for each string `attach`:
++   * write. Core asks for each prop it applies, with the key as written, for each prop an update removes,
++   * with `undefined`, before it resets the prop to a fresh instance's value, and for each string `attach`:
 +   * with the child's object to attach it, and with the value it replaced to detach it.
 +   */
 +  applyProp(object: object, key: string, value: unknown): boolean
@@ -803,7 +814,7 @@ index 2b15b2a..83edd82 100644
    Renderer: typeof ThreeLegacy.WebGLRenderer
    /** Render target for `useRenderTarget`. */
    RenderTarget: typeof ThreeLegacy.WebGLRenderTarget
-@@ -41,10 +99,11 @@ export interface WebGLSupport {
+@@ -41,10 +100,11 @@ export interface WebGLSupport {
  }
  
  /** WebGPU renderer support: the `three/webgpu` namespace and the classes only it exports. */
@@ -816,7 +827,7 @@ index 2b15b2a..83edd82 100644
    Renderer: typeof ThreeWebGPU.WebGPURenderer
    /** Render target for `useRenderTarget`. */
    RenderTarget: typeof ThreeWebGPU.RenderTarget
-@@ -55,17 +114,15 @@ export interface WebGPUSupport {
+@@ -55,17 +115,15 @@ export interface WebGPUSupport {
    occlusion: OcclusionSupport
  }
  

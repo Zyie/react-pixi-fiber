@@ -81,11 +81,12 @@ export interface ObjectHooks {
   /**
    * Writes a value at a key the package handles itself, and returns whether it did; core writes the
    * keys it doesn't. Asked for each prop of the object's element with the key as written (`draw`,
-   * `mask`), for each string `attach` to the object with the child (`filters-0`), and for its detach
-   * with the value the attach replaced.
+   * `mask`), with `undefined` for a prop an update removes, for each string `attach` to the object with
+   * the child (`filters-0`), and for its detach with the value the attach replaced. A removed prop the
+   * package doesn't take is reset to the value a new object of the class holds.
    * @param object - The object
    * @param key - The prop, or the child's `attach`
-   * @param value - The value
+   * @param value - The value, or `undefined` for a removed prop
    */
   applyProp?(object: object, key: string, value: unknown): boolean;
   /**
