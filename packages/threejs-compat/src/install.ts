@@ -4,7 +4,6 @@ import { extensions } from 'pixi.js';
 
 import { catalog } from './catalog/catalog';
 import { installObject3DSurface } from './compat/installObject3DSurface';
-import { installPixiColor } from './compat/pixiColor';
 import { WebGLCubeRenderTarget } from './environment/WebGLCubeRenderTarget';
 import { WebGLRenderTarget } from './environment/WebGLRenderTarget';
 import { ThreeRenderer } from './renderer/ThreeRenderer';
@@ -19,10 +18,7 @@ extensions.add(
       Renderer: ThreeRenderer,
       RenderTarget: WebGLRenderTarget,
       CubeRenderTarget: WebGLCubeRenderTarget,
-      install() {
-        installObject3DSurface();
-        installPixiColor();
-      },
+      install: installObject3DSurface,
     },
   },
 );

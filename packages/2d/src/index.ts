@@ -6,16 +6,15 @@ import { FiberExtensionType } from '@react-fiber/core/extension';
  *
  * Importing it registers, through pixi.js's `extensions`, the 2D elements (`<sprite2D>`,
  * `<graphics2D>`, `<blurFilter2D attach="filters-0">`, ...: each class name in camelCase with a `2D`
- * suffix), the hooks core calls on 2D objects, and, when the first root loads, what pixi.js's classes
- * need to be r3f elements. The classes are pixi.js's own: a ref gets the pixi object, and an app imports
- * the classes from `pixi.js`.
+ * suffix), the hooks core calls on 2D objects, and each root's 2D frame jobs. The classes are pixi.js's
+ * own and stay as pixi.js made them: a ref gets the pixi object, and an app imports the classes from
+ * `pixi.js`.
  */
 import { extensions } from 'pixi.js';
 
 import * as catalog2D from './catalog';
 import { frameExtension } from './frame';
 import { objects2D } from './objects2D';
-import { install2DSurface } from './surface';
 
 export { AssetsLoader, useAsset } from '@react-fiber/core';
 
@@ -25,12 +24,7 @@ extensions.add(
   {
     type: FiberExtensionType.Support,
     name: '2d',
-    ref: {
-      install() {
-        install2DSurface();
-        registerRootExtension(frameExtension);
-      },
-    },
+    ref: { install: () => registerRootExtension(frameExtension) },
   },
 );
 

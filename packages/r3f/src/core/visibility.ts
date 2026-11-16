@@ -6,7 +6,7 @@
 import type { Frustum, Material, Mesh, Object3D } from 'three'
 import type { Node } from 'three/webgpu'
 import { updateFrustum } from './utils'
-import { objectKey } from './utils/objectKey'
+import { getObjectId } from './utils/objectId'
 import { getThree } from './three'
 
 //* Type Imports ==============================
@@ -223,7 +223,7 @@ export function registerVisibility(
     lastVisibleState: null,
   }
 
-  registry.set(objectKey(object), entry)
+  registry.set(getObjectId(object), entry)
 
   // Auto-enable occlusion if needed
   if (handlers.onOccluded || handlers.onVisible) {
@@ -246,7 +246,7 @@ export function registerVisibility(
  */
 export function unregisterVisibility(store: RootStore, object: Object3D): void {
   const { internal } = store.getState()
-  internal.visibilityRegistry.delete(objectKey(object))
+  internal.visibilityRegistry.delete(getObjectId(object))
   internal.occlusionCache.delete(object)
 }
 
@@ -274,7 +274,7 @@ export function updateVisibilityHandlers(
   handlers: Pick<EventHandlers, 'onFramed' | 'onOccluded' | 'onVisible'>,
 ): boolean {
   const { internal } = store.getState()
-  const entry = internal.visibilityRegistry.get(objectKey(object))
+  const entry = internal.visibilityRegistry.get(getObjectId(object))
   if (!entry) return false
 
   entry.handlers = handlers

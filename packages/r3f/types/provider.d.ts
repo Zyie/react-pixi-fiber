@@ -54,6 +54,13 @@ export interface RendererHooks {
   /** Where an element without `attach` attaches to its parent's object, or `undefined` to be added as a child. */
   defaultAttach(object: object): string | undefined
   /**
+   * Writes `value` at `key` of `object` when the renderer handles that key itself, such as a method that
+   * is also a prop or a slot of a list it keeps, and returns whether it did; core then skips its own
+   * write. Core asks for each prop it applies, with the key as written, and for each string `attach`:
+   * with the child's object to attach it, and with the value it replaced to detach it.
+   */
+  applyProp(object: object, key: string, value: unknown): boolean
+  /**
    * The hits of a pointer event on an object and its descendants, cast with `state.raycaster`. `state`
    * is the root state of the object, which each renderer types as its own (three's: `RootState`).
    */

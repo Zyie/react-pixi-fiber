@@ -4,14 +4,14 @@ A fork of [react-three-fiber](https://github.com/pmndrs/react-three-fiber)'s `pa
 `types`) at `v10` commit `58acabc0fc996bac5a25320ca3a8670bdd209db7`, published in this repo as
 `@react-fiber/r3f`. Core keeps React's
 tree, props, events and the frame loop. Where it reached into three.js objects, it now asks the root's
-renderer support through seven hooks. three's two supports implement them with the code core ran before,
+renderer support through eight hooks. three's two supports implement them with the code core ran before,
 so three.js apps behave as they did, and r3f's own test suite passes unchanged.
 
 react-pixi-fiber runs pixi.js 2D and `@pixi/3d` on this core with a support of its own: its
 `@react-fiber/core` package bundles this core and gives roots a renderer support that the 2D and 3D
 packages fill.
 
-The whole change is [`fork.diff`](./fork.diff): <!-- diff-size -->16 files changed, 232 lines added, 121 lines removed<!-- /diff-size -->.
+The whole change is [`fork.diff`](./fork.diff): <!-- diff-size -->16 files changed, 263 lines added, 127 lines removed<!-- /diff-size -->.
 `npm run diff:r3f` writes it, and `npm run test:lint` fails when it is stale.
 
 ## The interface
@@ -30,6 +30,7 @@ export interface RendererHooks {
   remove(parent: object, child: object): void
   isInteractive(object: object): boolean
   defaultAttach(object: object): string | undefined
+  applyProp(object: object, key: string, value: unknown): boolean
   hitTest(object: object, event: DomEvent, state: object): Hit[]
   compareHits(a: Hit, b: Hit): number
   dispose(object: object): void
@@ -71,15 +72,16 @@ spread. It imports nothing from three.
 
 ## The hooks
 
-| Hook                            | What core did before                                                                                                                 | Where core calls it                                                                                            |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| `add(parent, child, before?)`   | `parent.add(child)`; to insert before a sibling, it spliced `parent.children`, set `child.parent` and dispatched `added` and `childadded` | `handleContainerEffects` (append, insert, keyed move), `swapReconstructedInstances`, a portal's injected scene, the default camera joining the root's scene |
-| `remove(parent, child)`         | `parent.remove(child)`                                                                                                               | `removeChild`, `swapReconstructedInstances`, a portal's injected scene                                        |
-| `isInteractive(object)`         | `isObject3D(object)`                                                                                                                 | the add and remove gates, `hideInstance` and `unhideInstance`, handler and visibility registration in `applyProps` |
-| `defaultAttach(object)`         | `isBufferGeometry` attached to `geometry`, `isMaterial` to `material`                                                                | `applyProps`, for an element with no `attach`                                                                  |
-| `hitTest(object, event, state)` | `object.updateWorldMatrix(true, true)`, then `state.raycaster.intersectObject(object, true)`                                         | `intersect` in `core/events.ts`, for each object in `internal.interaction`                                    |
-| `compareHits(a, b)`             | `a.distance - b.distance`                                                                                                            | the hit sort in `intersect`, after `interactivePriority` and the roots' event priority                         |
-| `dispose(object)`               | `object.dispose()` when it has one and isn't a `Scene`                                                                               | `removeChild`, `swapReconstructedInstances`                                                                    |
+| Hook                            | What core did before                                                                                                                                                                                                 | Where core calls it                                                                                                |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `add(parent, child, before?)`   | `parent.add(child)`; to insert before a sibling, it spliced `parent.children`, set `child.parent` and dispatched `added` and `childadded`                                                                            | `handleContainerEffects` (append, insert, keyed move), `swapReconstructedInstances`, a portal's injected scene, the default camera joining the root's scene |
+| `remove(parent, child)`         | `parent.remove(child)`                                                                                                                                                                                               | `removeChild`, `swapReconstructedInstances`, a portal's injected scene                                             |
+| `isInteractive(object)`         | `isObject3D(object)`                                                                                                                                                                                                 | the add and remove gates, `hideInstance` and `unhideInstance`, handler and visibility registration in `applyProps` |
+| `defaultAttach(object)`         | `isBufferGeometry` attached to `geometry`, `isMaterial` to `material`                                                                                                                                                | `applyProps`, for an element with no `attach`                                                                      |
+| `applyProp(object, key, value)` | assigned a prop that no value rule (`set`, `copy`, `fromArray`, ...) took; attached a child with `parent[key] = child`, into an array for `foo-0`, and on detach wrote back the value it replaced or deleted the key | `applyProps`, for each prop before it is resolved; `attach` and `detach`, for a string `attach`                    |
+| `hitTest(object, event, state)` | `object.updateWorldMatrix(true, true)`, then `state.raycaster.intersectObject(object, true)`                                                                                                                         | `intersect` in `core/events.ts`, for each object in `internal.interaction`                                         |
+| `compareHits(a, b)`             | `a.distance - b.distance`                                                                                                                                                                                            | the hit sort in `intersect`, after `interactivePriority` and the roots' event priority                             |
+| `dispose(object)`               | `object.dispose()` when it has one and isn't a `Scene`                                                                                                                                                               | `removeChild`, `swapReconstructedInstances`                                                                        |
 
 Why each one is needed:
 
@@ -92,6 +94,13 @@ Why each one is needed:
   own classes instead of setting the flag on them.
 - **`defaultAttach`.** `isBufferGeometry` and `isMaterial` are three's flags. Another renderer's geometry
   and material classes attach the same way when the hook names them.
+- **`applyProp`.** Assignment is how three takes a prop, but not every renderer's fields are written
+  that way. pixi.js's `filters` hands out a frozen copy, so `attach="filters-0"` can't write into it; its
+  `mask` reads `undefined` when unset, so a detach's `delete` leaves the mask on; and some of what an
+  element sets is a method, such as `cacheAsTexture`, or behind a read-only getter, such as an
+  `AnimatedSprite`'s `playing`. Before the hook, react-pixi-fiber patched those members on pixi.js's
+  prototypes, for every app on the page. The hook lets a renderer take the keys it handles and returns
+  `false` for the rest, which core writes as before; three's takes none.
 - **`hitTest`.** Casting the ray is the renderer's. Core keeps everything around it: `events.compute` and
   the per-layer `raycaster.camera` protocol, `events.enabled`, `userData.interactivePriority`, the roots'
   event priority, dedupe, `events.filter`, bubbling through `parent`, and pointer capture.
@@ -119,7 +128,7 @@ Why each one is needed:
   three's and a missing `catalog` with `three`, so a support without them, such as the hand-built mock in
   `tests/webgl2-fallback-multicanvas.test.tsx`, runs as it did.
 - **Core keys objects itself.** Hover and capture entries, the visibility registry and a portal's key
-  were keyed by `object.uuid`; they are now keyed by `objectKey(object)` (`core/utils/objectKey.ts`), a
+  were keyed by `object.uuid`; they are now keyed by `getObjectId(object)` (`core/utils/objectId.ts`), a
   string core keeps per object in a `WeakMap`. three's keys were unique per object and so are these, so
   nothing changes for three, and a scene graph without `uuid` (pixi.js's 2D, @pixi/3d's nodes) gets
   distinct keys. It isn't exported, so the public API is unchanged.
@@ -149,16 +158,16 @@ classes answer it:
   picks with @pixi/3d's hit volumes, so a root needs nothing three-shaped.
 - **`applyProps` value writes**: `set`, `copy`, `fromArray`, `setScalar`, `isColor`, a layers `mask` and
   `ShaderMaterial` uniforms, else plain assignment. They are duck typed: a value no rule matches is
-  assigned, and the renderer's own setters take it.
+  assigned, and the renderer's own setters take it, unless its `applyProp` took the key first.
 - **Visibility** (`onFramed`, `onOccluded`, `onVisible`): `frustum.intersectsObject(object)` and
   `object.visible`, with occlusion only when `kind` is `'webgpu'`. It runs only for objects with those
   handlers, through the support's `Frustum`.
 - **Color management and renderer setup**: `outputColorSpace`, `toneMapping` and `shadowMap` on the
   renderer, and a texture's `colorSpace` for three's textures. They are written on the renderer the
   support constructed, which takes or ignores them.
-- **Events and hiding**: `parent` (bubbling and `getRootState`), `visible`,
-  `userData.interactivePriority` (optional) and `raycast !== null` (the opt-out). Most scene graphs have
-  them.
+- **Events and hiding**: `parent` (bubbling, and `getRootState` for a hit object with no element),
+  `visible`, `userData.interactivePriority` and `raycast !== null` (the opt-out). Most scene graphs
+  have them.
 
 ## Running r3f's tests on the fork
 

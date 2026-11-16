@@ -79,6 +79,16 @@ export interface ObjectHooks {
    */
   defaultAttach?(object: object): string | undefined;
   /**
+   * Writes a value at a key the package handles itself, and returns whether it did; core writes the
+   * keys it doesn't. Asked for each prop of the object's element with the key as written (`draw`,
+   * `mask`), for each string `attach` to the object with the child (`filters-0`), and for its detach
+   * with the value the attach replaced.
+   * @param object - The object
+   * @param key - The prop, or the child's `attach`
+   * @param value - The value
+   */
+  applyProp?(object: object, key: string, value: unknown): boolean;
+  /**
    * The hits of a pointer event on the object and its descendants
    * @param object - The object, which has handlers
    * @param event - The DOM event

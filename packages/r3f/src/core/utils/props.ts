@@ -172,6 +172,9 @@ export function resolve(root: any, key: string): { root: any; key: string; targe
  */
 export function attach(parent: Instance, child: Instance): void {
   if (is.str(child.props.attach)) {
+    // The renderer attaches to a key it handles itself
+    if (child.root.getState().internal.support.applyProp(parent.object, child.props.attach, child.object)) return
+
     // If attaching into an array (foo-0), create one
     if (INDEX_REGEX.test(child.props.attach)) {
       const index = child.props.attach.replace(INDEX_REGEX, '')
@@ -197,13 +200,16 @@ export function attach(parent: Instance, child: Instance): void {
  */
 export function detach(parent: Instance, child: Instance): void {
   if (is.str(child.props.attach)) {
-    const { root, key } = resolve(parent.object, child.props.attach)
     const previous = child.previousAttach
-    // When the previous value was undefined, it means the value was never set to begin with
-    if (previous === undefined) delete root[key]
-    // Otherwise set the previous value
-    else root[key] = previous
-    if (changesProgram(root, key, child.object, previous)) root.needsUpdate = true
+    // The renderer restores a key it handles itself
+    if (!child.root.getState().internal.support.applyProp(parent.object, child.props.attach, previous)) {
+      const { root, key } = resolve(parent.object, child.props.attach)
+      // When the previous value was undefined, it means the value was never set to begin with
+      if (previous === undefined) delete root[key]
+      // Otherwise set the previous value
+      else root[key] = previous
+      if (changesProgram(root, key, child.object, previous)) root.needsUpdate = true
+    }
   } else {
     child.previousAttach?.(parent.object, child.object)
   }
@@ -373,6 +379,9 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
       instance.previousVisible = value as boolean
       continue
     }
+
+    // The renderer writes a prop it handles itself, such as a method that is also a prop
+    if (rootState?.internal.support.applyProp(object, prop, value)) continue
 
     let { root, key, target } = resolve(object, prop)
 

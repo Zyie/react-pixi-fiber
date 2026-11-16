@@ -63,7 +63,8 @@ r3f has no 2D; react-pixi-fiber adds pixi.js's under r3f's rules. Every pixi.js 
 - pixi's `EventSystem` is off: r3f's handlers replace `on('pointerdown')` and `onpointerdown`, and every handler under the pointer runs, front to back, until one stops propagation, where pixi delivers to the topmost hit only.
 - A 2D element inside a 3D object follows it on screen (`<anchor2D>`); a 3D element inside a 2D one is left out with a warning, and `<View3D>` draws 3D inside the 2D instead. `<Layer3D>` gives the canvas's 3D a 2D node's props and filters, and `<RenderTexture2D>` draws 2D into a material's texture. See [Mixing 2D and 3D](../../../2d/src/__docs__/mixing-2d-and-3d.md).
 - The root's frameloop draws, not pixi's `Ticker`, and an `<animatedSprite2D>` plays on the root's frames too, unless its `autoUpdate` is `true`.
-- A few methods are props as well: `cacheAsTexture`, `renderLayer` (`layer.attach`), `mask` with pixi's mask options (`setMask`), and an animated sprite's `playing`.
+- A few methods are props as well: `cacheAsTexture`, `parentRenderLayer` (`layer.attach`), `mask` with pixi's mask options (`setMask`), and an animated sprite's `playing`.
+- A 2D colour prop (`tint`, a fill, a text style's `fill`) takes what pixi's `Color` takes, not a three `Color`, whose channels pixi would read as 0 to 255: pass `color.getHex()`. pixi.js's classes are left as they are.
 - Culling is pixi's `CullerPlugin`, registered with `extensions.add` as for an `Application`; each canvas then culls its 2D before it draws.
 - There is no three.js picture to hold 2D to: its scenes are held to their own WebGL and WebGPU references.
 

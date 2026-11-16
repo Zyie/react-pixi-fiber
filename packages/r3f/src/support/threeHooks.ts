@@ -42,6 +42,9 @@ export const threeHooks: RendererHooks = {
     return undefined
   },
 
+  // three's objects take every prop by assignment, so core writes them all
+  applyProp: () => false,
+
   hitTest(object: any, _event, state: RootState) {
     // Bring world matrices up to date before intersecting. three's raycaster reads `matrixWorld`
     // and never refreshes it -- it assumes the render loop already has. That assumption breaks for
