@@ -78,6 +78,7 @@ export default defineConfig({
     include: [
       'pixi.js > eventemitter3',
       '@pixi/3d',
+      '@pixi/3d/extras',
       'parse-svg-path',
       '@xmldom/xmldom',
       'three',

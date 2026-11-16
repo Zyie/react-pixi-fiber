@@ -113,6 +113,49 @@ An ambient light lights every face the same; a directional light shines from one
 
 The root's camera is a @pixi/3d `Camera3D` with a field of view of 50 at z 5, looking at the origin, react-three-fiber's default. `<Canvas camera={{ position: [0, 2, 6], fov: 40 }}>` sets it, and [Canvas and roots](../../../core/src/__docs__/canvas-and-roots.md) covers the rest of a root.
 
+## Camera controls
+
+@pixi/3d's camera controllers in `@pixi/3d/extras`, `OrbitCamera` and `FPSCamera`, listen for pixi's own pointer events on a `View3D`. pixi's event system is off here, since react-three-fiber's events take the pointer, so a controller made by hand gets no input. `<OrbitCamera3D>` from `@react-fiber/3d` is `OrbitCamera` on the root's camera with the canvas's input passed to it: drag to turn the camera around its `target`, right-drag to pan, and the wheel to zoom. Its props are `OrbitCamera`'s options, and its ref is the controller.
+
+<!-- snippet: examples/3d/orbit-camera.example.tsx#result -->
+
+```tsx
+import { OrbitCamera3D } from '@react-fiber/3d';
+import { Canvas } from '@react-fiber/core';
+
+function Scene() {
+  return (
+    <>
+      <OrbitCamera3D target={{ x: 0, y: 0.5, z: 0 }} minDistance={3} maxDistance={12} />
+      <ambientLight3D intensity={0.3} />
+      <directionalLight3D angle={[-35, 30, 0]} intensity={3} />
+      <mesh3D position={[0, 0.5, 0]}>
+        <cubeGeometry3D />
+        <material3D baseColor="orange" roughness={0.6} />
+      </mesh3D>
+      <mesh3D position={[1.6, 0.4, 0]}>
+        <sphereGeometry3D args={[{ radius: 0.4 }]} />
+        <material3D baseColor="#4363d8" roughness={0.4} />
+      </mesh3D>
+      <mesh3D angle={[-90, 0, 0]}>
+        <planeGeometry3D args={[{ width: 6, height: 6 }]} />
+        <material3D baseColor="#3a3a3a" />
+      </mesh3D>
+    </>
+  );
+}
+
+export function App() {
+  return (
+    <Canvas camera={{ position: [0, 2, 6] }}>
+      <Scene />
+    </Canvas>
+  );
+}
+```
+
+There is no component for `FPSCamera` yet. With threejs-compat installed, its `OrbitControls` drives three's camera instead.
+
 ## Where next
 
 - [Objects](objects-3d.md) lists the elements and how they nest.
