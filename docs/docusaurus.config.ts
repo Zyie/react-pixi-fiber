@@ -31,7 +31,7 @@ const config: Config = {
   // Rspack's persistent cache saves no measurable time on a build of this size, and would be one folder
   // for every build that runs at once
   future: { v4: true, faster: { rspackPersistentCache: false } },
-  customFields: { install: installable('npm install react-pixi-fiber react react-dom pixi.js') },
+  customFields: { install: installable('npm install react-pixi-fiber react react-dom pixi.js @pixi/3d') },
   i18n: { defaultLocale: 'en', locales: ['en'] },
 
   presets: [

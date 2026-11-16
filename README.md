@@ -1,6 +1,6 @@
 # react-pixi-fiber
 
-A React renderer for [pixi.js](https://pixijs.com) 2D and [`@pixi/3d`](https://github.com/pixijs/pixi-3d) with [react-three-fiber](https://github.com/pmndrs/react-three-fiber) v10's API for both. r3f's own core runs unchanged; pixi-3d plugs in behind it as a renderer support, with three's element names (`<mesh>`, `<boxGeometry>`, `<meshStandardMaterial>`, ...) mapped onto pixi-3d classes. An r3f scene should only have to swap its import:
+A React renderer for [pixi.js](https://pixijs.com) 2D and [`@pixi/3d`](https://github.com/pixijs/3d) with [react-three-fiber](https://github.com/pmndrs/react-three-fiber) v10's API for both. r3f's own core runs unchanged; pixi-3d plugs in behind it as a renderer support, with three's element names (`<mesh>`, `<boxGeometry>`, `<meshStandardMaterial>`, ...) mapped onto pixi-3d classes. An r3f scene should only have to swap its import:
 
 ```diff
 - import { Canvas, useFrame } from '@react-three/fiber';
@@ -60,13 +60,13 @@ Parity is measured, not assumed: every scene and example is a visual test that r
 
 ## Status
 
-Unreleased and local. `@pixi/3d` isn't on npm yet, so the library builds against its source in `.repos/pixi-3d`. The catalog has three's geometries (but tube, extrude and shape), its standard, physical, basic, Phong, Lambert, toon, normal and matcap materials with their maps, lines, points, sprites, `instancedMesh`, every light but area lights and probes, shadows, fog, cameras, render targets and cube cameras. `react-pixi-fiber/three` has three's math, `Color` with its colour management, the catalog's classes, its loaders, `AnimationMixer` and three's constants, and `react-pixi-fiber/addons` has `GLTFLoader`, `OrbitControls`, `MapControls`, `HDRLoader` and `RGBELoader`. `<Environment>`, `useTexture` and `useRenderTarget` are r3f's API on pixi-3d. Every node has three's `Object3D` surface and three's picking. Events, `useFrame`, `useThree`, portals and Suspense are r3f's own. Every pixi.js display class, the filters, graphics contexts and particles are 2D elements, on a screen layer over and under the 3D, in r3f's event system, with animated sprites on the root's clock, pixi's culling and pixi-filters through `extend`; `useTexture` and `useAsset` load their textures, spritesheets, bitmap fonts and video. `<anchor2D>`, `<View3D>`, `<Layer3D>` and `<RenderTexture2D>` bridge 2D and 3D. 2D has no three.js counterpart, so its scenes are held to their own WebGL and WebGPU pictures.
+Unreleased and local, built on pixi.js 8.23 and `@pixi/3d` 0.1. The catalog has three's geometries (but tube, extrude and shape), its standard, physical, basic, Phong, Lambert, toon, normal and matcap materials with their maps, lines, points, sprites, `instancedMesh`, every light but area lights and probes, shadows, fog, cameras, render targets and cube cameras. `react-pixi-fiber/three` has three's math, `Color` with its colour management, the catalog's classes, its loaders, `AnimationMixer` and three's constants, and `react-pixi-fiber/addons` has `GLTFLoader`, `OrbitControls`, `MapControls`, `HDRLoader` and `RGBELoader`. `<Environment>`, `useTexture` and `useRenderTarget` are r3f's API on pixi-3d. Every node has three's `Object3D` surface and three's picking. Events, `useFrame`, `useThree`, portals and Suspense are r3f's own. Every pixi.js display class, the filters, graphics contexts and particles are 2D elements, on a screen layer over and under the 3D, in r3f's event system, with animated sprites on the root's clock, pixi's culling and pixi-filters through `extend`; `useTexture` and `useAsset` load their textures, spritesheets, bitmap fonts and video. `<anchor2D>`, `<View3D>`, `<Layer3D>` and `<RenderTexture2D>` bridge 2D and 3D. 2D has no three.js counterpart, so its scenes are held to their own WebGL and WebGPU pictures.
 
 ## Develop
 
 ```sh
 npm install
-npm run sync:repos   # clones r3f v10, pixi-3d main and pixi.js dev into .repos/
+npm run sync:repos   # clones r3f v10 and the installed pixi-3d and pixi.js into .repos/, for reading
 npm test             # lint, types, docs checks and every visual and unit test
 npm start            # the playground: every scene on pixi WebGL, pixi WebGPU and three.js
 npm run docs:dev     # the docs site on http://127.0.0.1:3000

@@ -3,14 +3,14 @@
 react-pixi-fiber is installed beside React and PixiJS. React DOM renders `<Canvas>` into the page, and pixi.js is the 2D engine pixi-3d draws through.
 
 ```sh
-npm install react-pixi-fiber react react-dom pixi.js
+npm install react-pixi-fiber react react-dom pixi.js @pixi/3d
 ```
 
 ## What it needs
 
 - **React 19**, from 19.0 to 19.3. A React renderer pairs with one major version of React, as react-dom does, and react-pixi-fiber pairs with the same versions as react-three-fiber v10.
-- **pixi.js 8.22** or later, which pixi-3d extends.
-- **@pixi/3d**, the renderer. It isn't on npm yet, so a project builds against its source. Resolve `@pixi/3d` to its `src/index.ts` with a path in `tsconfig.json` and an alias in your bundler, as this repository does.
+- **pixi.js 8.23** or later, which pixi-3d extends.
+- **@pixi/3d 0.1**, the renderer.
 
 `three` isn't a dependency. Nothing from three.js runs in a react-pixi-fiber scene.
 

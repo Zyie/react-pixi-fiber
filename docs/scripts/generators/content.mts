@@ -274,7 +274,7 @@ function guidePageOf(guide: Guide, sources: Sources, parity: Parity): Page {
             children: [
               { type: 'paragraph' as const, data: { directiveLabel: true }, children: [text('Not on npm yet')] },
               paragraph(
-                "react-pixi-fiber hasn't been released, and @pixi/3d isn't on npm either. Until then, build it from the repo and link it, as the README of the repo explains.",
+                "react-pixi-fiber hasn't been released. Until then, build it from the repo and link it, as the README of the repo explains.",
               ),
             ],
           },

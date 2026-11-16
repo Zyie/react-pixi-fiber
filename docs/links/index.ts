@@ -16,7 +16,7 @@ export const R3F_DOCS = 'https://r3f.docs.pmnd.rs';
 export const R3F_REPO = 'https://github.com/pmndrs/react-three-fiber/tree/v10';
 
 /** pixi-3d on GitHub, the renderer */
-export const PIXI3D_REPO = 'https://github.com/pixijs/pixi-3d';
+export const PIXI3D_REPO = 'https://github.com/pixijs/3d';
 
 /**
  * A file of the repo on GitHub
