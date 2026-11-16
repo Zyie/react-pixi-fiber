@@ -41,7 +41,7 @@ Each class is its name in camelCase with a `3D` suffix, once: a name that ends i
 | Geometries | `<geometry3D>`, `<cubeGeometry3D>`, `<sphereGeometry3D>`, `<planeGeometry3D>`, `<cylinderGeometry3D>`, `<coneGeometry3D>`, `<capsuleGeometry3D>`, `<torusGeometry3D>`, `<torusKnotGeometry3D>`, `<icosahedronGeometry3D>` |
 | Materials  | `<material3D>` (PBR), `<phongMaterial3D>`, `<flatMaterial3D>` (unlit), `<particleMaterial3D>`                                                                                                                             |
 
-A ref gets the @pixi/3d object itself, so its type comes from `@pixi/3d`: `useRef<Mesh3D>(null)`.
+A ref gets the @pixi/3d object itself, so its type comes from `@pixi/3d`: `useRef<Mesh3D>(null)`. The one exception is `<camera3D>`, core's `RootCamera`: a `Camera3D` with the members r3f's core calls on a camera, so a camera element can become the root's camera with `useThree((state) => state.set)({ camera })`.
 
 ## Args and props
 

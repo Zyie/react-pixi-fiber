@@ -4,11 +4,13 @@
  * is `<sphereGeometry3D>`, `PhongMaterial` is `<phongMaterial3D>`, `PointLight` is `<pointLight3D>`).
  *
  * The catalog takes this module whole. The classes are @pixi/3d's own, not subclasses, so a ref gets
- * the @pixi/3d object and an app imports the classes from `@pixi/3d`; no entry re-exports them.
+ * the @pixi/3d object and an app imports the classes from `@pixi/3d`; no entry re-exports them. The one
+ * exception is `<camera3D>`, core's `RootCamera`: @pixi/3d's `Camera3D` with the members r3f's core
+ * calls on a root's camera, so a camera element can be made the root's or a `<View3D>`'s camera.
  */
+export { RootCamera as Camera3D } from '@react-fiber/core';
 export {
   BatchedMesh3D,
-  Camera3D,
   Container3D,
   Mesh3D,
   Model3D,

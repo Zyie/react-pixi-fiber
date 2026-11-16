@@ -150,7 +150,7 @@ r3f's core builds a root's scene, camera, raycaster, pointer and frustum itself,
 
 ## @pixi/3d's elements
 
-`@react-fiber/3d` registers @pixi/3d's classes as they are, not subclasses, under their names with a `3D` suffix, once (`packages/3d/src/catalog.ts`): `Container3D`, `Mesh3D`, `Model3D`, `Sprite3D`, `BatchedMesh3D`, `ParticleContainer3D`, `Camera3D`; `AmbientLight3D`, `DirectionalLight3D`, `PointLight3D`, `SpotLight3D`; `Geometry3D` and the nine shape geometries (`CubeGeometry3D`, `SphereGeometry3D`, ...); `Material3D`, `PhongMaterial3D`, `FlatMaterial3D`, `ParticleMaterial3D`. pixi-3d's `View3D` is left out: the `<View3D>` bridge draws a scene in 2D.
+`@react-fiber/3d` registers @pixi/3d's classes as they are, not subclasses (but `<camera3D>`, below), under their names with a `3D` suffix, once (`packages/3d/src/catalog.ts`): `Container3D`, `Mesh3D`, `Model3D`, `Sprite3D`, `BatchedMesh3D`, `ParticleContainer3D`, `Camera3D`; `AmbientLight3D`, `DirectionalLight3D`, `PointLight3D`, `SpotLight3D`; `Geometry3D` and the nine shape geometries (`CubeGeometry3D`, `SphereGeometry3D`, ...); `Material3D`, `PhongMaterial3D`, `FlatMaterial3D`, `ParticleMaterial3D`. pixi-3d's `View3D` is left out: the `<View3D>` bridge draws a scene in 2D.
 
 - **`args`** are the constructor's arguments, @pixi/3d's options object. A geometry has no props that rebuild it, so new `args` rebuild it, as in r3f.
 - **Props** are the fields, typed by `Element3D` (`packages/3d/src/elements.ts`): every element's props (`ThreeElement`), with each field the constructor's options also name widened to what the option takes, which is what its setter takes: `baseColor` reads back a number and takes any `ColorSource`, a light's `color` reads back a pixi `Color`, `position` takes `{ x, y, z }`.
@@ -158,7 +158,7 @@ r3f's core builds a root's scene, camera, raycaster, pointer and frustum itself,
 - **Hooks**: `objects3D` (above). Geometries and materials attach to a mesh's `geometry` and `material`; @pixi/3d's empty geometry and material stand until they do.
 - **Loading** is r3f's: `useLoader` with core's `AssetsLoader` (pixi's `Assets` in a loader's shape), or `useAsset`, which suspends until `Assets.load` is done. @pixi/3d registers its glTF loader with `Assets`, so a `.glb` loads as a `Scene3DSource`, which `<model3D args={[source]}>` builds a model of.
 
-Lights and cameras face their local -Z, as @pixi/3d's do, so they are aimed with `rotation` or `angle`. A root's default camera is core's `RootPerspectiveCamera`; a `<camera3D>` element is @pixi/3d's `Camera3D`, which r3f's core can't take as `state.camera`, since it lacks the members above.
+Lights and cameras face their local -Z, as @pixi/3d's do, so they are aimed with `rotation` or `angle`. A root's default camera is core's `RootPerspectiveCamera`. `<camera3D>` is the one element that isn't @pixi/3d's class as it is: it is core's `RootCamera`, @pixi/3d's `Camera3D` with r3f's camera members, made from @pixi/3d's options, so a camera element can become the root's camera (`set({ camera })`) or a `<View3D>`'s; @pixi/3d's own `Camera3D` lacks the members r3f's core calls.
 
 `packages/core/src/root/createRoot.ts` wraps core's `createRoot(canvas, provider)`. Its `configure` reads `gl` as `renderer`, so code written for `@react-three/fiber/legacy` runs, and forces `share: false`: pixi.js can't draw one renderer into several canvases, so every canvas gets its own and `primary` is ignored.
 
