@@ -1,10 +1,45 @@
 # packages/r3f against react-three-fiber packages/fiber at 58acabc0fc996bac5a25320ca3a8670bdd209db7
 # Written by npm run diff:r3f; apply in packages/fiber with git apply.
 diff --git a/src/core/events.ts b/src/core/events.ts
-index 787fd83..44e7ed1 100644
+index 787fd83..d1f09ac 100644
 --- a/src/core/events.ts
 +++ b/src/core/events.ts
-@@ -231,20 +231,8 @@ export function createEvents(store: RootStore) {
+@@ -1,6 +1,7 @@
+ import type * as THREE from 'three'
+ import { getThree } from './three'
+ import { getRootState } from './utils'
++import { getObjectId } from './utils/objectId'
+ import { unregisterVisibility } from './visibility'
+ 
+ //* Type Imports ==============================
+@@ -44,7 +45,7 @@ function getPointerId(event: DomEvent): number {
+ }
+ 
+ function makeId(event: Intersection) {
+-  return (event.eventObject || event.object).uuid + '/' + event.index + event.instanceId
++  return getObjectId(event.eventObject || event.object) + '/' + event.index + event.instanceId
+ }
+ 
+ /**
+@@ -91,7 +92,7 @@ function releaseInternalPointerCapture(internal: RootState['internal'], obj: THR
+  * Captures are re-keyed rather than released, so the DOM-level capture on `captureData.target` is
+  * left alone — releasing and re-acquiring it is precisely the glitch being avoided.
+  *
+- * Visibility handlers are deliberately not transferred: that registry is keyed by `object.uuid`, so
++ * Visibility handlers are deliberately not transferred: that registry is keyed by the object's id, so
+  * the replacement re-registers itself through `applyProps`. The old entry is dropped here so it
+  * cannot outlive the object it described.
+  */
+@@ -109,7 +110,7 @@ export function swapInteractivity(store: RootStore, object: THREE.Object3D, newO
+       if (pointerState.initialHits[i] === object) pointerState.initialHits[i] = newObject
+     }
+ 
+-    // Hover entries are keyed by uuid, so a swap needs a new key as well as new references —
++    // Hover entries are keyed by object id, so a swap needs a new key as well as new references —
+     // rewriting the value alone would strand the entry under the old object's id.
+     pointerState.hovered.forEach((value, key) => {
+       if (value.eventObject === object || value.object === object) {
+@@ -231,20 +232,8 @@ export function createEvents(store: RootStore) {
  
        if (!state.raycaster.camera) return []
  
@@ -27,7 +62,7 @@ index 787fd83..44e7ed1 100644
      }
  
      // Collect events
-@@ -274,8 +262,8 @@ export function createEvents(store: RootStore) {
+@@ -274,8 +263,8 @@ export function createEvents(store: RootStore) {
          // Default priority is 1 (from createPointerEvents), but may be undefined for some objects
          const aPriority = aState?.events?.priority ?? 1
          const bPriority = bState?.events?.priority ?? 1
@@ -68,9 +103,29 @@ index a5f831f..4ca6102 100644
 -type RendererNamespace = NonNullable<ReturnType<RootStore['getState']>['internal']['support']>['three']
 +type RendererNamespace = NonNullable<ReturnType<RootStore['getState']>['internal']['support']>['catalog']
 diff --git a/src/core/portal.tsx b/src/core/portal.tsx
-index 819a4d3..3806fac 100644
+index 819a4d3..f433f4b 100644
 --- a/src/core/portal.tsx
 +++ b/src/core/portal.tsx
+@@ -7,6 +7,7 @@ import { context } from './store'
+ import { reconciler } from './reconciler'
+ import { getThree } from './three'
+ import { updateCamera, useIsomorphicLayoutEffect, useMutableCallback } from './utils'
++import { getObjectId } from './utils/objectId'
+ import { cloneState, isAccessor, keepAccessors } from './utils/stateAccessors'
+ import type { RootState, EventManager, InjectState } from '#types'
+ 
+@@ -61,9 +62,8 @@ export function Portal({ children, container, state }: PortalProps): JSX.Element
+   if (!resolvedContainer) return <></>
+ 
+   // Render the actual portal with resolved container
+-  // Use container.uuid as key to force remount when container changes
+-  // Fallback to container reference if uuid doesn't exist (defensive)
+-  const portalKey = resolvedContainer.uuid ?? `portal-${resolvedContainer.id ?? 'unknown'}`
++  // Use the container's id as key to force remount when container changes
++  const portalKey = getObjectId(resolvedContainer)
+   return <PortalInner key={portalKey} children={children} container={resolvedContainer} state={state} />
+ }
+ 
 @@ -98,9 +98,10 @@ function PortalInner({ state = {}, children, container }: PortalInnerProps): JSX
    // The reconciler owns child disposal on removal; a layout cleanup must not free them.
    useIsomorphicLayoutEffect(() => {
@@ -358,11 +413,99 @@ index 043815b..5a0623d 100644
  
          // Scheduler for useFrameNext (initialized in loop.ts)
          scheduler: null,
+diff --git a/src/core/utils/instance.ts b/src/core/utils/instance.ts
+index c3daa69..cf4d1d0 100644
+--- a/src/core/utils/instance.ts
++++ b/src/core/utils/instance.ts
+@@ -33,14 +33,8 @@ export function findInitialRoot<T>(instance: Instance<T>): RootStore {
+  */
+ export function getRootState<T extends THREE.Object3D = THREE.Object3D>(obj: T) {
+   let state = (obj as Instance<T>['object']).__r3f?.root.getState()
+-  if (!state) {
+-    obj.traverseAncestors((ancestor) => {
+-      const parentState = (ancestor as Instance['object']).__r3f?.root.getState()
+-      if (parentState) {
+-        state = parentState
+-        return false // Stop traversal
+-      }
+-    })
++  for (let ancestor = obj.parent; !state && ancestor; ancestor = ancestor.parent) {
++    state = (ancestor as Instance['object']).__r3f?.root.getState()
+   }
+   return state
+ }
+diff --git a/src/core/utils/objectId.ts b/src/core/utils/objectId.ts
+new file mode 100644
+index 0000000..990ad39
+--- /dev/null
++++ b/src/core/utils/objectId.ts
+@@ -0,0 +1,18 @@
++//* Object Ids ==============================
++// Core keys hits, hovers, visibility entries and portals by an id it keeps, so an object needs no `uuid`
++
++const objectIds = new WeakMap<object, string>()
++let lastObjectId = 0
++
++/**
++ * Returns the id core keeps for an object: the key of its hits and hovers, of its visibility entry and
++ * of a portal into it.
++ *
++ * @param object - Any object
++ * @returns The object's id, the same for its lifetime
++ */
++export function getObjectId(object: object): string {
++  let id = objectIds.get(object)
++  if (id === undefined) objectIds.set(object, (id = String(++lastObjectId)))
++  return id
++}
 diff --git a/src/core/utils/props.ts b/src/core/utils/props.ts
-index 3566163..cff0fa5 100644
+index 3566163..2561d5f 100644
 --- a/src/core/utils/props.ts
 +++ b/src/core/utils/props.ts
-@@ -476,7 +476,7 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
+@@ -172,6 +172,9 @@ export function resolve(root: any, key: string): { root: any; key: string; targe
+  */
+ export function attach(parent: Instance, child: Instance): void {
+   if (is.str(child.props.attach)) {
++    // The renderer attaches to a key it handles itself
++    if (child.root.getState().internal.support.applyProp(parent.object, child.props.attach, child.object)) return
++
+     // If attaching into an array (foo-0), create one
+     if (INDEX_REGEX.test(child.props.attach)) {
+       const index = child.props.attach.replace(INDEX_REGEX, '')
+@@ -197,13 +200,16 @@ export function attach(parent: Instance, child: Instance): void {
+  */
+ export function detach(parent: Instance, child: Instance): void {
+   if (is.str(child.props.attach)) {
+-    const { root, key } = resolve(parent.object, child.props.attach)
+     const previous = child.previousAttach
+-    // When the previous value was undefined, it means the value was never set to begin with
+-    if (previous === undefined) delete root[key]
+-    // Otherwise set the previous value
+-    else root[key] = previous
+-    if (changesProgram(root, key, child.object, previous)) root.needsUpdate = true
++    // The renderer restores a key it handles itself
++    if (!child.root.getState().internal.support.applyProp(parent.object, child.props.attach, previous)) {
++      const { root, key } = resolve(parent.object, child.props.attach)
++      // When the previous value was undefined, it means the value was never set to begin with
++      if (previous === undefined) delete root[key]
++      // Otherwise set the previous value
++      else root[key] = previous
++      if (changesProgram(root, key, child.object, previous)) root.needsUpdate = true
++    }
+   } else {
+     child.previousAttach?.(parent.object, child.object)
+   }
+@@ -374,6 +380,9 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
+       continue
+     }
+ 
++    // The renderer writes a prop it handles itself, such as a method that is also a prop
++    if (rootState?.internal.support.applyProp(object, prop, value)) continue
++
+     let { root, key, target } = resolve(object, prop)
+ 
+     // Throw an error if we attempted to set a pierced prop to a non-object
+@@ -476,7 +485,7 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
    if (
      instance?.parent &&
      rootState?.internal &&
@@ -371,7 +514,7 @@ index 3566163..cff0fa5 100644
      prevHandlers !== instance.eventCount
    ) {
      const object = instance.object as unknown as THREE.Object3D
-@@ -496,11 +496,7 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
+@@ -496,11 +505,7 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
    // count unchanged and the block never runs — and the registry keeps a snapshot of the OLD
    // closure. Inline handlers (`onFramed={() => …}`) produce a new function every render, which
    // is the common case, so the user's updated callback would simply never fire.
@@ -384,7 +527,7 @@ index 3566163..cff0fa5 100644
      const object = instance.object as unknown as THREE.Object3D
      const root = findInitialRoot(instance)
      const visibilityHandlers = {
-@@ -522,10 +518,10 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
+@@ -522,10 +527,10 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
      }
    }
  
@@ -398,12 +541,51 @@ index 3566163..cff0fa5 100644
    }
  
    // Instance was updated, request a frame
+diff --git a/src/core/visibility.ts b/src/core/visibility.ts
+index c89c2fb..9572bc1 100644
+--- a/src/core/visibility.ts
++++ b/src/core/visibility.ts
+@@ -6,6 +6,7 @@
+ import type { Frustum, Material, Mesh, Object3D } from 'three'
+ import type { Node } from 'three/webgpu'
+ import { updateFrustum } from './utils'
++import { getObjectId } from './utils/objectId'
+ import { getThree } from './three'
+ 
+ //* Type Imports ==============================
+@@ -222,7 +223,7 @@ export function registerVisibility(
+     lastVisibleState: null,
+   }
+ 
+-  registry.set(object.uuid, entry)
++  registry.set(getObjectId(object), entry)
+ 
+   // Auto-enable occlusion if needed
+   if (handlers.onOccluded || handlers.onVisible) {
+@@ -245,7 +246,7 @@ export function registerVisibility(
+  */
+ export function unregisterVisibility(store: RootStore, object: Object3D): void {
+   const { internal } = store.getState()
+-  internal.visibilityRegistry.delete(object.uuid)
++  internal.visibilityRegistry.delete(getObjectId(object))
+   internal.occlusionCache.delete(object)
+ }
+ 
+@@ -273,7 +274,7 @@ export function updateVisibilityHandlers(
+   handlers: Pick<EventHandlers, 'onFramed' | 'onOccluded' | 'onVisible'>,
+ ): boolean {
+   const { internal } = store.getState()
+-  const entry = internal.visibilityRegistry.get(object.uuid)
++  const entry = internal.visibilityRegistry.get(getObjectId(object))
+   if (!entry) return false
+ 
+   entry.handlers = handlers
 diff --git a/src/support/threeHooks.ts b/src/support/threeHooks.ts
 new file mode 100644
-index 0000000..37b4818
+index 0000000..643c7f3
 --- /dev/null
 +++ b/src/support/threeHooks.ts
-@@ -0,0 +1,68 @@
+@@ -0,0 +1,71 @@
 +/**
 + * @fileoverview The renderer hooks of three's supports (webgl.ts, webgpu.ts)
 + *
@@ -447,6 +629,9 @@ index 0000000..37b4818
 +    if (object.isMaterial) return 'material'
 +    return undefined
 +  },
++
++  // three's objects take every prop by assignment, so core writes them all
++  applyProp: () => false,
 +
 +  hitTest(object: any, _event, state: RootState) {
 +    // Bring world matrices up to date before intersecting. three's raycaster reads `matrixWorld`
@@ -509,7 +694,7 @@ index 130ce89..3d8328d 100644
    RenderTarget: THREE.RenderTarget,
    CubeRenderTarget: THREE.CubeRenderTarget,
 diff --git a/types/provider.d.ts b/types/provider.d.ts
-index 2b15b2a..ae7131f 100644
+index 2b15b2a..83edd82 100644
 --- a/types/provider.d.ts
 +++ b/types/provider.d.ts
 @@ -1,6 +1,7 @@
@@ -520,7 +705,7 @@ index 2b15b2a..ae7131f 100644
  
  //* Renderer Support ==============================
  // Core has no static imports from `three` or `three/webgpu`. Both are separate bundles built on one
-@@ -28,11 +29,61 @@ export interface OcclusionSupport {
+@@ -28,11 +29,68 @@ export interface OcclusionSupport {
    nodeObject: typeof nodeObject
  }
  
@@ -548,6 +733,13 @@ index 2b15b2a..ae7131f 100644
 +  isInteractive(object: object): boolean
 +  /** Where an element without `attach` attaches to its parent's object, or `undefined` to be added as a child. */
 +  defaultAttach(object: object): string | undefined
++  /**
++   * Writes `value` at `key` of `object` when the renderer handles that key itself, such as a method that
++   * is also a prop or a slot of a list it keeps, and returns whether it did; core then skips its own
++   * write. Core asks for each prop it applies, with the key as written, and for each string `attach`:
++   * with the child's object to attach it, and with the value it replaced to detach it.
++   */
++  applyProp(object: object, key: string, value: unknown): boolean
 +  /**
 +   * The hits of a pointer event on an object and its descendants, cast with `state.raycaster`. `state`
 +   * is the root state of the object, which each renderer types as its own (three's: `RootState`).
@@ -583,7 +775,7 @@ index 2b15b2a..ae7131f 100644
    Renderer: typeof ThreeLegacy.WebGLRenderer
    /** Render target for `useRenderTarget`. */
    RenderTarget: typeof ThreeLegacy.WebGLRenderTarget
-@@ -41,10 +92,11 @@ export interface WebGLSupport {
+@@ -41,10 +99,11 @@ export interface WebGLSupport {
  }
  
  /** WebGPU renderer support: the `three/webgpu` namespace and the classes only it exports. */
@@ -596,7 +788,7 @@ index 2b15b2a..ae7131f 100644
    Renderer: typeof ThreeWebGPU.WebGPURenderer
    /** Render target for `useRenderTarget`. */
    RenderTarget: typeof ThreeWebGPU.RenderTarget
-@@ -55,17 +107,15 @@ export interface WebGPUSupport {
+@@ -55,17 +114,15 @@ export interface WebGPUSupport {
    occlusion: OcclusionSupport
  }
  

@@ -54,6 +54,14 @@ export interface PixiHooks {
    */
   defaultAttach(object: object): string | undefined;
   /**
+   * Writes a prop or an attach the package that owns the object handles itself, such as a method that
+   * is also a prop or a slot of a list it keeps, and returns whether it did; core writes the rest
+   * @param object - An element's object, or the parent an element attaches to
+   * @param key - The prop as written, or the child's `attach`
+   * @param value - The value, the attached child, or on detach what the attach replaced
+   */
+  applyProp(object: object, key: string, value: unknown): boolean;
+  /**
    * The hits of a pointer event on an object and its descendants, from the package that owns it: the
    * root's raycaster on a 3D node, the screen layer under the pointer on a 2D element
    * @param object - An element's object that has handlers
@@ -90,6 +98,7 @@ export const pixiHooks: PixiHooks = {
   },
   isInteractive: (object) => hooksOf(object)?.isInteractive?.(object) ?? false,
   defaultAttach: (object) => hooksOf(object)?.defaultAttach?.(object),
+  applyProp: (object, key, value) => hooksOf(object)?.applyProp?.(object, key, value) ?? false,
   hitTest: (object, event, state) => hooksOf(object)?.hitTest?.(object, event, state) ?? [],
   compareHits,
   dispose(object) {
