@@ -1,10 +1,10 @@
 # Loading textures and spritesheets
 
-2D loads through r3f's Suspense model, as [3D textures do](../../__docs__/loading-textures.md): a hook suspends until its asset has loaded, and a `<Suspense>` boundary shows a fallback meanwhile.
+2D loads through r3f's Suspense model, as [3D textures do](../../../threejs-compat/src/__docs__/loading-textures.md): a hook suspends until its asset has loaded, and a `<Suspense>` boundary shows a fallback meanwhile.
 
 ## Textures
 
-`useTexture` gives a texture a `<sprite2D>` takes directly. It is three's `Texture` from `react-pixi-fiber/three`, which extends pixi's, so the same texture can be a sprite's and a material's:
+`useTexture` gives a texture a `<sprite2D>` takes directly. It is three's `Texture` from `@react-fiber/threejs-compat/three`, which extends pixi's, so the same texture can be a sprite's and a material's:
 
 <!-- snippet: examples/2d/spritesheet.example.tsx#picture -->
 
@@ -30,7 +30,7 @@ function Walker() {
 }
 ```
 
-![A spritesheet's walk animation on its third frame beside a picture](../../../tests/snapshots/docs/2d/spritesheet.webgl.png)
+![A spritesheet's walk animation on its third frame beside a picture](../../../../tests/snapshots/docs/2d/spritesheet.webgl.png)
 
 A bitmap font is used by its name once it has loaded:
 

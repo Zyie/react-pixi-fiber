@@ -6,12 +6,12 @@ import type { DocContext } from '../mdx.mts';
 import { docNodes } from '../mdx.mts';
 
 /**
- * How the guide `src/__docs__/your-first-scene.md` becomes its page
+ * How the guide `packages/threejs-compat/src/__docs__/your-first-scene.md` becomes its page
  * @param names - The names the page may link
  */
 function firstScene(names: Record<string, string> = {}): DocContext {
   return {
-    source: 'src/__docs__/your-first-scene.md',
+    source: 'packages/threejs-compat/src/__docs__/your-first-scene.md',
     output: 'content/docs/getting-started/your-first-scene.mdx',
     names: new Map(Object.entries(names)),
   };
@@ -34,7 +34,7 @@ await test('a snippet followed by the picture of its example becomes one <Exampl
     '<mesh />',
     fence,
     '',
-    '![A pink box](../../tests/snapshots/docs/start/box.webgl.png)',
+    '![A pink box](../../../../tests/snapshots/docs/start/box.webgl.png)',
     '',
     'After.',
   ].join('\n');
@@ -75,7 +75,7 @@ await test("a link to another guide goes to its page, read as its title where it
 
 await test('a link to another file of the repo goes to GitHub', () => {
   assert.equal(
-    toMdx('The [findings](../../docs/feasibility.md).'),
+    toMdx('The [findings](../../../../docs/feasibility.md).'),
     'The [findings](https://github.com/pixijs/react-pixi-fiber/blob/main/docs/feasibility.md).',
   );
 });

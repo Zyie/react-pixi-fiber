@@ -2,7 +2,7 @@
  * Runs the docs site for one caller, so several callers can build and serve it at the same time:
  *
  * ```sh
- * node docs/scripts/site.mts <command> [--name <name>] [--port <port>] [-- <docusaurus flags>]
+ * node packages/docs/scripts/site.mts <command> [--name <name>] [--port <port>] [-- <docusaurus flags>]
  * ```
  *
  * - `sync` writes the generated content (docs/scripts/sync.mts).
@@ -39,7 +39,7 @@ const { name, port } = values;
 
 if (!COMMANDS.includes(command) || (name !== undefined && !/^[\w-]+$/.test(name))) {
   console.error(
-    `Usage: node docs/scripts/site.mts <${COMMANDS.join('|')}> [--name <letters, digits, - and _>] [--port <port>]`,
+    `Usage: node packages/docs/scripts/site.mts <${COMMANDS.join('|')}> [--name <letters, digits, - and _>] [--port <port>]`,
   );
   process.exit(1);
 }
@@ -113,7 +113,7 @@ switch (command) {
   case 'serve':
     if (!fs.existsSync(path.join(outDir, 'index.html'))) {
       console.error(
-        `No build in ${path.relative(ROOT, outDir)}; run: node docs/scripts/site.mts build${name ? ` --name ${name}` : ''}`,
+        `No build in ${path.relative(ROOT, outDir)}; run: node packages/docs/scripts/site.mts build${name ? ` --name ${name}` : ''}`,
       );
       process.exit(1);
     }

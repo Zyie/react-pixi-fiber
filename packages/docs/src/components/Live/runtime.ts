@@ -173,7 +173,7 @@ export function prefetchRuntime(baseUrl: string): void {
   prefetched = true;
   const files = closure(manifest.frame, new Set());
 
-  for (const module of ['react-pixi-fiber', 'react-dom/client']) {
+  for (const module of ['@react-fiber/threejs-compat', '@react-fiber/2d', 'react-dom/client']) {
     if (manifest.modules[module]) closure(manifest.modules[module], files);
   }
   for (const file of files) {

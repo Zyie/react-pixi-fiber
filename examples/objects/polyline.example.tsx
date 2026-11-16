@@ -1,7 +1,7 @@
+// #region result
 import { Canvas } from '@react-fiber/threejs-compat';
 import type { ThreeEvent } from '@react-fiber/threejs-compat';
 import { BufferGeometry, Vector3 } from '@react-fiber/threejs-compat/three';
-// #region result
 import { useMemo, useState } from 'react';
 // #endregion result
 

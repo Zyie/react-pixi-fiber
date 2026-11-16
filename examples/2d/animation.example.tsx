@@ -1,5 +1,5 @@
-import { Canvas, useFrame } from '@react-fiber/core';
 // #region result
+import { Canvas, useFrame } from '@react-fiber/core';
 import { Texture } from 'pixi.js';
 import type { Graphics, Sprite } from 'pixi.js';
 import { useRef } from 'react';

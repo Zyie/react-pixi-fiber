@@ -1,8 +1,8 @@
+// #region result
 import { Canvas } from '@react-fiber/threejs-compat';
 import type { ThreeEvent } from '@react-fiber/threejs-compat';
 import { Color, MathUtils } from '@react-fiber/threejs-compat/three';
 import type { Points } from '@react-fiber/threejs-compat/three';
-// #region result
 import { useCallback, useMemo, useRef } from 'react';
 // #endregion result
 

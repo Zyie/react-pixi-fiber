@@ -1,7 +1,7 @@
+// #region result
 import { Canvas, useFrame } from '@react-fiber/core';
 import type { ThreeEvent } from '@react-fiber/core';
 import type { Group } from '@react-fiber/threejs-compat/three';
-// #region result
 import { useRef, useState } from 'react';
 // #endregion result
 

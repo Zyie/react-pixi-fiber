@@ -1,6 +1,6 @@
+// #region result
 import { Canvas, useEnvironment, useThree } from '@react-fiber/threejs-compat';
 import type { EnvironmentTexture, Scene } from '@react-fiber/threejs-compat/three';
-// #region result
 import { Suspense, useLayoutEffect } from 'react';
 // #endregion result
 

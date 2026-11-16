@@ -66,7 +66,7 @@ export function App() {
 }
 ```
 
-![A box spinning in a scene of its own, shown on a plane turned a little to the right](../../../tests/snapshots/docs/render-targets/fbo.webgl.png)
+![A box spinning in a scene of its own, shown on a plane turned a little to the right](../../../../../tests/snapshots/docs/render-targets/fbo.webgl.png)
 
 `renderer.setRenderTarget(fbo)` points the next `render` at the target, and `setRenderTarget(null)` points it back at the canvas, exactly as in three.
 
@@ -146,7 +146,7 @@ useFrame(
 );
 ```
 
-![A teal box and a hovered pink view cube in the top right corner, turned the same way](../../../tests/snapshots/docs/render-targets/hud.webgl.png)
+![A teal box and a hovered pink view cube in the top right corner, turned the same way](../../../../../tests/snapshots/docs/render-targets/hud.webgl.png)
 
 The view cube lives in a portal with its own camera and a higher event priority, so the pointer reaches it before the scene behind. Each scene's view starts with fresh depth on pixi-3d, so `clearDepth` changes nothing there, but keep it: three needs it.
 
@@ -180,7 +180,7 @@ function Container({ clearColor, corner }: { clearColor: Color; corner: Vector2 
 }
 ```
 
-![The same three blocks from four sides, each on its own colour](../../../tests/snapshots/docs/render-targets/multi-view.webgl.png)
+![The same three blocks from four sides, each on its own colour](../../../../../tests/snapshots/docs/render-targets/multi-view.webgl.png)
 
 ## Portals
 
@@ -234,7 +234,7 @@ function Portal({
 }
 ```
 
-![Two nested portals in a plane, the hovered bottle inside the first one red](../../../tests/snapshots/docs/render-targets/portals.webgl.png)
+![Two nested portals in a plane, the hovered bottle inside the first one red](../../../../../tests/snapshots/docs/render-targets/portals.webgl.png)
 
 The state a portal injects reaches everything inside it, nested portals included:
 

@@ -37,7 +37,7 @@ function HealthBar({ name, health }: { name: string; health: number }) {
 }
 ```
 
-![Four boxes on a ring with names and health bars over them; the front one's bar is half and red](../../../tests/snapshots/docs/2d/anchored-labels.webgl.png)
+![Four boxes on a ring with names and health bars over them; the front one's bar is half and red](../../../../tests/snapshots/docs/2d/anchored-labels.webgl.png)
 
 Its props, besides a container's:
 
@@ -97,7 +97,7 @@ function Card({ x, title, color, children }: { x: number; title: string; color: 
 }
 ```
 
-![Two cards, a red box in the left one and a green gem in the right one, which is lifted and white under the pointer](../../../tests/snapshots/docs/2d/model-cards.webgl.png)
+![Two cards, a red box in the left one and a green gem in the right one, which is lifted and white under the pointer](../../../../tests/snapshots/docs/2d/model-cards.webgl.png)
 
 Its children are the view's scene, rendered through r3f's `createPortal`:
 
@@ -166,7 +166,7 @@ function Impact() {
 }
 ```
 
-![Three boxes shaken, blurred and warped by a ring, under a sharp red HIT button](../../../tests/snapshots/docs/2d/impact.webgl.png)
+![Three boxes shaken, blurred and warped by a ring, under a sharp red HIT button](../../../../tests/snapshots/docs/2d/impact.webgl.png)
 
 - Filters attach as `filters-0`, `filters-1`, ...; a mask as `attach="mask"`. A 2D child, such as the displacement map's sprite, joins the layer.
 - The 2D placed directly in the Canvas isn't in the layer, so a HUD stays sharp and still while the 3D shakes.
@@ -232,7 +232,7 @@ function Counter() {
 }
 ```
 
-![A monitor turned to the right whose screen shows a counter at 3 over a red +1 button](../../../tests/snapshots/docs/2d/screen-texture.webgl.png)
+![A monitor turned to the right whose screen shows a counter at 3 over a red +1 button](../../../../tests/snapshots/docs/2d/screen-texture.webgl.png)
 
 - It draws on every frame, before the canvas. `frames={1}` draws once, and again after each render of the component or a call to `invalidate()` on its `ref`, which also holds the `texture`.
 - A material tone-maps its map, as three does, so a UI's colours shift under the default ACES curve; `toneMapped={false}` keeps them as drawn.

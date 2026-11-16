@@ -61,7 +61,7 @@ export function buildDir(name?: string): string {
  */
 export async function servePages(build: string, port = 0): Promise<PagesServer> {
   if (!fs.existsSync(path.join(build, 'index.html'))) {
-    throw new Error(`No build in ${build}; run node docs/scripts/site.mts build, with --name if it has one`);
+    throw new Error(`No build in ${build}; run node packages/docs/scripts/site.mts build, with --name if it has one`);
   }
 
   const isFile = (file: string): boolean => fs.statSync(file, { throwIfNoEntry: false })?.isFile() ?? false;

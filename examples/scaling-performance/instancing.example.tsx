@@ -1,7 +1,7 @@
+// #region result
 import { Canvas } from '@react-fiber/threejs-compat';
 import { MathUtils, Object3D } from '@react-fiber/threejs-compat/three';
 import type { InstancedMesh } from '@react-fiber/threejs-compat/three';
-// #region result
 import { useEffect, useRef } from 'react';
 // #endregion result
 

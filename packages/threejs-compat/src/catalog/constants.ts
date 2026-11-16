@@ -1,6 +1,6 @@
 /**
  * three's constants, by three's names and with three r187's values, so code that reads them from
- * `three` reads them from `react-pixi-fiber/three`. three's legacy `MipMap` spellings of the mipmap
+ * `three` reads them from `@react-fiber/threejs-compat/three`. three's legacy `MipMap` spellings of the mipmap
  * filters are left out, for the `Mipmap` ones. The renderer and catalog map the ones pixi-3d has a
  * counterpart for; the JSDoc of each mapped one says what it maps to. The rest are kept for three's shape.
  * The types three names over them (`Side`, `Blending`, `Wrapping`, ...) close the file.

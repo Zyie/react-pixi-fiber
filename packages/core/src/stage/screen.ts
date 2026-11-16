@@ -14,7 +14,8 @@ export const VIEW_Z_INDEX: number = -Number.EPSILON;
 
 /**
  * The warning for a 3D element inside a 2D one, which is left out
- * @internal
+ * @category renderer
+ * @advanced
  */
 export const THREE_IN_2D: string =
   "react-fiber: a 3D element is inside a 2D element, which can't hold 3D, so it is left out. " +
@@ -34,7 +35,8 @@ const warned = new Set<string>();
 
 /**
  * An object an element made, with r3f's record of the element
- * @internal
+ * @category renderer
+ * @advanced
  */
 export type Linked<T> = T & { __r3f?: Instance };
 
@@ -71,7 +73,8 @@ export const layerOf = (screen: Container): Container | undefined => layers.get(
 /**
  * Whether a container is a screen layer's 3D layer, which stays where its screen layer put it
  * @param container - The container
- * @internal
+ * @category renderer
+ * @advanced
  */
 export const isLayer3D = (container: object): boolean => layerScreens.has(container as Container);
 
@@ -117,7 +120,8 @@ export function releaseScreen(scene: Container3D): void {
 /**
  * Logs a problem once per message, through pixi's `warn`
  * @param message - What went wrong
- * @internal
+ * @category renderer
+ * @advanced
  */
 export function warnOnce(message: string): void {
   if (warned.has(message)) return;
@@ -131,7 +135,8 @@ export function warnOnce(message: string): void {
  * @param list - The children of the parent
  * @param child - The object being placed
  * @returns The index to insert at, counting the list without `child`, or -1 to append
- * @internal
+ * @category renderer
+ * @advanced
  */
 export function indexByElementOrder<T>(list: readonly T[], child: Linked<T>): number {
   const siblings = child.__r3f?.parent?.children;
@@ -154,7 +159,8 @@ export function indexByElementOrder<T>(list: readonly T[], child: Linked<T>): nu
  * Adds a 2D child to a 2D container where its element is among its siblings, or moves it there
  * @param parent - The container
  * @param child - The child
- * @internal
+ * @category renderer
+ * @advanced
  */
 export function addInElementOrder(parent: Container, child: Linked<Container>): void {
   const index = indexByElementOrder(parent.children, child);
@@ -169,7 +175,8 @@ export function addInElementOrder(parent: Container, child: Linked<Container>): 
  * layer of the scene the node is in, over its 3D.
  * @param node - The 3D node
  * @param child - A 2D object
- * @internal
+ * @category renderer
+ * @advanced
  */
 export function addToScene(node: Container3D, child: Linked<object>): void {
   if (!(child instanceof Container)) {
@@ -199,7 +206,8 @@ export function addToScene(node: Container3D, child: Linked<object>): void {
  * Takes a 2D object off a scene's screen layer, or out of the anchor that follows a 3D node
  * @param node - The 3D node it was added to
  * @param child - The 2D object
- * @internal
+ * @category renderer
+ * @advanced
  */
 export function removeFromScene(node: Container3D, child: object): void {
   if (!(child instanceof Container) || isLayer3D(child)) return;
@@ -217,6 +225,7 @@ export function removeFromScene(node: Container3D, child: object): void {
 /**
  * Whether an object is a 3D node, which a 2D container can't hold
  * @param object - A child r3f is adding
- * @internal
+ * @category renderer
+ * @advanced
  */
 export const isNode3D = (object: unknown): object is Container3D => object instanceof Container3D;

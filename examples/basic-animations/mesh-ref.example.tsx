@@ -1,5 +1,5 @@
-import type { Mesh } from '@react-fiber/threejs-compat/three';
 // #region box
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 import { useRef } from 'react';
 // #endregion box
 

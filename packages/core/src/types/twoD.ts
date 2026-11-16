@@ -142,7 +142,7 @@ export interface ContainerProps2D {
 
 /**
  * The props of a 2D object whose setter takes more than its getter returns: `tint` any colour or a
- * three `Color` from `react-pixi-fiber/three`, a
+ * three `Color` from `@react-fiber/threejs-compat/three`, a
  * container's {@link ContainerProps2D}, text's `text` and `style` what their setters take, and an
  * animated sprite's `textures` and `playing`, which plays or stops it
  * @category types

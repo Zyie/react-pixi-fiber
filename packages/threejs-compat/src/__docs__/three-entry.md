@@ -1,6 +1,6 @@
 # The three entry
 
-r3f apps import from two places: `@react-three/fiber` for the React side, and `three` for classes, math and constants. `react-pixi-fiber` takes the place of the first. `react-pixi-fiber/three` takes the place of the second: three's API, under three's names, over pixi-3d.
+r3f apps import from two places: `@react-three/fiber` for the React side, and `three` for classes, math and constants. `@react-fiber/threejs-compat` takes the place of the first. `@react-fiber/threejs-compat/three` takes the place of the second: three's API, under three's names, over pixi-3d.
 
 ```tsx
 import { useFrame } from '@react-fiber/threejs-compat';
@@ -19,7 +19,7 @@ import type { Mesh } from '@react-fiber/threejs-compat/three';
   - materials: `MeshBasicMaterial`, `MeshLambertMaterial`, `MeshPhongMaterial`, `MeshToonMaterial`, `MeshStandardMaterial`, `MeshPhysicalMaterial`, `MeshNormalMaterial`, `MeshMatcapMaterial`, `PointsMaterial`, `LineBasicMaterial` and `SpriteMaterial`;
   - picking: `Raycaster`.
 - **Textures, loaders and animation.** `Texture`, `CanvasTexture`, `DataTexture`, `VideoTexture` and `CubeTexture` over pixi's textures; `Loader`, `LoadingManager`, `DefaultLoadingManager`, `LoaderUtils`, `Cache`, `ImageLoader`, `FileLoader`, `TextureLoader` and `CubeTextureLoader`; `AnimationMixer`, `AnimationAction`, `AnimationClip`, `PropertyBinding`, `EventDispatcher` and the keyframe tracks. [Loading models](loading-models.md) and [Loading textures](loading-textures.md) show them at work.
-- **Render targets.** `RenderTarget`, `WebGLRenderTarget` and `WebGLCubeRenderTarget`, which `useRenderTarget` and `CubeCamera` make, and `Controls`, the base of the camera controls (see [Render targets](render-targets.md) and [Environment](environment.md)).
+- **Render targets.** `RenderTarget`, `WebGLRenderTarget` and `WebGLCubeRenderTarget`, which `useRenderTarget` and `CubeCamera` make, and `Controls`, the base of the camera controls (see [Render targets](../../../../src/__docs__/render-targets.md) and [Environment](../../../../src/__docs__/environment.md)).
 - **Constants.** Every constant three r187 exports but the legacy `MipMap` spellings of the mipmap filters (use `LinearMipmapLinearFilter` and its siblings), with three's values: `DoubleSide`, `AdditiveBlending`, `RepeatWrapping`, `SRGBColorSpace`, `ACESFilmicToneMapping`, `MOUSE` and the rest. The renderer and the catalog map the ones pixi-3d has a counterpart for.
 
 ## Nodes
@@ -70,14 +70,14 @@ And for TypeScript, in `tsconfig.json`:
 ```json
 {
   "compilerOptions": {
-    "paths": { "three": ["./node_modules/react-pixi-fiber/dist/three.d.ts"] }
+    "paths": { "three": ["./node_modules/@react-fiber/threejs-compat/dist/three.d.ts"] }
   }
 }
 ```
 
-Import `react-pixi-fiber` in place of `@react-three/fiber` as well. Only the alias reaches packages that import `three` themselves, and those, such as `@react-three/drei`, also import `@react-three/fiber`, so they aren't covered.
+Import `@react-fiber/threejs-compat` in place of `@react-three/fiber` as well. Only the alias reaches packages that import `three` themselves, and those, such as `@react-three/drei`, also import `@react-three/fiber`, so they aren't covered.
 
-What three's addons provide comes from `react-pixi-fiber/addons`: `GLTFLoader`, `DRACOLoader`, `MeshoptDecoder`, `HDRLoader`, `RGBELoader`, `OrbitControls` and `MapControls`.
+What three's addons provide comes from `@react-fiber/threejs-compat/addons`: `GLTFLoader`, `DRACOLoader`, `MeshoptDecoder`, `HDRLoader`, `RGBELoader`, `OrbitControls` and `MapControls`.
 
 ## What's missing
 
@@ -85,7 +85,7 @@ An import of a class this entry doesn't have fails to build, which is better tha
 
 - `ShapeGeometry`, `ExtrudeGeometry`, `TubeGeometry` and the `Curve` and `Shape` classes they need; `InterleavedBufferAttribute`.
 - The `Material` base class, `ShaderMaterial`, `RawShaderMaterial`, `LineDashedMaterial`, `MeshDepthMaterial` and `MeshDistanceMaterial`.
-- `RectAreaLight`, `LightProbe`, `Layers`, `LOD`, `StringKeyframeTrack`, `AnimationObjectGroup`, three's renderers, and loaders other than three's core loaders and those in `react-pixi-fiber/addons`.
+- `RectAreaLight`, `LightProbe`, `Layers`, `LOD`, `StringKeyframeTrack`, `AnimationObjectGroup`, three's renderers, and loaders other than three's core loaders and those in `@react-fiber/threejs-compat/addons`.
 - `Object3D.clone` and `copy`.
 
 A few names are this entry's own: the shadow classes `DirectionalLightShadow`, `SpotLightShadow` and `PointLightShadow`, which three keeps internal, `HttpError`, `SRGBToLinear` and `LinearToSRGB`, and `RenderTargetCubeTexture`. A scene that should render through three too leaves them out.

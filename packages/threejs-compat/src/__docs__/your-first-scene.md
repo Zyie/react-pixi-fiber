@@ -4,7 +4,7 @@ This guide sets up a scene and introduces the core concepts, following react-thr
 
 ## Setting up the Canvas
 
-Import `<Canvas>` from `react-pixi-fiber` and put it in your React tree.
+Import `<Canvas>` from `@react-fiber/threejs-compat` and put it in your React tree.
 
 ```tsx
 import { Canvas } from '@react-fiber/threejs-compat';
@@ -150,7 +150,7 @@ export function App() {
 }
 ```
 
-![A box lit red from the front](../../tests/snapshots/docs/your-first-scene/first-scene.webgl.png)
+![A box lit red from the front](../../../../tests/snapshots/docs/your-first-scene/first-scene.webgl.png)
 
 > [!TIP]
 > Things to try:

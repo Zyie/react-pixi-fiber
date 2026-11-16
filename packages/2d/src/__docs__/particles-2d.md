@@ -40,7 +40,7 @@ function Galaxy() {
 }
 ```
 
-![A spiral galaxy of small coloured squares](../../../tests/snapshots/docs/2d/particles.webgl.png)
+![A spiral galaxy of small coloured squares](../../../../tests/snapshots/docs/2d/particles.webgl.png)
 
 To move many particles, change them in `useFrame` through the container's `particleChildren`, as above, rather than through React state: rendering hundreds of elements every frame is what the container exists to avoid.
 

@@ -1,6 +1,6 @@
 # Objects, properties and arguments
 
-Every JSX element is a class of the catalog under three's name: `<mesh>` is `Mesh`, `<sphereGeometry>` is `SphereGeometry`, `<meshStandardMaterial>` is `MeshStandardMaterial`. Each takes three's constructor arguments and fields and maps them onto pixi-3d's objects, so the props, `args` and `attach` of an r3f scene work as r3f documents them. The same classes come from `react-pixi-fiber/three` for code that builds objects by hand (see [The three entry](three-entry.md)).
+Every JSX element is a class of the catalog under three's name: `<mesh>` is `Mesh`, `<sphereGeometry>` is `SphereGeometry`, `<meshStandardMaterial>` is `MeshStandardMaterial`. Each takes three's constructor arguments and fields and maps them onto pixi-3d's objects, so the props, `args` and `attach` of an r3f scene work as r3f documents them. The same classes come from `@react-fiber/threejs-compat/three` for code that builds objects by hand (see [The three entry](three-entry.md)).
 
 ## Declaring objects
 

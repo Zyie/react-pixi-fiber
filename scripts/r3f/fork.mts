@@ -9,13 +9,15 @@
  * - `node scripts/r3f/fork.mts --check` fails when either is stale or one of our own files is missing.
  *   `npm run test:lint` runs it.
  *
- * The diff covers what the fork copies from `packages/fiber` (`src`, `types`, `package.json`): changed,
- * added and deleted files, with paths relative to `packages/fiber`, so `git apply` takes it in an
- * upstream checkout of that folder. Our own files in the tree are listed in `EXTRAS` and left out: the
+ * The diff covers what the fork copies from `packages/fiber` (`src`, `types`): changed, added and
+ * deleted files, with paths relative to `packages/fiber`, so `git apply` takes it in an upstream
+ * checkout of that folder. Our own files in the tree are listed in `EXTRAS` and left out: the
  * react-reconciler shims sit at the relative path r3f's core imports (upstream generates that folder at
  * install time), the README is written for r3f's maintainers, the diff is this script's, and the
- * package builds with a tsconfig.json and a tsdown.config.ts of ours, where upstream's build reads its
- * monorepo's tsconfig and its own unbuild config.
+ * package is ours to name and build: its package.json is upstream's under the name `@react-fiber/r3f`
+ * (in the diff, the rename would break upstream's workspace, whose packages depend on
+ * `@react-three/fiber`), built with a tsconfig.json and a tsdown.config.ts of ours where upstream's build
+ * reads its monorepo's tsconfig and its own unbuild config.
  */
 import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -32,12 +34,13 @@ const README = `${FORK}/README.md`;
 const SIZE_MARKERS = ['<!-- diff-size -->', '<!-- /diff-size -->'] as const;
 
 /** What the fork copies from `packages/fiber`: whole folders, and single files */
-const COPIED = ['src', 'types', 'package.json'];
+const COPIED = ['src', 'types'];
 
 /** Files in `packages/r3f` that are ours, relative to it */
 const EXTRAS = new Set([
   'README.md',
   'fork.diff',
+  'package.json',
   'tsconfig.json',
   'tsdown.config.ts',
   'react-reconciler/index.js',

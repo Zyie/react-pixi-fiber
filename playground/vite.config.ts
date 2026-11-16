@@ -15,11 +15,12 @@ const THREE_MARK = 'fiber=three';
 const SCRIPT = /\.[cm]?[jt]sx?$/;
 
 /**
- * Resolves the package's entries per frame, as vitest's `scenes` and `three` projects resolve them per
+ * Resolves the packages' entries per frame, as vitest's `scenes` and `three` projects resolve them per
  * project. A frame on the three renderer loads its entry with `?fiber=three`; every script that entry
  * reaches outside `node_modules` is loaded with the same query, so it is a module of its own in that
- * frame, and `react-pixi-fiber`, `react-pixi-fiber/three` and `react-pixi-fiber/addons` resolve to r3f's
- * own entry, three and three's addons there, and to this library everywhere else.
+ * frame, and the entries `FIBER_TARGETS` names (`@react-fiber/threejs-compat`, its `/three` and `/addons`,
+ * `@react-fiber/core` and `@react-fiber/2d`) resolve to r3f's own entry, three, three's addons and an
+ * empty module there, and to the packages' sources everywhere else.
  */
 function fiberPerFrame(): Plugin {
   return {

@@ -25,7 +25,7 @@ mesh.current.rotation.y += Math.PI / 4;
 invalidate();
 ```
 
-![A royal blue box, grown by a click and turned by a right click](../../tests/snapshots/docs/scaling-performance/on-demand.webgl.png)
+![A royal blue box, grown by a click and turned by a right click](../../../../tests/snapshots/docs/scaling-performance/on-demand.webgl.png)
 
 > [!IMPORTANT]
 > `invalidate()` doesn't render at once: it asks for a frame. Calling it many times still renders one frame. Think of it as a flag that says something changed.
@@ -60,16 +60,16 @@ function Scene() {
       <mesh position={[1, 2, -3]} geometry={sphere} material={red} />
 ```
 
-![Three red spheres from one geometry and one material](../../tests/snapshots/docs/scaling-performance/reuse.webgl.png)
+![Three red spheres from one geometry and one material](../../../../tests/snapshots/docs/scaling-performance/reuse.webgl.png)
 
-`react-pixi-fiber/three`'s `Color` follows three's colour management, so a hex number or CSS colour given to a material made outside the canvas means the same as it does on an element. Unmounting a mesh doesn't dispose of a geometry or material it was given as a prop, so shared ones live on.
+`@react-fiber/threejs-compat/three`'s `Color` follows three's colour management, so a hex number or CSS colour given to a material made outside the canvas means the same as it does on an element. Unmounting a mesh doesn't dispose of a geometry or material it was given as a prop, so shared ones live on.
 
 ### Caching with `useLoader`
 
 > [!NOTE]
 > Everything loaded with `useLoader` is cached by its URL.
 
-Loading the same URL anywhere in the tree gives back the same asset, so a model loaded in several components is one model in memory. [Loading models and textures](loading-models-and-textures.md) has more.
+Loading the same URL anywhere in the tree gives back the same asset, so a model loaded in several components is one model in memory. [Loading models and textures](../../../../src/__docs__/loading-models-and-textures.md) has more.
 
 ## Instancing
 
@@ -102,7 +102,7 @@ function Instances({ count = 2000, temp = new Object3D() }) {
 }
 ```
 
-![Two thousand small boxes scattered through a cube](../../tests/snapshots/docs/scaling-performance/instancing.webgl.png)
+![Two thousand small boxes scattered through a cube](../../../../tests/snapshots/docs/scaling-performance/instancing.webgl.png)
 
 `setMatrixAt` places an instance, `setColorAt` tints it, and `instanceMatrix.needsUpdate = true` sends values written straight into `instanceMatrix.array`. `count` draws fewer than the mesh was built for, and events carry the `instanceId` of the instance hit, so instances can be picked one by one:
 
@@ -128,7 +128,7 @@ const onPointerOut = () => {
 };
 ```
 
-![A grid of instanced boxes, one lit under the pointer](../../tests/snapshots/docs/scaling-performance/instanced-hover.webgl.png)
+![A grid of instanced boxes, one lit under the pointer](../../../../tests/snapshots/docs/scaling-performance/instanced-hover.webgl.png)
 
 What differs from three's `InstancedMesh`:
 

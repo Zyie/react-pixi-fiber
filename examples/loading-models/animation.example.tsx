@@ -1,7 +1,7 @@
+// #region result
 import { useFrame, useLoader } from '@react-fiber/threejs-compat';
 import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
 import { AnimationMixer } from '@react-fiber/threejs-compat/three';
-// #region result
 import { useEffect, useState } from 'react';
 // #endregion result
 

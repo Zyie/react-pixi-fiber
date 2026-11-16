@@ -1,6 +1,6 @@
+// #region fog
 import { useFrame } from '@react-fiber/threejs-compat';
 import type { Fog } from '@react-fiber/threejs-compat/three';
-// #region fog
 import { useRef } from 'react';
 // #endregion fog
 

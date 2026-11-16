@@ -1,6 +1,6 @@
+// #region result
 import { Canvas, extend, useFrame, useTexture } from '@react-fiber/core';
 import type { ThreeElement } from '@react-fiber/core';
-// #region result
 import { defaultFilterVert, Filter, GlProgram, GpuProgram, UniformGroup } from 'pixi.js';
 import { Suspense, useRef } from 'react';
 // #endregion result

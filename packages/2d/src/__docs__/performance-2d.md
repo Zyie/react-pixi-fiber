@@ -1,6 +1,6 @@
 # 2D performance
 
-2D follows the same rules as [3D in r3f](../../__docs__/scaling-performance.md): render on demand when nothing moves, change objects in `useFrame` rather than through state, and reuse what can be reused. This page adds what is particular to pixi.js.
+2D follows the same rules as [3D in r3f](../../../threejs-compat/src/__docs__/scaling-performance.md): render on demand when nothing moves, change objects in `useFrame` rather than through state, and reuse what can be reused. This page adds what is particular to pixi.js.
 
 ## Change objects, not React state
 
@@ -40,7 +40,7 @@ function Board() {
 }
 ```
 
-![A grid of navy tiles with a gold coin over them](../../../tests/snapshots/docs/2d/cache.webgl.png)
+![A grid of navy tiles with a gold coin over them](../../../../tests/snapshots/docs/2d/cache.webgl.png)
 
 The texture isn't redrawn when the children change: call `updateCacheTexture()` on the container's ref after a change, in a `useLayoutEffect` so it is redrawn in the same frame. `cacheAsTexture={{ resolution: 0.5 }}` caches at a lower resolution. A container that moves as a whole but changes inside can be a render group instead, `isRenderGroup`, which pixi transforms on the GPU.
 

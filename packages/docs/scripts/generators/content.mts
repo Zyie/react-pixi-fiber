@@ -12,7 +12,7 @@ import { visit } from 'unist-util-visit';
 
 import { editUrl } from '../../links/index.ts';
 import { listExamples } from '../../plugins/example/catalogue.mts';
-import { ROOT } from '../paths.mts';
+import { PACKAGE_SOURCES, ROOT } from '../paths.mts';
 import type { GeneratedFiles, Generator, Shared } from '../sync.mts';
 import { ENTRIES, packageName } from '../typedoc/entries.mts';
 import type { Guide, GuideSection } from '../typedoc/guides.mts';
@@ -163,8 +163,6 @@ function guideNodes(guide: Guide, sources: Sources): Flow[] {
  * @param count - How many examples it has
  */
 function guideLinks(guide: Guide, count: number): Flow[] {
-  const entry = ENTRIES[0];
-
   return [
     { type: 'thematicBreak' },
     cards('More on this guide', [
@@ -180,12 +178,7 @@ function guideLinks(guide: Guide, count: number): Flow[] {
             ],
           ]
         : []),
-      [
-        link(`/api/${entry.name}/`, 'API reference'),
-        text(' Every export of '),
-        inlineCode(packageName(entry)),
-        text(', with its types.'),
-      ],
+      [link('/api/', 'API reference'), text(' Every export of the packages, with its types.')],
     ]),
   ];
 }
@@ -389,6 +382,6 @@ export function docsPages(shared: Shared): readonly Page[] {
 export const content: Generator = {
   name: 'content',
   outputs: ['content/docs', 'llms/docs'],
-  sources: ['src', 'examples', 'package.json', FEASIBILITY, 'docs/scripts/typedoc'],
+  sources: [...PACKAGE_SOURCES, 'examples', 'package.json', FEASIBILITY, 'packages/docs/scripts/typedoc'],
   generate: (shared) => Object.assign({}, ...shared(docsPages).map(writePage)) as GeneratedFiles,
 };

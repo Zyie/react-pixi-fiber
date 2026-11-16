@@ -7,7 +7,7 @@ import type { ApiSymbol } from '../api.mts';
 import { isVendored } from '../entries.mts';
 import type { Entry } from '../entries.mts';
 
-const fixture: Entry = { name: 'fixture', subpath: '.', file: 'index' };
+const fixture: Entry = { name: 'fixture', package: 'fixture', subpath: '.', file: 'src/index' };
 const api = collectEntry(fixture, path.join(import.meta.dirname, 'fixtures/api'));
 
 /**

@@ -30,7 +30,9 @@ export function checkDocs(root: string, apis: readonly ApiEntry[]): string[] {
 
     problems.push(...synced.problems.map(({ line, message }) => `${doc}:${line}: ${message}`));
     if (synced.text !== text) {
-      problems.push(`${doc}: a code block differs from its source; run node docs/scripts/typedoc/snippets.mts --write`);
+      problems.push(
+        `${doc}: a code block differs from its source; run node packages/docs/scripts/typedoc/snippets.mts --write`,
+      );
     }
   }
   for (const guide of GUIDES) {
@@ -41,7 +43,7 @@ export function checkDocs(root: string, apis: readonly ApiEntry[]): string[] {
   for (const file of guideFiles(root)) {
     if (!GUIDES.some((guide) => guide.file === file)) {
       problems.push(
-        `${file}: a guide that GUIDES in docs/scripts/typedoc/guides.mts doesn't list, so the site leaves it out`,
+        `${file}: a guide that GUIDES in packages/docs/scripts/typedoc/guides.mts doesn't list, so the site leaves it out`,
       );
     }
   }

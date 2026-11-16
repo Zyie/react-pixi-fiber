@@ -1,9 +1,9 @@
+// #region result
 import { Canvas, createPortal, extend, useFrame, useThree } from '@react-fiber/threejs-compat';
 import type { ThreeElement } from '@react-fiber/threejs-compat';
 import { OrbitControls } from '@react-fiber/threejs-compat/addons';
 import { Matrix4, OrthographicCamera, Scene } from '@react-fiber/threejs-compat/three';
 import type { Mesh } from '@react-fiber/threejs-compat/three';
-// #region result
 import { useMemo, useRef, useState } from 'react';
 
 extend({ OrbitControls });

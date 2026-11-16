@@ -6,7 +6,7 @@ The models on this page are small files in the repo's `tests/assets/models`, ser
 
 ## Loading glTF models
 
-glTF is the format react-three-fiber supports best, and the one react-pixi-fiber loads. Import the hook from `react-pixi-fiber` and the loader from `react-pixi-fiber/addons`, where an r3f app imports it from `three/addons`:
+glTF is the format react-three-fiber supports best, and the one react-pixi-fiber loads. Import the hook from `@react-fiber/threejs-compat` and the loader from `@react-fiber/threejs-compat/addons`, where an r3f app imports it from `three/addons`:
 
 ```tsx
 import { useLoader } from '@react-fiber/threejs-compat';

@@ -1,7 +1,7 @@
+// #region phases
 import { useFrame } from '@react-fiber/threejs-compat';
 import { MathUtils } from '@react-fiber/threejs-compat/three';
 import type { Group } from '@react-fiber/threejs-compat/three';
-// #region phases
 import { useLayoutEffect, useRef } from 'react';
 import type { RefObject } from 'react';
 // #endregion phases

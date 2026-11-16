@@ -1,6 +1,6 @@
+// #region result
 import { Canvas, Layer3D, useFrame, useThree } from '@react-fiber/core';
 import type { ThreeEvent2D } from '@react-fiber/core';
-// #region result
 import { Texture } from 'pixi.js';
 import type { BlurFilter, Container, DisplacementFilter, Sprite } from 'pixi.js';
 import { useEffect, useMemo, useRef, useState } from 'react';

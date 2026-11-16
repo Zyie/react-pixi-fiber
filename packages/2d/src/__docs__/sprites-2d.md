@@ -76,7 +76,7 @@ function Coins() {
 }
 ```
 
-![Four gold coins spinning at different speeds in a navy panel, over a brick floor](../../../tests/snapshots/docs/2d/sprites.webgl.png)
+![Four gold coins spinning at different speeds in a navy panel, over a brick floor](../../../../tests/snapshots/docs/2d/sprites.webgl.png)
 
 Animated sprites play on the canvas's clock, as `useFrame` does, rather than on pixi's shared ticker: they follow the canvas's `frameloop`, stop with it, and keep a `frameloop="demand"` canvas drawing while they play. `play()`, `stop()`, `gotoAndPlay()` and `gotoAndStop()` work on a ref too. Set `autoUpdate` to `true` to put a sprite back on pixi's shared ticker.
 
@@ -119,7 +119,7 @@ function Coin({ x, onCollected }: { x: number; onCollected: () => void }) {
 }
 ```
 
-![Three coins, with the middle one collected and the score at 1](../../../tests/snapshots/docs/2d/collect.webgl.png)
+![Three coins, with the middle one collected and the score at 1](../../../../tests/snapshots/docs/2d/collect.webgl.png)
 
 ## Spritesheets
 

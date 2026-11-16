@@ -42,7 +42,7 @@ export type MathTypes = MathRepresentation | EulerRepresentation;
 
 /**
  * The plain object a vector or quaternion prop also takes, which the node copies in: `{ x, y }`,
- * `{ x, y, z }` or `{ x, y, z, w }`. That covers three's classes from `react-pixi-fiber/three`
+ * `{ x, y, z }` or `{ x, y, z, w }`. That covers three's classes from `@react-fiber/threejs-compat/three`
  * (`position={new Vector3(1, 2, 3)}`), which extend pixi-3d's plain vectors rather than the observable
  * ones a node holds. Euler angles take only an `Euler` or its arguments, as in three.
  * @internal
@@ -60,7 +60,7 @@ type MathObject<T> = T extends { order: unknown }
 /**
  * What a math prop accepts: the object, the arguments of its `set`, one number for every component
  * when `set` takes it (`scale={2}`), or for a vector or quaternion any object with its components,
- * three's classes from `react-pixi-fiber/three` among them (`position={new Vector3(1, 2, 3)}`)
+ * three's classes from `@react-fiber/threejs-compat/three` among them (`position={new Vector3(1, 2, 3)}`)
  * @category types
  * @advanced
  */

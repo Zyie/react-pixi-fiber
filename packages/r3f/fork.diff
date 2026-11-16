@@ -1,16 +1,5 @@
 # packages/r3f against react-three-fiber packages/fiber at 58acabc0fc996bac5a25320ca3a8670bdd209db7
 # Written by npm run diff:r3f; apply in packages/fiber with git apply.
-diff --git a/package.json b/package.json
-index 6eab3c3..187868d 100644
---- a/package.json
-+++ b/package.json
-@@ -1,5 +1,5 @@
- {
--  "name": "@react-three/fiber",
-+  "name": "@react-fiber/r3f",
-   "version": "10.0.0-alpha.6",
-   "description": "A React renderer for Threejs",
-   "keywords": [
 diff --git a/src/core/events.ts b/src/core/events.ts
 index 787fd83..44e7ed1 100644
 --- a/src/core/events.ts

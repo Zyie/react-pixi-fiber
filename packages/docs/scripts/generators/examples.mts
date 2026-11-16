@@ -22,7 +22,7 @@ import { exampleId, listExamples, PICTURES, THUMBNAILS, topicRank } from '../../
 import { examplePrograms } from '../../plugins/example/source.mts';
 import type { GalleryExample, GalleryTopic } from '../../src/components/Examples/types.ts';
 import type { ExampleCatalogue, ExampleSourceFile } from '../../src/components/Live/catalogue.ts';
-import { ROOT } from '../paths.mts';
+import { PACKAGE_SOURCES, ROOT } from '../paths.mts';
 import type { GeneratedFiles, Generator, Shared } from '../sync.mts';
 import { GUIDES } from '../typedoc/guides.mts';
 import { docFiles, MARKER } from '../typedoc/snippets.mts';
@@ -351,6 +351,6 @@ async function generate(shared: Shared): Promise<GeneratedFiles> {
 export const examples: Generator = {
   name: 'examples',
   outputs: [PAGES, 'llms/examples', `static/${PICTURES}`, `static/${THUMBNAILS}`, SOURCES],
-  sources: ['examples', 'tests/snapshots/docs', 'src'],
+  sources: ['examples', 'tests/snapshots/docs', ...PACKAGE_SOURCES],
   generate,
 };

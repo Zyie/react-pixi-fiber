@@ -36,7 +36,8 @@ const matricesOf = (camera: Camera3D): CameraMatrices => {
  * The aspect a camera projects with: three's `aspect` field when r3f keeps one on the camera, else
  * the size of the view drawing it, else square
  * @param camera - The camera to read
- * @internal
+ * @category renderer
+ * @advanced
  */
 export function cameraAspect(camera: Camera3D): number {
   const own = (camera as Camera3D & { aspect?: number }).aspect;
@@ -48,7 +49,8 @@ export function cameraAspect(camera: Camera3D): number {
 /**
  * Camera space to clip space, three's `camera.projectionMatrix`, worked out now
  * @param camera - The camera to read
- * @internal
+ * @category renderer
+ * @advanced
  */
 export function cameraProjection(camera: Camera3D): Matrix4 {
   return camera.computeProjection(cameraAspect(camera), matricesOf(camera).projection);
@@ -57,7 +59,8 @@ export function cameraProjection(camera: Camera3D): Matrix4 {
 /**
  * Clip space to camera space, three's `camera.projectionMatrixInverse`, worked out now
  * @param camera - The camera to read
- * @internal
+ * @category renderer
+ * @advanced
  */
 export function cameraProjectionInverse(camera: Camera3D): Matrix4 {
   return matricesOf(camera).projectionInverse.getInverse(cameraProjection(camera));
@@ -66,7 +69,8 @@ export function cameraProjectionInverse(camera: Camera3D): Matrix4 {
 /**
  * Camera space to world space, three's `camera.matrixWorld`, worked out now
  * @param camera - The camera to read
- * @internal
+ * @category renderer
+ * @advanced
  */
 export function cameraWorld(camera: Camera3D): Matrix4 {
   return camera.getGlobalTransform(matricesOf(camera).world);
@@ -75,7 +79,8 @@ export function cameraWorld(camera: Camera3D): Matrix4 {
 /**
  * World space to camera space, three's `camera.matrixWorldInverse`, worked out now
  * @param camera - The camera to read
- * @internal
+ * @category renderer
+ * @advanced
  */
 export function cameraWorldInverse(camera: Camera3D): Matrix4 {
   return matricesOf(camera).worldInverse.getInverse(cameraWorld(camera));

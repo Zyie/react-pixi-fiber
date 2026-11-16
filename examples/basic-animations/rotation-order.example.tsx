@@ -1,6 +1,6 @@
+// #region result
 import { Canvas, useFrame } from '@react-fiber/threejs-compat';
 import type { Mesh } from '@react-fiber/threejs-compat/three';
-// #region result
 import { useRef } from 'react';
 // #endregion result
 

@@ -1,10 +1,14 @@
 # Installation
 
-react-pixi-fiber is installed beside React and PixiJS. React DOM renders `<Canvas>` into the page, and pixi.js is the 2D engine pixi-3d draws through.
+react-pixi-fiber is a set of packages, installed beside React and PixiJS. React DOM renders `<Canvas>` into the page, and pixi.js is the 2D engine pixi-3d draws through.
 
 ```sh
-npm install react-pixi-fiber react react-dom pixi.js @pixi/3d
+npm install @react-fiber/threejs-compat @react-fiber/2d @react-fiber/core react react-dom pixi.js @pixi/3d
 ```
+
+- `@react-fiber/core` is react-three-fiber's API on pixi.js: `<Canvas>`, `createRoot`, the hooks, events, and the bridges between 2D and 3D.
+- `@react-fiber/threejs-compat` gives pixi-3d three's names and API, so an r3f scene runs as written. Its main entry is r3f's API, everything core exports and `<Environment>`; `@react-fiber/threejs-compat/three` is what an app imports from `three`, and `@react-fiber/threejs-compat/addons` what it imports from `three/addons`. Importing any of them installs it. A root needs it for now, since it gives each root its default scene, camera and raycaster.
+- `@react-fiber/2d` adds pixi.js's 2D classes as elements (`<sprite2D>`, `<graphics2D>`, ...). Import it once, anywhere in the program, to install them: `import '@react-fiber/2d';`.
 
 ## What it needs
 
@@ -16,7 +20,7 @@ npm install react-pixi-fiber react react-dom pixi.js @pixi/3d
 
 ## With TypeScript
 
-The elements are typed from the catalog react-pixi-fiber renders, mapped the way r3f maps three's, so `<mesh>`, `<boxGeometry>` and their props are checked as in r3f. Import the package once, anywhere in the program, and its JSX elements are declared.
+The elements are typed from the classes each package registers, mapped the way r3f maps three's, so `<mesh>`, `<boxGeometry>` and their props are checked as in r3f. Import a package once, anywhere in the program, and its JSX elements are declared: three's names with `@react-fiber/threejs-compat`, the 2D ones with `@react-fiber/2d`.
 
 A ref holds the object behind the element, which is a pixi-3d object. Type it by the element's name, which works with r3f too:
 
@@ -31,7 +35,7 @@ const ref = useRef<ElementRef<'mesh'>>(null);
 
 ## Moving an r3f app
 
-Change every import of `@react-three/fiber` to `react-pixi-fiber`. Then look for what doesn't come from r3f:
+Change every import of `@react-three/fiber` to `@react-fiber/threejs-compat`, of `three` to `@react-fiber/threejs-compat/three`, and of `three/addons` to `@react-fiber/threejs-compat/addons`. Then look for what doesn't come from r3f:
 
 - Code that imports `three` directly, for math or types, runs against three.js objects that a pixi-3d scene can't hold. `THREE.Mesh` in a type becomes pixi-3d's `Mesh3D`.
 - `@react-three/drei` builds three.js objects too, so its components don't carry over.

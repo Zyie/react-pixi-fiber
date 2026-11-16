@@ -57,7 +57,7 @@ function MyAnimatedBox() {
 }
 ```
 
-`myMesh.current` is the mesh, which `useFrame` can change without React. Its type comes from `react-pixi-fiber/three`, which has three's classes under three's names, as `three` does in an r3f app:
+`myMesh.current` is the mesh, which `useFrame` can change without React. Its type comes from `@react-fiber/threejs-compat/three`, which has three's classes under three's names, as `three` does in an r3f app:
 
 <!-- snippet: examples/basic-animations/rotating-box.example.tsx#frame -->
 
@@ -104,7 +104,7 @@ export function App() {
 }
 ```
 
-![A royal blue box turned about its x axis](../../tests/snapshots/docs/basic-animations/rotating-box.webgl.png)
+![A royal blue box turned about its x axis](../../../../tests/snapshots/docs/basic-animations/rotating-box.webgl.png)
 
 **Try this:** set the rotation to `Math.sin(state.elapsed)` and watch the box swing back and forth:
 
@@ -139,7 +139,7 @@ export function App() {
 }
 ```
 
-![A royal blue box swung about its x axis](../../tests/snapshots/docs/basic-animations/swinging-box.webgl.png)
+![A royal blue box swung about its x axis](../../../../tests/snapshots/docs/basic-animations/swinging-box.webgl.png)
 
 ## Rotation order
 
@@ -187,7 +187,7 @@ export function App() {
 }
 ```
 
-![Two boxes at the same angles, turned in XYZ and YXZ order](../../tests/snapshots/docs/basic-animations/rotation-order.webgl.png)
+![Two boxes at the same angles, turned in XYZ and YXZ order](../../../../tests/snapshots/docs/basic-animations/rotation-order.webgl.png)
 
 ## Frame loop modes
 

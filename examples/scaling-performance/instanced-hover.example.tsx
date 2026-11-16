@@ -1,8 +1,8 @@
+// #region result
 import { Canvas } from '@react-fiber/threejs-compat';
 import type { ThreeEvent } from '@react-fiber/threejs-compat';
 import { Color, Object3D } from '@react-fiber/threejs-compat/three';
 import type { InstancedMesh } from '@react-fiber/threejs-compat/three';
-// #region result
 import { useLayoutEffect, useRef } from 'react';
 // #endregion result
 

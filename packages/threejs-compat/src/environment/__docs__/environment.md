@@ -12,15 +12,15 @@ Pass a Radiance `.hdr`, or an image holding an equirectangular map:
 <Environment files="/environment/equirect.hdr" background />
 ```
 
-![Three white spheres, dielectric, rough metal and polished metal, lit by a sky drawn behind them](../../../tests/snapshots/docs/environment/files.webgl.png)
+![Three white spheres, dielectric, rough metal and polished metal, lit by a sky drawn behind them](../../../../../tests/snapshots/docs/environment/files.webgl.png)
 
 `background` draws the environment behind the scene as well; `background="only"` draws it without lighting with it. The component suspends while the file loads, so it sits under a `<Suspense>`.
 
 The files `<Environment>` reads:
 
-- **`.hdr`**: linear radiance, decoded on the CPU into half floats, as three's `HDRLoader` does. `HDRLoader` and its older name `RGBELoader` come from `react-pixi-fiber/addons`.
+- **`.hdr`**: linear radiance, decoded on the CPU into half floats, as three's `HDRLoader` does. `HDRLoader` and its older name `RGBELoader` come from `@react-fiber/threejs-compat/addons`.
 - **`.png`, `.jpg`, `.webp`, `.avif`, `.gif`**: an equirectangular image in sRGB. A `.jpg` loads as a plain image; its Ultra HDR gain map, if it has one, is ignored.
-- **Six images**: a cube, in three's order +X, -X, +Y, -Y, +Z, -Z, through `CubeTextureLoader` from `react-pixi-fiber/three`.
+- **Six images**: a cube, in three's order +X, -X, +Y, -Y, +Z, -Z, through `CubeTextureLoader` from `@react-fiber/threejs-compat/three`.
 - **`.exr`** isn't supported.
 
 ## From six images
@@ -31,7 +31,7 @@ The files `<Environment>` reads:
 <Environment files={faces} path="/environment/cube/" background backgroundBlurriness={0.15} />
 ```
 
-![A metal box lit by a cube map, the sky softly blurred behind it](../../../tests/snapshots/docs/environment/cube-faces.webgl.png)
+![A metal box lit by a cube map, the sky softly blurred behind it](../../../../../tests/snapshots/docs/environment/cube-faces.webgl.png)
 
 `path` goes in front of every file. The faces are mirrored as three mirrors images of a cube, so the same six files face the same way in both.
 
@@ -47,7 +47,7 @@ Give `<Environment>` children and it films them with a cube camera into a cube t
 </Environment>
 ```
 
-![A metal ball and a matte one lit by a room of coloured walls](../../../tests/snapshots/docs/environment/children.webgl.png)
+![A metal ball and a matte one lit by a room of coloured walls](../../../../../tests/snapshots/docs/environment/children.webgl.png)
 
 `resolution` sets the width of each face, `near` and `far` the cube camera's clipping, and `frames` how many frames it films: 1, the default, films once. With `frames={Infinity}` the environment follows the children, but pixi-3d prefilters the lighting again on every frame, so keep the resolution low.
 
@@ -66,7 +66,7 @@ Give `<Environment>` children and it films them with a cube camera into a cube t
 />
 ```
 
-![A mirror ball reflecting the same turned sky the background shows](../../../tests/snapshots/docs/environment/rotation.webgl.png)
+![A mirror ball reflecting the same turned sky the background shows](../../../../../tests/snapshots/docs/environment/rotation.webgl.png)
 
 | Prop                   | What it does                                                                       |
 | ---------------------- | ---------------------------------------------------------------------------------- |

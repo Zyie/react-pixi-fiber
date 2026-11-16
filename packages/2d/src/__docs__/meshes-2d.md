@@ -55,7 +55,7 @@ function Flag() {
 }
 ```
 
-![A colourful rope curving like a snake above a waving brick flag](../../../tests/snapshots/docs/2d/meshes.webgl.png)
+![A colourful rope curving like a snake above a waving brick flag](../../../../tests/snapshots/docs/2d/meshes.webgl.png)
 
 ## Simple meshes and perspective
 

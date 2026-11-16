@@ -1,6 +1,6 @@
+// #region result
 import { Canvas, extend } from '@react-fiber/core';
 import type { ThreeElement } from '@react-fiber/core';
-// #region result
 import { Container, Graphics, Text } from 'pixi.js';
 
 /** A rounded button with a label, built from pixi.js's own classes */

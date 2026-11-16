@@ -1,6 +1,6 @@
+// #region events
 import { useFrame } from '@react-fiber/threejs-compat';
 import type { Mesh } from '@react-fiber/threejs-compat/three';
-// #region events
 import { useRef, useState } from 'react';
 // #endregion events
 

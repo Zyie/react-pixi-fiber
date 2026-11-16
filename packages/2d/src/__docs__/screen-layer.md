@@ -46,7 +46,7 @@ function Backdrop() {
 }
 ```
 
-![A spinning green box over a blue backdrop, with a dark readout of its turns at the top right](../../../tests/snapshots/docs/2d/hud.webgl.png)
+![A spinning green box over a blue backdrop, with a dark readout of its turns at the top right](../../../../tests/snapshots/docs/2d/hud.webgl.png)
 
 A colour `background` on the Canvas, or the scene's, is behind everything; a 2D backdrop draws over it.
 

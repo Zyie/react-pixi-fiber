@@ -1,5 +1,5 @@
-import { Canvas, createPortal } from '@react-fiber/threejs-compat';
 // #region result
+import { Canvas, createPortal } from '@react-fiber/threejs-compat';
 import { useState } from 'react';
 import type { ElementRef } from 'react';
 // #endregion result

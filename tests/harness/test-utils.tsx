@@ -18,7 +18,7 @@ export * from './scene-runner';
 
 declare module 'vitest' {
   export interface ProvidedContext {
-    /** Which renderer family `react-pixi-fiber` resolves to in this vitest project */
+    /** Which renderer family the packages resolve to in this vitest project */
     fiber: FiberFamily;
   }
 }

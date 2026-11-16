@@ -1,5 +1,5 @@
-import { Canvas, useFrame } from '@react-fiber/core';
 // #region result
+import { Canvas, useFrame } from '@react-fiber/core';
 import { BitmapFont, TextStyle } from 'pixi.js';
 import type { BitmapText } from 'pixi.js';
 import { useRef } from 'react';

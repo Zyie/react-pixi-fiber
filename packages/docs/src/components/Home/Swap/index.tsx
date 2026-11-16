@@ -8,7 +8,12 @@ import styles from './styles.module.css';
 
 /** The two packages the panel swaps between, and what draws the scene with each */
 const RENDERERS = {
-  pixi: { from: 'react-pixi-fiber', label: 'react-pixi-fiber', drawn: 'pixi-3d', picture: '/img/hero-pixi.png' },
+  pixi: {
+    from: '@react-fiber/threejs-compat',
+    label: '@react-fiber/threejs-compat',
+    drawn: 'pixi-3d',
+    picture: '/img/hero-pixi.png',
+  },
   three: { from: '@react-three/fiber', label: '@react-three/fiber', drawn: 'three.js', picture: '/img/hero-three.png' },
 } as const;
 
@@ -31,7 +36,7 @@ const SCENE = [
 
 /**
  * The hero's picture of the idea: one scene, whose import a reader swaps between react-three-fiber and
- * react-pixi-fiber, and the cube each draws: pixi-3d's through react-pixi-fiber, three.js's through r3f.
+ * `@react-fiber/threejs-compat`, and the cube each draws: pixi-3d's through it, three.js's through r3f.
  * Only the import line changes.
  */
 export default function Swap(): ReactNode {

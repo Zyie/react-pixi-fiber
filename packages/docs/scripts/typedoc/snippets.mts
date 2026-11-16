@@ -31,7 +31,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /** The repo root; from `import.meta.url`, which jiti, the loader of the site's config, also provides */
-export const ROOT = fileURLToPath(new URL('../../..', import.meta.url)).replace(/[\\/]$/, '');
+export const ROOT = fileURLToPath(new URL('../../../..', import.meta.url)).replace(/[\\/]$/, '');
 
 /** A problem in one doc, at a line of it */
 export interface SnippetProblem {
@@ -56,15 +56,15 @@ const FENCE = /^(`{3,})\s*(\w*)/;
 export const REGION = /^\s*(?:\/\/|\{\/\*)\s*#(region|endregion)\b\s*([\w-]*)/;
 
 /**
- * Every guide of the repo, `src/**\/__docs__/*.md`, wherever in `src` it sits
+ * Every guide of the repo, `packages/<package>/src/**\/__docs__/*.md`, wherever in a package's `src` it sits
  * @param root - The repo root
  * @returns Their paths from the repo root, sorted
  */
 export function guideFiles(root: string = ROOT): string[] {
-  if (!fs.existsSync(path.join(root, 'src'))) return [];
+  if (!fs.existsSync(path.join(root, 'packages'))) return [];
 
   return fs
-    .globSync('src/**/__docs__/*.md', { cwd: root })
+    .globSync('packages/*/src/**/__docs__/*.md', { cwd: root })
     .map((file) => file.split(path.sep).join('/'))
     .sort();
 }
@@ -231,7 +231,7 @@ if (import.meta.main) {
       console.log(`Updating ${doc}`);
       fs.writeFileSync(path.join(ROOT, doc), text);
     } else {
-      console.error(`${doc} is out of date; run node docs/scripts/typedoc/snippets.mts --write`);
+      console.error(`${doc} is out of date; run node packages/docs/scripts/typedoc/snippets.mts --write`);
       stale++;
     }
   }

@@ -11,21 +11,25 @@ Tests run in real Chromium with WebGL and WebGPU enabled, not jsdom. Pick the fi
 
 To add a scene or an example, write only that file. On every run a vitest plugin (`scripts/test/generate-test-wrappers.mts`) writes a gitignored wrapper for it, so each is a test file of its own and they run in parallel: `<name>.scene.test.ts` beside a scene, and `tests/docs/<topic>/<name>.example.test.ts` for an example.
 
-## Where the package resolves
+## Where the packages resolve
 
-A scene, an example and a docs page import the library by its package names, `react-pixi-fiber`, `react-pixi-fiber/three` and `react-pixi-fiber/addons`, and nothing else that names a renderer. So the same file renders through real three.js when the names point at r3f's own WebGL entry, `legacy.tsx`, at `three` and at three's addons, and that is how parity is measured. `FIBER_TARGETS` in `scripts/test/aliases.mts` names both families' targets, and every vitest project and the playground read them from there:
+The tests live at the root, beside the shared harness, the vitest config and the playground: `tests/scenes` and `examples` for every package, `tests/unit` for the unit tests. The scene folders map to the packages: `tests/scenes/2d` and `examples/2d` test `@react-fiber/2d`, `tests/scenes/mixed` core's bridges with 2d, and every other folder the r3f API through `@react-fiber/threejs-compat`, measured against three.js. The references of all of them are in `tests/snapshots`.
 
-| Specifier                 | `pixi` family (`scenes`, `unit`, pixi playground frames) | `three` family (`three` project, three.js playground frame)  |
-| ------------------------- | -------------------------------------------------------- | ------------------------------------------------------------ |
-| `react-pixi-fiber`        | `src/index.tsx`                                          | `src/r3f/src/legacy.tsx`, three.js `WebGLRenderer`           |
-| `react-pixi-fiber/three`  | `src/three.ts`                                           | `three`                                                      |
-| `react-pixi-fiber/addons` | `src/addons/index.ts`                                    | `tests/harness/three-addons.ts`, re-exporting `three/addons` |
+A scene, an example and a docs page import the packages by name, and nothing else that names a renderer: `@react-fiber/threejs-compat` (r3f's API), `@react-fiber/threejs-compat/three` and `@react-fiber/threejs-compat/addons`, or in 2D and mixed files `@react-fiber/core` and `@react-fiber/2d`. So the same file renders through real three.js when the names point at r3f's own WebGL entry, `legacy.tsx`, at `three` and at three's addons, and that is how parity is measured. `FIBER_TARGETS` in `scripts/test/aliases.mts` names both families' targets, and every vitest project and the playground read them from there:
 
-Both families sit on the same forked r3f core, so a hook a scene imports is the same function under either. The type checker reads the package names from `tsconfig.json`, on the `pixi` side.
+| Specifier                            | `pixi` family (`scenes`, `unit`, pixi playground frames) | `three` family (`three` project, three.js playground frame)  |
+| ------------------------------------ | -------------------------------------------------------- | ------------------------------------------------------------ |
+| `@react-fiber/threejs-compat`        | `packages/threejs-compat/src/index.ts`                   | `packages/r3f/src/legacy.tsx`, three.js `WebGLRenderer`      |
+| `@react-fiber/threejs-compat/three`  | `packages/threejs-compat/src/three.ts`                   | `three`                                                      |
+| `@react-fiber/threejs-compat/addons` | `packages/threejs-compat/src/addons/index.ts`            | `tests/harness/three-addons.ts`, re-exporting `three/addons` |
+| `@react-fiber/core`                  | `packages/core/src/index.tsx`                            | `packages/r3f/src/legacy.tsx`                                |
+| `@react-fiber/2d`                    | `packages/2d/src/index.ts`                               | `tests/harness/pixi-only.ts`, an empty module                |
+
+Both families sit on the same forked r3f core, so a hook a scene imports is the same function under either. The harness's runner imports `createRoot` from `@react-fiber/threejs-compat`, which installs it on pixi, and imports `@react-fiber/2d` to install it for every scene; on three.js they are r3f's entry and the empty module. The type checker reads the package names from `tsconfig.base.json`, on the `pixi` side; a unit test reaches threejs-compat's internals through `~threejs-compat/` (`tsconfig.json` and `vitest.config.ts`).
 
 ## Visual scenes
 
-Each `tests/scenes/**/*.scene.tsx` exports a `scene`. Its `render()` returns what an r3f `<Canvas>` would hold: three.js element names and hooks from `react-pixi-fiber`.
+Each `tests/scenes/**/*.scene.tsx` exports a `scene`. Its `render()` returns what an r3f `<Canvas>` would hold: three.js element names and hooks from `@react-fiber/threejs-compat`.
 
 ```tsx
 import { useFrame } from '@react-fiber/threejs-compat';
@@ -60,11 +64,11 @@ export const scene: TestScene = {
 };
 ```
 
-A scene imports `react`, `react-pixi-fiber`, `react-pixi-fiber/three`, `react-pixi-fiber/addons` and `@test-scene`, and nothing from `three` or `@pixi/3d` directly: either would tie it to one renderer, and it runs on both. Classes, math and constants come from `react-pixi-fiber/three` (`import { Color, Vector3 } from '@react-fiber/threejs-compat/three'`), which is `three` itself on the three.js side, and addons from `react-pixi-fiber/addons`. A scene names only what both sides have: r3f's API, three's element names and the classes `react-pixi-fiber/three` shares with `three`. The library's own extras, such as `PixiRenderer` or pixi-3d's element names (`<cubeGeometry>`, `<material3D>`), exist only on pixi-3d, so a scene that uses them skips three.js and sets `parity: false`, as `tests/scenes/core/native-names.scene.tsx` does.
+A scene imports `react`, `@react-fiber/threejs-compat`, its `/three` and `/addons`, and `@test-scene`, and nothing from `three` or `@pixi/3d` directly: either would tie it to one renderer, and it runs on both. Classes, math and constants come from `@react-fiber/threejs-compat/three` (`import { Color, Vector3 } from '@react-fiber/threejs-compat/three'`), which is `three` itself on the three.js side, and addons from `@react-fiber/threejs-compat/addons`. A scene names only what both sides have: r3f's API, three's element names and the classes `@react-fiber/threejs-compat/three` shares with `three`. The packages' own extras, such as `PixiRenderer` or pixi-3d's element names (`<cubeGeometry>`, `<material3D>`), exist only on pixi-3d, so a scene that uses them skips three.js and sets `parity: false`, as `tests/scenes/core/native-names.scene.tsx` does.
 
 ### 2D and mixed scenes
 
-pixi.js 2D has no three.js counterpart, so a scene with 2D elements in it has nothing to measure parity against. Put it in a 2D folder: `tests/scenes/2d` for 2D alone (a subfolder per feature, such as `2d/graphics`, `2d/filters` or `2d/animated-sprite`), `tests/scenes/mixed` for 2D with 3D, including the bridges (`mixed/anchors`, `mixed/view3d`, `mixed/layer3d`, `mixed/render-texture` and their `-events` scenes), and `examples/2d` for a docs example. Their scenes are `PIXI_ONLY` without saying so (`PIXI_ONLY_FOLDERS` in `tests/harness/scene-constants.ts`, applied by `withFolderDefaults`): they skip three.js and leave out the parity comparison, the `three` project doesn't load them, and the playground's three.js frame shows them as skipped. Such a scene may import `pixi.js` (`Texture`, `Rectangle`, types), `pixi-filters`, and this library's own names (`useAsset`, `ThreeEvent2D`, `View3D`, `Layer3D`, `RenderTexture2D`), which a parity scene can't. A 2D scene anywhere else spreads `PIXI_ONLY` from `@test-scene` into its object.
+pixi.js 2D has no three.js counterpart, so a scene with 2D elements in it has nothing to measure parity against. Put it in a 2D folder: `tests/scenes/2d` for 2D alone (a subfolder per feature, such as `2d/graphics`, `2d/filters` or `2d/animated-sprite`), `tests/scenes/mixed` for 2D with 3D, including the bridges (`mixed/anchors`, `mixed/view3d`, `mixed/layer3d`, `mixed/render-texture` and their `-events` scenes), and `examples/2d` for a docs example. Their scenes are `PIXI_ONLY` without saying so (`PIXI_ONLY_FOLDERS` in `tests/harness/scene-constants.ts`, applied by `withFolderDefaults`): they skip three.js and leave out the parity comparison, the `three` project doesn't load them, and the playground's three.js frame shows them as skipped. Such a scene may import `pixi.js` (`Texture`, `Rectangle`, types), `pixi-filters`, and the packages' own names, from `@react-fiber/core` (hooks, `ThreeEvent2D`, `View3D`, `Layer3D`, `RenderTexture2D`) and `@react-fiber/2d` (`useAsset`), which a parity scene can't. A 2D scene anywhere else spreads `PIXI_ONLY` from `@test-scene` into its object.
 
 Each is held to its own WebGL and WebGPU references, which should agree with each other: when you write one, look at both, and compare them (the playground's Diff between pixi WebGL and pixi WebGPU). A 2D element's `x` and `y` are CSS pixels from the canvas's top-left corner, so `mouse.move(x, y)` in `act` lands on it at the same numbers.
 
@@ -80,7 +84,7 @@ export const scene: TestScene = {
 For each renderer of the vitest project, the harness (`tests/harness/scene-runner.tsx`):
 
 1. Puts a 400 by 300 canvas at a device pixel ratio of 1 on the page, over a black background. Both renderers clear to transparent, so the black shows through.
-2. Creates a root with `createRoot` from `react-pixi-fiber`, `frameloop: 'never'`, r3f's pointer events and the scene's `canvas` props, and renders the scene. It waits for anything the scene suspends on, such as a texture.
+2. Creates a root with `createRoot` from `@react-fiber/threejs-compat`, `frameloop: 'never'`, r3f's pointer events and the scene's `canvas` props, and renders the scene. It waits for anything the scene suspends on, such as a texture.
 3. Holds `performance.now()` still, and advances the root by `frames` frames, each a sixtieth of a second of the scene's clock after the one before. The first frame has a delta of 0. Nothing moves between frames, so the picture doesn't depend on how fast the machine ran.
 4. Runs `act`, if there is one, then advances one more frame.
 5. Captures the canvas and compares it with `tests/snapshots/<key>.<renderer>.png`. On a pixi-3d renderer it then measures the capture against `tests/snapshots/<key>.three.png` (see "Parity with three.js").
@@ -257,7 +261,7 @@ A scene that can't pass yet carries `fails`, with part of the failure message it
 
 ## Unit tests
 
-A unit test is for what no picture shows: that `react-pixi-fiber/three`'s math gives three's numbers (`tests/unit/three-math.test.ts` runs each call on both and imports `three` to do it, which a scene never does), that a mesh, its geometry and its material were destroyed on unmount, that a re-render kept the same object, that `<Canvas>` measured its parent and ran the real `requestAnimationFrame` loop, that camera matrices are ready before the first frame, that the renderer keeps and releases one view per scene, that the canvas clears to transparent, that 2D elements and a root's 2D frame jobs are freed with it and that 2D text follows the root's pixel ratio (`tests/unit/two-d.test.tsx`), and that each bridge frees its anchor, embedded view or render target on unmount (`tests/unit/bridges.test.tsx`). They run in the `unit` project on pixi-3d, after the scenes, because the loop stalls while other pages hold the GPU. A test that uses React's `act` sets `globalThis.IS_REACT_ACT_ENVIRONMENT = true`; one that runs the real loop sets it to `false` and waits with `vi.waitFor`.
+A unit test is for what no picture shows: that `@react-fiber/threejs-compat/three`'s math gives three's numbers (`tests/unit/three-math.test.ts` runs each call on both and imports `three` to do it, which a scene never does), that a mesh, its geometry and its material were destroyed on unmount, that a re-render kept the same object, that `<Canvas>` measured its parent and ran the real `requestAnimationFrame` loop, that camera matrices are ready before the first frame, that the renderer keeps and releases one view per scene, that the canvas clears to transparent, that 2D elements and a root's 2D frame jobs are freed with it and that 2D text follows the root's pixel ratio (`tests/unit/two-d.test.tsx`), and that each bridge frees its anchor, embedded view or render target on unmount (`tests/unit/bridges.test.tsx`). They run in the `unit` project on pixi-3d, after the scenes, because the loop stalls while other pages hold the GPU. A unit test imports the packages as an app does: one that renders 2D imports `@react-fiber/2d`, since it doesn't go through the scene runner, which installs it. A test that uses React's `act` sets `globalThis.IS_REACT_ACT_ENVIRONMENT = true`; one that runs the real loop sets it to `false` and waits with `vi.waitFor`.
 
 ## Assets
 
@@ -267,4 +271,4 @@ Scenes load textures from `tests/assets`, which vitest and the playground both s
 
 `npm start` serves `playground/` on http://localhost:5181. It lists every scene and example, 2D ones included, and builds the one you pick three times, each in a hidden frame of its own on the runner the tests use: pixi WebGL, pixi WebGPU and three.js, side by side. Diff compares any two of them and measures the difference as the tests measure parity. Each pane's `open` link shows that frame on its own, and an example's `live` link runs it as an app.
 
-A frame on three.js loads its entry with `?fiber=three`. The playground's Vite plugin carries that query through every script the frame reaches outside `node_modules`, so those modules are copies of their own in that frame and the package's names resolve to `FIBER_TARGETS.three` there. Frames are built one after another, since each loads pixi-3d and r3f from source.
+A frame on three.js loads its entry with `?fiber=three`. The playground's Vite plugin carries that query through every script the frame reaches outside `node_modules`, so those modules are copies of their own in that frame and the packages' names resolve to `FIBER_TARGETS.three` there. Frames are built one after another, since each loads pixi-3d and r3f from source.

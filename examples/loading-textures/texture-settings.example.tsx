@@ -1,6 +1,6 @@
+// #region result
 import { useLoader } from '@react-fiber/threejs-compat';
 import { NearestFilter, RepeatWrapping, TextureLoader } from '@react-fiber/threejs-compat/three';
-// #region result
 import { useMemo } from 'react';
 // #endregion result
 

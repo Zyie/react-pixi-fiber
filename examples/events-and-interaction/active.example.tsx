@@ -1,5 +1,5 @@
-import { Canvas } from '@react-fiber/threejs-compat';
 // #region result
+import { Canvas } from '@react-fiber/threejs-compat';
 import { useState } from 'react';
 // #endregion result
 

@@ -1,5 +1,5 @@
-import type { Mesh, SpotLight } from '@react-fiber/threejs-compat/three';
 // #region spot
+import type { Mesh, SpotLight } from '@react-fiber/threejs-compat/three';
 import { useLayoutEffect, useRef } from 'react';
 // #endregion spot
 

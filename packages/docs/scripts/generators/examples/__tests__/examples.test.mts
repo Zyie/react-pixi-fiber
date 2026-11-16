@@ -20,7 +20,7 @@ const SYNC = new URL('../../../sync.mts', import.meta.url).pathname;
 
 /**
  * Runs the examples generator with a root
- * @param root - The root, with its `examples/`, `tests/snapshots/docs` and `src/**\/__docs__`
+ * @param root - The root, with its `examples/`, `tests/snapshots/docs` and `packages/<package>/src/**\/__docs__`
  */
 function generate(root: string): Generated {
   const script = `
@@ -101,7 +101,7 @@ await test('with no examples, the gallery is the only page and the catalogue is 
 
 await test("each example gets a page titled by its object, its guide's section, or its name, described by its guide's lead or else its object, and its picture when there is one", () => {
   const root = rootWith({
-    'src/__docs__/your-first-scene.md': [
+    'packages/threejs-compat/src/__docs__/your-first-scene.md': [
       '# Your first scene',
       '',
       '## A turning box',
@@ -111,10 +111,10 @@ await test("each example gets a page titled by its object, its guide's section, 
       '<!-- snippet: examples/your-first-scene/box.example.tsx#scene -->',
       '',
       '```tsx',
-      "import { useFrame } from 'react-pixi-fiber';",
+      "import { useFrame } from '@react-fiber/threejs-compat';",
       '```',
       '',
-      '![A pink square](../../tests/snapshots/docs/your-first-scene/box.webgl.png)',
+      '![A pink square](../../../../tests/snapshots/docs/your-first-scene/box.webgl.png)',
       '',
       '## The result',
       '',

@@ -70,7 +70,7 @@ function Score() {
 }
 ```
 
-![A game-over screen: a white title outlined in red, a yellow score in a bitmap font, and wrapped text](../../../tests/snapshots/docs/2d/text.webgl.png)
+![A game-over screen: a white title outlined in red, a yellow score in a bitmap font, and wrapped text](../../../../tests/snapshots/docs/2d/text.webgl.png)
 
 `useFrame` writes the text through a ref here, so the score changes every frame without rendering the component. A bitmap font from a file (`.fnt` or `.xml`) loads with `useAsset` and is used by the name it declares; see [Loading 2D assets](loading-2d.md). A loaded font's glyphs are multiplied by the style's `fill`, which is black by default, so give it `fill: 'white'` and colour it with `fill` or `tint`.
 

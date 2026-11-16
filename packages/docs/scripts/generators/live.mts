@@ -2,8 +2,8 @@
  * The runtime of the live examples, in `static/runtime`:
  *
  * - `js/`: ES modules of every package a program can import, built from the repo's sources and the
- *   pinned packages: react-pixi-fiber from its entry in `src`, @pixi/3d, pixi.js, pixi-filters, React and
- *   React DOM, and the frame's own module. A frame imports them from the site by URL, each
+ *   pinned packages: every entry of the `@react-fiber/*` packages from its source, sharing one copy of
+ *   each package, @pixi/3d, pixi.js, pixi-filters, React and React DOM, and the frame's own module. A frame imports them from the site by URL, each
  *   chunk importing another by its relative path; `manifest.json` lists them, with what each imports.
  * - `assets/`: the images and models of `tests/assets`, when there is one, which a program loads by name
  *   as the visual tests do.
@@ -20,7 +20,7 @@ import { rolldown } from 'rolldown';
 import type { OutputChunk, Plugin } from 'rolldown';
 
 import type { RuntimeAsset, RuntimeManifest } from '../../src/components/Live/types.ts';
-import { ROOT } from '../paths.mts';
+import { PACKAGE_SOURCES, ROOT } from '../paths.mts';
 import type { GeneratedFiles, Generator } from '../sync.mts';
 import { ENTRIES, entryFile, packageName } from '../typedoc/entries.mts';
 import type { Built } from './cache.mts';
@@ -28,13 +28,13 @@ import { cached, hashOf, LOCKFILE } from './cache.mts';
 
 const OUT = 'static/runtime';
 const BASE = 'runtime/';
-const LIVE = 'docs/src/components/Live';
+const LIVE = 'packages/docs/src/components/Live';
 const FRAME = path.join(ROOT, LIVE, 'frame/frame.ts');
 const ASSETS = 'tests/assets';
 const require = createRequire(path.join(ROOT, 'package.json'));
 
 /** What every cached build here is built from besides its own sources: the packages, and this file */
-const BUILT_WITH = [LOCKFILE, 'docs/scripts/generators/live.mts'];
+const BUILT_WITH = [LOCKFILE, 'packages/docs/scripts/generators/live.mts'];
 
 /** The CommonJS packages a program imports by name, each given ES exports by a facade */
 const COMMONJS = ['react', 'react/jsx-runtime', 'react-dom', 'react-dom/client'];
@@ -66,8 +66,9 @@ function chunkName(specifier: string): string {
 }
 
 /**
- * Resolves the names the repo resolves through tsconfig paths, `react-pixi-fiber` and `~/`, to their
- * sources, and gives each CommonJS package an ES facade with named exports
+ * Resolves the package entries a program imports to their sources, and gives each CommonJS package an ES
+ * facade with named exports; the names the packages import each other by resolve through the root
+ * tsconfig.json's paths
  * @param entries - Every module a program can import, from `modules()`
  */
 function runtimePlugin(entries: Readonly<Record<string, string>>): Plugin {
@@ -75,7 +76,6 @@ function runtimePlugin(entries: Readonly<Record<string, string>>): Plugin {
     name: 'live-runtime',
     resolveId(id) {
       if (id.startsWith('\0facade:')) return id;
-      if (id.startsWith('~/')) return { id: path.join(ROOT, 'src', id.slice(2)) };
 
       const file = entries[id];
 
@@ -149,7 +149,18 @@ export const live: Generator = {
   async generate() {
     const built = await cached(
       'live-modules',
-      hashOf([], ['src', `${LIVE}/frame`, `${LIVE}/types.ts`, 'tsconfig.json', ...BUILT_WITH]),
+      hashOf(
+        [],
+        [
+          ...PACKAGE_SOURCES,
+          'packages/r3f/src',
+          `${LIVE}/frame`,
+          `${LIVE}/types.ts`,
+          'tsconfig.json',
+          'tsconfig.base.json',
+          ...BUILT_WITH,
+        ],
+      ),
       buildModules,
     );
     const files: GeneratedFiles = { ...built.files };

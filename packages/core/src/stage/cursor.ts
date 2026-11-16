@@ -18,7 +18,8 @@ export function showCursorOf(clear: () => void, source: Container | null): void 
  * Clears the cursor of every canvas that shows the cursor of a 2D object being taken out of the tree, or
  * of one under it, as pixi's own event system does on its next tick
  * @param removed - The object taken out
- * @internal
+ * @category renderer
+ * @advanced
  */
 export function clearCursorsUnder(removed: Container): void {
   if (shown.size === 0) return;

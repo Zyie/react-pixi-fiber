@@ -15,7 +15,7 @@ import { blobUrl, editUrl, R3F_DOCS } from '../../links/index.ts';
 import { listExamples } from '../../plugins/example/catalogue.mts';
 import { examplePrograms } from '../../plugins/example/source.mts';
 import type { ApiExampleUse, ApiGuideUse, ApiUsageProps } from '../../src/components/Api/ApiUsage.tsx';
-import { ROOT } from '../paths.mts';
+import { PACKAGE_SOURCES, ROOT } from '../paths.mts';
 import type { GeneratedFiles, Generator, Shared } from '../sync.mts';
 import type { ApiCallable, ApiDoc, ApiEntry, ApiMember, ApiSymbol } from '../typedoc/api.mts';
 import { ENTRIES, entryFile, isVendored, MAIN, packageName } from '../typedoc/entries.mts';
@@ -50,20 +50,40 @@ const OUT = 'content/api';
 
 /** Each entry's place in the sidebar and what it is for */
 const ENTRY_INFO: Readonly<Record<EntryName, { position: number; summary: string; related?: readonly string[] }>> = {
-  'react-pixi-fiber': {
+  core: {
     position: 1,
     summary:
-      "react-three-fiber's API on pixi-3d: `Canvas`, `createRoot`, the hooks, `extend` and the JSX elements under three's names.",
+      "react-three-fiber's API on pixi.js: `Canvas`, `createRoot`, the hooks, `extend`, events, and the bridges between 2D and 3D. The 2D and 3D packages add their elements to it.",
+  },
+  '2d': {
+    position: 2,
+    summary:
+      "pixi.js's 2D classes as elements (`<sprite2D>`, `<graphics2D>`, ...), which importing the package installs, and `useAsset` to load with pixi's `Assets`.",
+  },
+  'threejs-compat': {
+    position: 3,
+    summary:
+      "r3f's API with three's names over @pixi/3d, for 1-1 swaps of r3f scenes: everything `@react-fiber/core` exports, three's JSX elements, `<Environment>` and the three-shaped renderer.",
   },
   three: {
-    position: 2,
+    position: 4,
     summary:
       "three.js's API on pixi-3d, for code that imports from `three`: the math classes, the catalog's classes under three's names, and three's constants.",
   },
   addons: {
-    position: 3,
+    position: 5,
     summary:
-      'What r3f apps import from `three/addons`, on pixi-3d: the loaders and controls, as they land. Empty for now: `GLTFLoader` and `OrbitControls` come here.',
+      'What r3f apps import from `three/addons`, on pixi-3d: `GLTFLoader`, `DRACOLoader`, `OrbitControls`, `MapControls`, `HDRLoader` and `RGBELoader`.',
+  },
+  '3d': {
+    position: 6,
+    summary:
+      "@pixi/3d's classes as elements under pixi's conventions. A skeleton for now: the hooks of @pixi/3d's objects.",
+  },
+  extension: {
+    position: 7,
+    summary:
+      "What packages that build on core plug in with: the registry, through pixi.js's `extensions`, and the stage, hit order and renderer parts a package's objects join.",
   },
 };
 
@@ -578,7 +598,7 @@ function entryPage(site: Site, api: ApiEntry): Page {
         rows.map((page) => [
           [link(page.route, inlineCode(page.title))],
           [...(isAdvanced(page.symbol.doc) ? [ApiBadge({}, [text('Advanced')]), text(' ')] : []), ...describe(page)],
-          [text(isVendored(page.symbol.source) ? 'r3f' : 'react-pixi-fiber')],
+          [text(isVendored(page.symbol.source) ? 'r3f' : entry.package)],
         ]),
       ),
     );
@@ -667,9 +687,7 @@ function indexPage(site: ApiModel): Page {
 
   writer.nodes.push(
     paragraph(
-      'Every name ',
-      inlineCode(packageName(MAIN)),
-      ' exports, read from its source and JSDoc. ',
+      'Every name the packages export, by entry, read from their source and JSDoc. ',
       ...(vendored > 0
         ? [
             `${vendored} of them come from react-three-fiber's core, which runs here as its own code, so `,
@@ -776,7 +794,7 @@ async function usageOf(shared: Shared): Promise<Usage> {
 export const api: Generator = {
   name: 'api',
   outputs: [OUT, 'llms/api'],
-  sources: ['src', 'docs/scripts/typedoc', 'examples', 'tests/snapshots/docs', 'tsconfig.json'],
+  sources: [...PACKAGE_SOURCES, 'packages/docs/scripts/typedoc', 'examples', 'tests/snapshots/docs', 'tsconfig.json'],
   generate: async (shared) => {
     const site: Site = { ...shared(apiModel), usage: await usageOf(shared) };
     const files: GeneratedFiles = writePage(indexPage(site));

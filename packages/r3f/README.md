@@ -1,14 +1,17 @@
 # react-three-fiber with renderer hooks
 
 A fork of [react-three-fiber](https://github.com/pmndrs/react-three-fiber)'s `packages/fiber` (`src`,
-`types`, `package.json`) at `v10` commit `58acabc0fc996bac5a25320ca3a8670bdd209db7`. Core keeps React's
+`types`) at `v10` commit `58acabc0fc996bac5a25320ca3a8670bdd209db7`, published in this repo as
+`@react-fiber/r3f`. Core keeps React's
 tree, props, events and the frame loop. Where it reached into three.js objects, it now asks the root's
 renderer support through seven hooks. three's two supports implement them with the code core ran before,
 so three.js apps behave as they did, and r3f's own test suite passes unchanged.
 
-react-pixi-fiber runs pixi.js 2D and `@pixi/3d` on this core with a support of its own.
+react-pixi-fiber runs pixi.js 2D and `@pixi/3d` on this core with a support of its own: its
+`@react-fiber/core` package bundles this core and gives roots a renderer support that the 2D and 3D
+packages fill.
 
-The whole change is [`fork.diff`](./fork.diff): <!-- diff-size -->13 files changed, 202 lines added, 103 lines removed<!-- /diff-size -->.
+The whole change is [`fork.diff`](./fork.diff): <!-- diff-size -->12 files changed, 201 lines added, 102 lines removed<!-- /diff-size -->.
 `npm run diff:r3f` writes it, and `npm run test:lint` fails when it is stale.
 
 ## The interface
@@ -162,12 +165,16 @@ pnpm install && pnpm typecheck && pnpm vitest run packages/fiber
 ## Our files
 
 - `fork.diff` and this README.
+- `package.json`: upstream's, under the name `@react-fiber/r3f`. Upstream's workspace depends on the
+  package as `@react-three/fiber`, so the rename stays out of the diff.
+- `tsconfig.json` and `tsdown.config.ts`: the build of upstream's four entries (`index`, `legacy`,
+  `webgpu`, `extension`) into `dist`, in place of upstream's `build.config.ts`, which isn't copied.
 - `react-reconciler/`: re-exports of the npm package at the path core imports. Upstream generates an ESM
   build there at install time; ours names each constant, because `export *` from its CommonJS `constants`
   module loses exports under Vite.
 
 To move to a newer upstream commit: in a full clone of r3f at that commit, apply `fork.diff` in
 `packages/fiber` with `git apply -3` (the clone has this commit's files for the 3-way merge) and resolve
-what conflicts. Copy its `src`, `types` and `package.json` over these, pin the commit in
+what conflicts. Copy its `src` and `types` over these, and its `package.json` with our name, pin the commit in
 `scripts/repos/manifest.mts`, run `npm run sync:repos react-three-fiber`, then `npm run diff:r3f` and the
 full test suite.

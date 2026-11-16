@@ -9,7 +9,8 @@ const backdrops = new WeakMap<Container, Sprite>();
  * layer holding the view when the scene has 2D
  * @param stage - The view's stage
  * @param view - The view
- * @internal
+ * @category renderer
+ * @advanced
  */
 export function indexUnderView(stage: Container, view: View3D): number {
   let slot: Container = view;
@@ -26,7 +27,8 @@ export function indexUnderView(stage: Container, view: View3D): number {
  * @param background - The scene's background; anything but a texture hides the backdrop
  * @param intensity - three's `backgroundIntensity`
  * @returns Whether a texture is drawn
- * @internal
+ * @category renderer
+ * @advanced
  */
 export function updateBackdrop(stage: Container, view: View3D, background: unknown, intensity: number): boolean {
   if (!(background instanceof Texture)) {

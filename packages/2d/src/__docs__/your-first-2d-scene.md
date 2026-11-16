@@ -4,7 +4,7 @@ react-pixi-fiber renders pixi.js 2D as well as pixi-3d, and both are written the
 
 ## Setting up the Canvas
 
-The `<Canvas>` is the one from [Your first scene](../../__docs__/your-first-scene.md). It fills its parent, so give the parent a size:
+The `<Canvas>` is the one from [Your first scene](../../../threejs-compat/src/__docs__/your-first-scene.md). It fills its parent, so give the parent a size:
 
 ```css
 #canvas-container {
@@ -65,7 +65,7 @@ export function App() {
 }
 ```
 
-![A white frame, the text Hello 2D, and a blue square turned by half a second of animation](../../../tests/snapshots/docs/2d/first-2d-scene.webgl.png)
+![A white frame, the text Hello 2D, and a blue square turned by half a second of animation](../../../../tests/snapshots/docs/2d/first-2d-scene.webgl.png)
 
 ## 2D elements
 

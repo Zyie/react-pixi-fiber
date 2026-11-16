@@ -1,16 +1,19 @@
 /**
  * Where a hit is drawn on its screen layer, front to back: 2D drawn over the scene's 3D
- * @internal
+ * @category renderer
+ * @advanced
  */
 export const OVER_3D = 0;
 /**
  * Where a hit is drawn on its screen layer, front to back: the scene's 3D
- * @internal
+ * @category renderer
+ * @advanced
  */
 export const IN_3D = 1;
 /**
  * Where a hit is drawn on its screen layer, front to back: 2D drawn under the scene's 3D
- * @internal
+ * @category renderer
+ * @advanced
  */
 export const UNDER_3D = 2;
 
@@ -18,6 +21,8 @@ export const UNDER_3D = 2;
  * A hit's place in what is drawn: pairs of a band (`OVER_3D`, `IN_3D`, `UNDER_3D`) and a place in
  * it (a 2D object's place from the front, a 3D hit's distance), outermost first. A layer drawn inside
  * another (a `<View3D>`, a `<RenderTexture2D>`) starts with the order of what holds it.
+ * @category renderer
+ * @advanced
  */
 export type DrawOrder = readonly number[];
 
@@ -29,7 +34,8 @@ const layers = new WeakMap<object, DrawOrder>();
  * The draw order a portal's hits start with: that of the 2D entry or the 3D hit the portal is drawn
  * at, or none for a root and any portal drawn over the whole canvas
  * @param raycaster - The portal's raycaster
- * @internal
+ * @category renderer
+ * @advanced
  */
 export const layerOrderOf = (raycaster: object): DrawOrder => layers.get(raycaster) ?? NO_LAYER;
 
@@ -49,7 +55,8 @@ export function setLayerOrder(raycaster: object, order: DrawOrder): void {
  * @param layer - The layer's own order, from {@link layerOrderOf}
  * @param band - `OVER_3D`, `IN_3D` or `UNDER_3D`
  * @param place - Its place in the band: a 2D object's place from the front, a 3D hit's distance
- * @internal
+ * @category renderer
+ * @advanced
  */
 export const drawOrder = (layer: DrawOrder, band: number, place: number): DrawOrder => [...layer, band, place];
 
@@ -57,7 +64,8 @@ export const drawOrder = (layer: DrawOrder, band: number, place: number): DrawOr
  * Records where a hit is drawn, for {@link compareHits}
  * @param hit - The hit
  * @param order - Its draw order
- * @internal
+ * @category renderer
+ * @advanced
  */
 export function setHitOrder(hit: object, order: DrawOrder): void {
   orders.set(hit, order);

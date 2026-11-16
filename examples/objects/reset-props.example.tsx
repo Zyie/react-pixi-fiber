@@ -1,6 +1,6 @@
+// #region result
 import { Canvas, useFrame } from '@react-fiber/threejs-compat';
 import type { Group } from '@react-fiber/threejs-compat/three';
-// #region result
 import { useEffect, useRef, useState } from 'react';
 // #endregion result
 

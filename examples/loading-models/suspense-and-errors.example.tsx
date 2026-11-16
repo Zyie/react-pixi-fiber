@@ -1,7 +1,7 @@
+// #region result
 import { Canvas, useLoader } from '@react-fiber/threejs-compat';
 import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
 import { Loader } from '@react-fiber/threejs-compat/three';
-// #region result
 import { Component, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 // #endregion result

@@ -1,6 +1,6 @@
+// #region result
 import { Canvas } from '@react-fiber/threejs-compat';
 import { MeshBasicMaterial, SphereGeometry } from '@react-fiber/threejs-compat/three';
-// #region result
 import { useEffect, useMemo, useState } from 'react';
 // #endregion result
 

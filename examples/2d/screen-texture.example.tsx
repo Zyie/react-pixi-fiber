@@ -1,6 +1,6 @@
+// #region result
 import { Canvas, RenderTexture2D, useThree } from '@react-fiber/core';
 import type { ThreeEvent2D } from '@react-fiber/core';
-// #region result
 import { useState } from 'react';
 // #endregion result
 

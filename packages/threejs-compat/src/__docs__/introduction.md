@@ -1,6 +1,6 @@
 # Introduction
 
-react-pixi-fiber is a React renderer for [pixi.js](https://pixijs.com) 2D and [pixi-3d](https://github.com/pixijs/3d) that keeps [react-three-fiber](https://r3f.docs.pmnd.rs)'s API for both. You build the scene with the same `<Canvas>`, the same hooks and the same JSX elements, and pixi-3d draws it. An r3f scene should only have to change its import. pixi.js's sprites, graphics, text, filters and masks are elements of the same tree (`<sprite2D>`, `<graphics2D>`, `<text2D>`), drawn over or under the 3D, with the same hooks and events; [Your first 2D scene](../two-d/__docs__/your-first-2d-scene.md) starts there. The two also cross: 2D labels that follow a 3D object, 3D drawn inside a 2D card, 2D filters on the 3D, and 2D drawn onto a material, in [Mixing 2D and 3D](../two-d/__docs__/mixing-2d-and-3d.md).
+react-pixi-fiber is a React renderer for [pixi.js](https://pixijs.com) 2D and [pixi-3d](https://github.com/pixijs/3d) that keeps [react-three-fiber](https://r3f.docs.pmnd.rs)'s API for both. You build the scene with the same `<Canvas>`, the same hooks and the same JSX elements, and pixi-3d draws it. An r3f scene should only have to change its import. pixi.js's sprites, graphics, text, filters and masks are elements of the same tree (`<sprite2D>`, `<graphics2D>`, `<text2D>`), drawn over or under the 3D, with the same hooks and events; [Your first 2D scene](../../../2d/src/__docs__/your-first-2d-scene.md) starts there. The two also cross: 2D labels that follow a 3D object, 3D drawn inside a 2D card, 2D filters on the 3D, and 2D drawn onto a material, in [Mixing 2D and 3D](../../../2d/src/__docs__/mixing-2d-and-3d.md).
 
 ```diff
 - import { Canvas, useFrame } from '@react-three/fiber';
@@ -58,9 +58,11 @@ What changes is underneath:
 - **A three-compat layer.** r3f apps read objects through three's members, such as `traverse`, `getWorldPosition` and `userData`. pixi-3d's containers, geometries and materials get that surface, and the renderer hooks tell r3f's core how to add, hit test and free them.
 - **An alias catalog under three's names.** `<mesh>`, `<boxGeometry>` and `<meshStandardMaterial>` are pixi-3d classes with three's constructor arguments and prop names, so `color`, `metalness` and `args` mean what they mean in three.js.
 
+Each part is a package. `@react-fiber/r3f` is the fork of r3f's core. `@react-fiber/core` runs it on pixi.js: `<Canvas>`, the renderer support and the renderer, and the bridges between 2D and 3D. `@react-fiber/threejs-compat` is the three-compat layer and the catalog, and `@react-fiber/2d` pixi.js's 2D elements; each registers with core through pixi.js's `extensions` when it is imported.
+
 ## Is it the same as three.js?
 
-That is the yardstick, and it is measured. Examples and tests name the library only by its package name, so the same scene file can be rendered through real three.js by pointing the `react-pixi-fiber` import at r3f's own WebGL entry. Each example's picture comes from that harness.
+That is the yardstick, and it is measured. Examples and tests name the library only by its package name, so the same scene file can be rendered through real three.js by pointing the `@react-fiber/threejs-compat` import at r3f's own WebGL entry. Each example's picture comes from that harness.
 
 Where it isn't the same yet, [Differences from react-three-fiber](differences.md) lists every part of r3f's surface and how it carries over, from what runs unchanged to what pixi-3d has no equivalent for.
 

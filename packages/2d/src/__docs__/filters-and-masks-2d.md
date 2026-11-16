@@ -72,7 +72,7 @@ function Coin() {
 }
 ```
 
-![A glowing gold coin on a navy card with a drop shadow, over a blurred brick wall](../../../tests/snapshots/docs/2d/filters.webgl.png)
+![A glowing gold coin on a navy card with a drop shadow, over a blurred brick wall](../../../../tests/snapshots/docs/2d/filters.webgl.png)
 
 ## Masks
 
@@ -116,7 +116,7 @@ function Darkness({ spot }: { spot: RefObject<Graphics | null> }) {
 }
 ```
 
-![Dark bricks with a circle of light over a gold coin](../../../tests/snapshots/docs/2d/masks.webgl.png)
+![Dark bricks with a circle of light over a gold coin](../../../../tests/snapshots/docs/2d/masks.webgl.png)
 
 With a mask element, pass both: `mask={shape && { mask: shape, inverse: true }}`.
 

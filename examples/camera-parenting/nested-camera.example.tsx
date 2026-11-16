@@ -1,7 +1,7 @@
+// #region rig
 import { Portal, useFrame, useThree } from '@react-fiber/threejs-compat';
 import { Vector3 } from '@react-fiber/threejs-compat/three';
 import type { Mesh } from '@react-fiber/threejs-compat/three';
-// #region rig
 import { useRef } from 'react';
 // #endregion rig
 

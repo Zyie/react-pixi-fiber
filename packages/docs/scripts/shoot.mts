@@ -3,7 +3,7 @@
  * page logs as an error: console errors, uncaught exceptions and failed requests.
  *
  * ```sh
- * node docs/scripts/shoot.mts [--name <name> | --dir <build> | --port <port>] --out <folder> [--full] / /docs/
+ * node packages/docs/scripts/shoot.mts [--name <name> | --dir <build> | --port <port>] --out <folder> [--full] / /docs/
  * ```
  *
  * It serves a build as the crawl does, `docs/build` or the one `--name` or `--dir` names, or with
@@ -40,7 +40,7 @@ const { values, positionals: pages } = parseArgs({
 
 if (!values.out || pages.length === 0) {
   console.error(
-    'Usage: node docs/scripts/shoot.mts [--name <name> | --dir <build> | --port <port>] --out <folder> [--full] <path>...',
+    'Usage: node packages/docs/scripts/shoot.mts [--name <name> | --dir <build> | --port <port>] --out <folder> [--full] <path>...',
   );
   process.exit(1);
 }

@@ -28,7 +28,7 @@ Any object that has a `raycast` method receives events, such as a mesh:
 </mesh>
 ```
 
-![A royal blue box that logs every pointer event it gets](../../tests/snapshots/docs/events-and-interaction/handlers.webgl.png)
+![A royal blue box that logs every pointer event it gets](../../../../tests/snapshots/docs/events-and-interaction/handlers.webgl.png)
 
 Start with the click a DOM element would have:
 
@@ -41,7 +41,7 @@ Start with the click a DOM element would have:
 </mesh>
 ```
 
-![A royal blue box that says hello when clicked](../../tests/snapshots/docs/events-and-interaction/hello.webgl.png)
+![A royal blue box that says hello when clicked](../../../../tests/snapshots/docs/events-and-interaction/hello.webgl.png)
 
 ## Changing the mesh
 
@@ -64,7 +64,7 @@ and scale the mesh by it:
 </mesh>
 ```
 
-![The box after one click, half as big again](../../tests/snapshots/docs/events-and-interaction/active.webgl.png)
+![The box after one click, half as big again](../../../../tests/snapshots/docs/events-and-interaction/active.webgl.png)
 
 Click the mesh and it scales up and down. In three steps it:
 
@@ -92,7 +92,7 @@ Click the mesh and it scales up and down. In three steps it:
 </mesh>
 ```
 
-![Two boxes, the right one pink under the pointer](../../tests/snapshots/docs/events-and-interaction/hover.webgl.png)
+![Two boxes, the right one pink under the pointer](../../../../tests/snapshots/docs/events-and-interaction/hover.webgl.png)
 
 ## The event object
 

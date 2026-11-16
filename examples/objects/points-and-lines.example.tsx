@@ -1,7 +1,7 @@
+// #region result
 import { Canvas, useFrame } from '@react-fiber/threejs-compat';
 import { BoxGeometry, BufferGeometry, Vector3 } from '@react-fiber/threejs-compat/three';
 import type { Points } from '@react-fiber/threejs-compat/three';
-// #region result
 import { useMemo, useRef } from 'react';
 // #endregion result
 

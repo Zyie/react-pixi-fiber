@@ -1,6 +1,6 @@
 # Animating 2D
 
-2D animates the way [3D does in r3f](../../__docs__/basic-animations.md): `useFrame` runs a callback before every frame, with the root's state and the frame's `delta`, and the callback changes objects through their refs. Changing them there, instead of through React state, re-renders nothing.
+2D animates the way [3D does in r3f](../../../threejs-compat/src/__docs__/basic-animations.md): `useFrame` runs a callback before every frame, with the root's state and the frame's `delta`, and the callback changes objects through their refs. Changing them there, instead of through React state, re-renders nothing.
 
 ## Through a ref
 
@@ -38,6 +38,6 @@ function Pulse() {
 }
 ```
 
-![A pink square bobbing and turning, and a blue circle growing and shrinking](../../../tests/snapshots/docs/2d/animation.webgl.png)
+![A pink square bobbing and turning, and a blue circle growing and shrinking](../../../../tests/snapshots/docs/2d/animation.webgl.png)
 
 pixi's `Ticker` isn't what draws: the root's frameloop is, so `frameloop="demand"` and `invalidate()` work for 2D as for 3D. Animated sprites play on the same clock: `<animatedSprite2D playing animationSpeed={0.2} />` advances with the root's frames, and a playing sprite keeps a `demand` canvas drawing ([Sprites and spritesheets](sprites-2d.md#animated-sprites)).

@@ -1,6 +1,6 @@
 # Loading textures
 
-Textures load as in react-three-fiber: with `TextureLoader` through `useLoader`, or with `useTexture`, which r3f v10 has built in. Both give three `Texture`s, from `react-pixi-fiber/three`, and every material slot takes one.
+Textures load as in react-three-fiber: with `TextureLoader` through `useLoader`, or with `useTexture`, which r3f v10 has built in. Both give three `Texture`s, from `@react-fiber/threejs-compat/three`, and every material slot takes one.
 
 The images on this page are in the repo's `tests/assets/textures`, served from `/textures/`.
 

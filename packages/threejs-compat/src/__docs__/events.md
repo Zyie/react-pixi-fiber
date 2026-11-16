@@ -26,7 +26,7 @@ Objects that implement a `raycast` method, as meshes and instanced meshes do, ca
 </mesh>
 ```
 
-![A royal blue box that logs every pointer event it gets](../../tests/snapshots/docs/events-and-interaction/handlers.webgl.png)
+![A royal blue box that logs every pointer event it gets](../../../../tests/snapshots/docs/events-and-interaction/handlers.webgl.png)
 
 ## Event data
 
@@ -102,7 +102,7 @@ function Sphere() {
 }
 ```
 
-![A see-through pair of spheres on the left, and a pink sphere in front of a grey circle on the right](../../tests/snapshots/docs/events/selection.webgl.png)
+![A see-through pair of spheres on the left, and a pink sphere in front of a grey circle on the right](../../../../tests/snapshots/docs/events/selection.webgl.png)
 
 ### `stopPropagation`
 
@@ -120,7 +120,7 @@ const onPointerOver = useCallback(
 );
 ```
 
-![Three planes stepping back; the middle one is orange and hides the pink one behind it](../../tests/snapshots/docs/events/stop-propagation.webgl.png)
+![Three planes stepping back; the middle one is orange and hides the pink one behind it](../../../../tests/snapshots/docs/events/stop-propagation.webgl.png)
 
 The pointer outs happen during the `stopPropagation()` call, so do the rest of the handler's work after it.
 
@@ -151,7 +151,7 @@ const onPointerUp = (e: ThreeEvent<PointerEvent>) => {
 };
 ```
 
-![The front object dragged up and to the right, uncovering the small one behind](../../tests/snapshots/docs/events/gestures.webgl.png)
+![The front object dragged up and to the right, uncovering the small one behind](../../../../tests/snapshots/docs/events/gestures.webgl.png)
 
 r3f types an object's `onLostPointerCapture` and `onPointerCancel` but never calls them. When the canvas loses a capture, r3f drops that pointer's captures on the next frame and ends its hovers with `onPointerOut` and `onPointerLeave`, and a pointer the browser cancels ends the same way.
 
@@ -182,7 +182,7 @@ function Box() {
 }
 ```
 
-![A box turned hot pink by a right click](../../tests/snapshots/docs/events/context-menu-override.webgl.png)
+![A box turned hot pink by a right click](../../../../tests/snapshots/docs/events/context-menu-override.webgl.png)
 
 `onDoubleClick` fires on an object both clicks hit. r3f v10's own build never fires it in Chrome, whose `dblclick` has no `pointerId` to match to the pointerdown; this package's event layer gives it the pointerdown's.
 
@@ -255,7 +255,7 @@ function Hud() {
 }
 ```
 
-![A red box in front of a royal blue plate, which took the click](../../tests/snapshots/docs/events/event-priority.webgl.png)
+![A red box in front of a royal blue plate, which took the click](../../../../tests/snapshots/docs/events/event-priority.webgl.png)
 
 `userData.interactivePriority` does the same for one object: objects that have one sort ahead of objects without, higher first, whatever their distance. Gizmos and handles that must stay reachable use it:
 
@@ -351,11 +351,11 @@ const onPointerOut = () => {
 };
 ```
 
-![A grid of instanced boxes, one lit under the pointer](../../tests/snapshots/docs/scaling-performance/instanced-hover.webgl.png)
+![A grid of instanced boxes, one lit under the pointer](../../../../tests/snapshots/docs/scaling-performance/instanced-hover.webgl.png)
 
 ## The raycaster
 
-`useThree((state) => state.raycaster)` is three's `Raycaster`, from `react-pixi-fiber/three`, and works on its own too:
+`useThree((state) => state.raycaster)` is three's `Raycaster`, from `@react-fiber/threejs-compat/three`, and works on its own too:
 
 ```tsx
 import { Raycaster, Vector2, Vector3 } from '@react-fiber/threejs-compat/three';

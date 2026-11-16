@@ -59,7 +59,8 @@ const scratch = new Point();
 /**
  * Counts a raycast, which a raycaster calls each time it is set: a screen layer's hit test keeps what it
  * found until the root's raycaster is set again, which every pointer event does first
- * @internal
+ * @category renderer
+ * @advanced
  */
 export function noteCast(): void {
   casts++;
@@ -180,7 +181,8 @@ const isWithin = (node: Container, ancestor: Container): boolean => {
  * container that holds it, after the hits inside the view.
  * @param container - The 2D element r3f asks
  * @param state - The state of its root or portal
- * @internal
+ * @category renderer
+ * @advanced
  */
 export function hitTestScreen(container: Container, state: RootState): Intersection2D[] {
   const screen = screenAbove(container);

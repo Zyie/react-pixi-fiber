@@ -1,5 +1,5 @@
-import { Canvas, Environment } from '@react-fiber/threejs-compat';
 // #region result
+import { Canvas, Environment } from '@react-fiber/threejs-compat';
 import { Suspense } from 'react';
 // #endregion result
 

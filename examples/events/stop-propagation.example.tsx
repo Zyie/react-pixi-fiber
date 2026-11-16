@@ -1,6 +1,6 @@
+// #region result
 import { Canvas } from '@react-fiber/threejs-compat';
 import type { ThreeEvent } from '@react-fiber/threejs-compat';
-// #region result
 import { useCallback, useState } from 'react';
 // #endregion result
 

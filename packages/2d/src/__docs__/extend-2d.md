@@ -64,7 +64,7 @@ export function App() {
 }
 ```
 
-![Two blue buttons, Play and Settings](../../../tests/snapshots/docs/2d/extend.webgl.png)
+![Two blue buttons, Play and Settings](../../../../tests/snapshots/docs/2d/extend.webgl.png)
 
 ## Typing the element
 
@@ -152,7 +152,7 @@ function Wavy() {
 }
 ```
 
-![A brick wall and the word UNDERWATER, both rippling](../../../tests/snapshots/docs/2d/custom-filter.webgl.png)
+![A brick wall and the word UNDERWATER, both rippling](../../../../tests/snapshots/docs/2d/custom-filter.webgl.png)
 
 A one-off filter needs no class: `<filter2D args={[{ glProgram, gpuProgram, resources }]} />` builds pixi's `Filter` from its options. The shader sources are in the example above.
 

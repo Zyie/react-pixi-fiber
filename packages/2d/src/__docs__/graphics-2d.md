@@ -86,7 +86,7 @@ function Stars() {
 }
 ```
 
-![A night sky with a gradient, stars sharing one context, a moon with craters and green hills](../../../tests/snapshots/docs/2d/graphics.webgl.png)
+![A night sky with a gradient, stars sharing one context, a moon with craters and green hills](../../../../tests/snapshots/docs/2d/graphics.webgl.png)
 
 A context you make yourself is yours to free: React doesn't destroy a context passed in as a prop. Call `context.destroy()` when nothing uses it any more, as in an effect's cleanup.
 

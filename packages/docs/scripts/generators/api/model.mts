@@ -6,10 +6,10 @@
  * The routes:
  *
  * - `/api/`: the entries;
- * - `/api/<entry>/`: an entry, by its name in `ENTRIES`: `/api/react-pixi-fiber/`;
+ * - `/api/<entry>/`: an entry, by its name in `ENTRIES`: `/api/core/`;
  * - `/api/<entry>/<kind>/<Name>/`: a name, where `<kind>` is `functions`, `classes`, `constants`,
  *   `enums`, `interfaces` or `types`, and a const that is a function is a function:
- *   `/api/react-pixi-fiber/functions/useFrame/`;
+ *   `/api/core/functions/useFrame/`;
  * - `/api/<entry>/augments/<Name>/`: an interface of another package that the entry adds members to,
  *   such as React's JSX `IntrinsicElements`, by its own name;
  * - `#<member>` on a page: a member, by its name as written.
@@ -196,7 +196,7 @@ export function apiModel(): ApiModel {
 
 /**
  * Maps every public name to its page, for links from other pages of the site: `useFrame` to
- * `/api/react-pixi-fiber/functions/useFrame/`, `Name.member` to the member's anchor on the page of
+ * `/api/core/functions/useFrame/`, `Name.member` to the member's anchor on the page of
  * `Name`, and an augment by its full name. A name two entries export maps to the page of the first in
  * `ENTRIES`.
  * @param shared - The values of the sync, which hold the model

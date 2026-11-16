@@ -1,8 +1,8 @@
+// #region result
 import { Canvas, createPortal, useFrame, useRenderTarget, useThree } from '@react-fiber/threejs-compat';
 import type { ComputeFunction, ThreeElements } from '@react-fiber/threejs-compat';
 import { PerspectiveCamera, Scene } from '@react-fiber/threejs-compat/three';
 import type { Mesh } from '@react-fiber/threejs-compat/three';
-// #region result
 import { useCallback, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 // #endregion result

@@ -1,7 +1,7 @@
+// #region result
 import { Canvas, extend, useFrame, useThree } from '@react-fiber/threejs-compat';
 import type { ThreeElement } from '@react-fiber/threejs-compat';
 import { OrbitControls } from '@react-fiber/threejs-compat/addons';
-// #region result
 import { useRef } from 'react';
 
 extend({ OrbitControls });

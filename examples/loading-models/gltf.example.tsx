@@ -1,6 +1,6 @@
+// #region result
 import { Canvas, useLoader } from '@react-fiber/threejs-compat';
 import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
-// #region result
 import { Suspense, useReducer } from 'react';
 // #endregion result
 

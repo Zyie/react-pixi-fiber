@@ -11,7 +11,7 @@ import path from 'node:path';
 import { parseSync } from 'rolldown/utils';
 import type { ESTree, ParseResult } from 'rolldown/utils';
 
-import { ENTRIES, entryFile, isVendored } from './entries.mts';
+import { ENTRIES, ENTRY_NAMES, entryFile, isVendored } from './entries.mts';
 import type { Entry } from './entries.mts';
 import { afterDelimiters, lineText, parseParam, tagNames } from './jsdoc.mts';
 
@@ -300,13 +300,16 @@ function sourceFile(collector: Collector, file: string): SourceFile {
 }
 
 /**
- * The file a relative import names, or null for a package
+ * The file a relative import or a path of the root tsconfig.json names, or null for a package, which
+ * another entry's name is too
  * @param collector - The run
  * @param from - The importing file
  * @param specifier - What it imports
  */
 function resolveImport(collector: Collector, from: SourceFile, specifier: string): SourceFile | null {
   let base: string;
+
+  if (ENTRY_NAMES.has(specifier)) return null;
 
   if (specifier.startsWith('.')) base = path.posix.join(path.posix.dirname(from.path), specifier);
   else {
@@ -433,6 +436,8 @@ function exportsOf(collector: Collector, file: SourceFile): Exports {
         }
       }
     } else if (statement.type === 'ExportAllDeclaration') {
+      // Another entry's names, which its own pages document
+      if (!statement.exported && ENTRY_NAMES.has(statement.source.value)) continue;
       const target = statement.exported ? null : resolveImport(collector, file, statement.source.value);
 
       if (target) stars.push(target);

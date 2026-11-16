@@ -140,7 +140,7 @@ function extrasOf(definition: object | undefined): Record<string, unknown> | und
 type NodeMap = Map<number, Container3D>;
 
 /**
- * three's `GLTFLoader`, in `react-pixi-fiber/addons`: loads a glTF or GLB file with pixi-3d's
+ * three's `GLTFLoader`, in `@react-fiber/threejs-compat/addons`: loads a glTF or GLB file with pixi-3d's
  * parser and hands back three's `GLTF` shape, built from the catalog's classes
  *
  * `gltf.scene` is a `Group` of `Object3D`, `Group`, `Mesh`, `SkinnedMesh` and `Bone` nodes, where three

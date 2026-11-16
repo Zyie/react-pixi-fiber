@@ -1,3 +1,4 @@
+import '@react-fiber/2d';
 import { Canvas } from '@react-fiber/threejs-compat';
 /**
  * Mounts an example in the live frame, as the visual tests mount it: the example's `render()` inside a

@@ -1,7 +1,7 @@
+// #region result
 import { useAsset } from '@react-fiber/2d';
 import { Canvas, extend, once, useTexture } from '@react-fiber/core';
 import type { ThreeElement } from '@react-fiber/core';
-// #region result
 import { DropShadowFilter, GlowFilter } from 'pixi-filters';
 import type { Spritesheet } from 'pixi.js';
 import { Suspense, useMemo } from 'react';

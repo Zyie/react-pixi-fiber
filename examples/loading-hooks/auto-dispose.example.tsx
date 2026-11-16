@@ -1,7 +1,7 @@
+// #region result
 import { Canvas, useFrame } from '@react-fiber/threejs-compat';
 import type { ThreeElements } from '@react-fiber/threejs-compat';
 import type { Mesh } from '@react-fiber/threejs-compat/three';
-// #region result
 import { useRef, useState } from 'react';
 // #endregion result
 

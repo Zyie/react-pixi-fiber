@@ -1,6 +1,6 @@
 # Loading hooks
 
-The hooks that load assets are r3f v10's own, running unchanged: `useLoader`, `useTexture`, `useTextures` and `useGraph`. What they load is pixi-3d's, through loaders with three's API from `react-pixi-fiber/three` and `react-pixi-fiber/addons`.
+The hooks that load assets are r3f v10's own, running unchanged: `useLoader`, `useTexture`, `useTextures` and `useGraph`. What they load is pixi-3d's, through loaders with three's API from `@react-fiber/threejs-compat/three` and `@react-fiber/threejs-compat/addons`.
 
 ## `useLoader`
 
