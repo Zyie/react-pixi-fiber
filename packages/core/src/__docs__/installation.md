@@ -11,10 +11,12 @@ npm install @react-fiber/core @react-fiber/2d @react-fiber/3d react react-dom pi
 For a react-three-fiber app, with three.js's names:
 
 ```sh
-npm install @react-fiber/core @react-fiber/threejs-compat react react-dom pixi.js @pixi/3d
+npm install @react-fiber/core @react-fiber/3d @react-fiber/threejs-compat react react-dom pixi.js @pixi/3d
 ```
 
-Leave out what you don't use: `@react-fiber/2d` for an app with no 2D, `@react-fiber/3d` for one with no 3D. `@pixi/3d` stays either way, since a root's scene and camera are @pixi/3d's.
+Leave out what you don't use: `@react-fiber/2d` for an app with no 2D, `@react-fiber/3d` for one with no 3D (threejs-compat builds on it, so it stays with compat). `@pixi/3d` stays either way, since a root's scene and camera are @pixi/3d's.
+
+The packages take `@react-fiber/core`, and threejs-compat `@react-fiber/3d`, as peer dependencies, as pixi.js plugins take pixi.js, so an app has one copy of each: core keeps its registry on pixi.js's one `extensions` object, and a second copy can't register. Install them beside each other, at versions that match.
 
 ## Installing a package
 

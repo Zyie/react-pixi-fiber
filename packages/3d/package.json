@@ -12,11 +12,12 @@
     ".": "./dist/index.js",
     "./package.json": "./package.json"
   },
-  "dependencies": {
+  "devDependencies": {
     "@react-fiber/core": "0.0.0"
   },
   "peerDependencies": {
     "@pixi/3d": "^0.1.0",
+    "@react-fiber/core": "^0.0.0",
     "pixi.js": "^8.23.0",
     "react": ">=19.0 <19.4",
     "react-dom": ">=19.0 <19.4"

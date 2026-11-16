@@ -24,7 +24,7 @@ The package is optional, and importing any of its three entries installs it:
 Once installed, every root on the page gets three's scene, camera and raycaster in place of @pixi/3d's, and three's renderer settings (tone mapping, shadows, fog, environment) are drawn. An app that never imports it has nothing of three's on the page or in its bundle. A bundler alias from `three` to `@react-fiber/threejs-compat/three` lets code that imports `three` itself run unchanged.
 
 ```sh
-npm install @react-fiber/core @react-fiber/threejs-compat react react-dom pixi.js @pixi/3d
+npm install @react-fiber/core @react-fiber/3d @react-fiber/threejs-compat react react-dom pixi.js @pixi/3d
 ```
 
 ## A scene, unchanged

@@ -73,7 +73,7 @@ Elements are pixi's classes with a `2D` or `3D` suffix, `args` are their constru
 ## A react-three-fiber app
 
 ```sh
-npm install @react-fiber/core @react-fiber/threejs-compat react react-dom pixi.js @pixi/3d
+npm install @react-fiber/core @react-fiber/3d @react-fiber/threejs-compat react react-dom pixi.js @pixi/3d
 ```
 
 ```diff
