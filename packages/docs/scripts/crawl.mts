@@ -14,7 +14,9 @@
  *
  * Then it runs live code: on the page of the first example of each topic, it presses "Run the example
  * live". A run must draw within 30 s, with no error shown over its canvas, no exception and nothing
- * logged as an error, by the page or the program's frame. With no examples, there is nothing to run.
+ * logged as an error, by the page or the program's frame, and its frame must show more than one colour:
+ * a run whose elements never joined its scene draws its background alone. With no examples, there is
+ * nothing to run.
  *
  * - **Errors**, which exit with 1: console errors, uncaught exceptions, failed requests and responses of
  *   400 or more, links to a missing page or file, links to an anchor the page doesn't
@@ -36,6 +38,7 @@ import zlib from 'node:zlib';
 
 import { chromium } from 'playwright';
 import type { Browser, BrowserContext } from 'playwright';
+import { PNG } from 'pngjs';
 
 import { CHANNEL } from '../src/components/Live/types.ts';
 import type { FrameEvent } from '../src/components/Live/types.ts';
@@ -52,6 +55,8 @@ const GOOD_SHIFT = 0.1;
 const LIVE_MS = 30_000;
 /** How long a run that drew is watched for an error that follows */
 const LIVE_GRACE_MS = 500;
+/** The least share of a live run's frame, from 0 to 1, that has to differ from its most common colour */
+const LIVE_MIN_DRAWN = 0.002;
 
 /** What one page loaded, and what was wrong with it */
 interface PageReport {
@@ -311,6 +316,20 @@ async function visit(browser: Browser, route: string): Promise<PageReport> {
 }
 
 /**
+ * The share of a picture, from 0 to 1, whose pixels differ from its most common colour
+ * @param png - The picture
+ */
+function drawnShare(png: Buffer): number {
+  const { data, width, height } = PNG.sync.read(png);
+  const counts = new Map<number, number>();
+  for (let i = 0; i < data.length; i += 4) {
+    const colour = data.readUInt32BE(i);
+    counts.set(colour, (counts.get(colour) ?? 0) + 1);
+  }
+  return 1 - Math.max(...counts.values()) / (width * height);
+}
+
+/**
  * Runs a page's live code and waits for it to draw: an example's page after pressing Run live. A run
  * reports to its page by `postMessage`, which is where its errors go, so the page's listener for them is
  * mirrored here.
@@ -369,6 +388,11 @@ async function runLive(browser: Browser, route: string): Promise<LiveReport> {
     // An error that stops a run before its frame starts, such as code that doesn't compile, shows only on the page
     if (alert && !events.some((event) => event.type === 'error')) report.errors.push(`shown over the canvas: ${alert}`);
     if (!report.renderer && report.errors.length === 0) report.errors.push('the run drew nothing');
+    if (report.renderer) {
+      const drawn = drawnShare(await page.locator('iframe[title]').first().screenshot());
+      if (drawn < LIVE_MIN_DRAWN)
+        report.errors.push(`the run drew its background alone (${(drawn * 100).toFixed(2)}% drawn)`);
+    }
   } catch (error) {
     report.errors.push(`live: ${(error as Error).message.split('\n')[0]}`);
   }

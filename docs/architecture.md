@@ -10,7 +10,8 @@ packages/core/src/            @react-fiber/core
   index.tsx                   r3f's API, typed against pixi-3d and the classes packages register
   extension.ts                @react-fiber/core/extension: the registry, the stage and the renderer parts packages use
   root/                       createRoot and <Canvas>, bound to the pixi provider
-  support/                    the renderer support (kind 'pixi'), its registry and the hook dispatch
+  support/                    the renderer support (kind 'pixi'), its registry, the hook dispatch and the hooks
+                              of a root's 3D nodes
   defaults/                   a root's scene, cameras, raycaster, vector, frustum and render target: @pixi/3d's, with
                               what r3f's core calls on them, while no package registers its own
   renderer/                   PixiRenderer: r3f's renderer over pixi.js and View3Ds; render targets, backdrops, camera matrices
@@ -24,7 +25,8 @@ packages/core/src/            @react-fiber/core
 packages/2d/src/              @react-fiber/2d: pixi.js's 2D classes under 2D names, their hooks and props, the
                               2D frame jobs
 packages/3d/src/              @react-fiber/3d: @pixi/3d's classes under 3D names (catalog.ts), their element types
-                              (elements.ts) and object hooks (objects3D.ts); installed by importing it
+                              (elements.ts) and the hooks of its geometries and materials (objects3D.ts);
+                              installed by importing it
 packages/threejs-compat/src/  @react-fiber/threejs-compat
   index.ts                    r3f's API (core's) with <Environment> and useTextures; installs the package; Register
   three.ts                    /three: three's API (math, classes, constants) over pixi-3d
@@ -99,8 +101,8 @@ extensions.add(
 
 What registers today:
 
-- **core** itself (`packages/core/src/support/pixiSupport.ts`), at priority -1: `Anchor2D` in the catalog; its default classes (`rootClasses`, "A root's classes" below) as `Classes`; and `RootRenderTarget` as the support's `RenderTarget`.
-- **3d** (`packages/3d/src/index.ts`): @pixi/3d's classes under their element names, and `objects3D`, the hooks of a `Container3D`, `Geometry3D` or `BaseMaterial3D`.
+- **core** itself (`packages/core/src/support/pixiSupport.ts`), at priority -1: `Anchor2D` in the catalog; `nodes3D`, the hooks of a `Container3D`, since a root's scene is one whether or not 3d is installed (`packages/core/src/support/nodes3D.ts`); its default classes (`rootClasses`, "A root's classes" below) as `Classes`; and `RootRenderTarget` as the support's `RenderTarget`.
+- **3d** (`packages/3d/src/index.ts`): @pixi/3d's classes under their element names, and `objects3D`, the hooks of a `Geometry3D` or `BaseMaterial3D`.
 - **2d** (`packages/2d/src/index.ts`): the 2D classes; `objects2D`, the hooks of a pixi `Container`, `Particle`, `Filter` or `GraphicsContext`; and an `install` that registers each root's 2D frame jobs. It changes no pixi.js class.
 - **threejs-compat** (`packages/threejs-compat/src/install.ts`): imports `@react-fiber/3d`, then registers its catalog as `Catalog` and as `Classes`, over core's; and `ThreeRenderer`, three's render targets and an `install` that runs `installObject3DSurface`.
 
@@ -122,12 +124,12 @@ Types follow the same split. core's types name the classes a root's objects are 
 
 Each hook asks the `ObjectHooks` of the package that owns the object, the first whose `test` takes it: the child for `add` and `remove`, the object itself for the rest. `compareHits` is core's own.
 
-- `add(parent, child, before)` and `remove`: 2d's hooks (`objects2D`) take a 2D object or a particle and add it under a 2D container where its element is among its siblings (`add2D`, `packages/2d/src/children.ts`), or under a 3D node through core's `addToScene` (the scene's screen layer, or an anchor), then put an animated sprite on its root's clock. @pixi/3d's hooks (`objects3D`, `packages/3d/src/objects3D.ts`, which 3d registers) add a 3D node to a 3D node's children, through `addChildAt` before a sibling, and leave a 3D node under 2D out with a warning. The default camera joins the root's scene through `add` too. `remove` mirrors them with `remove2D`, `removeFromScene` and `removeChild`.
+- `add(parent, child, before)` and `remove`: 2d's hooks (`objects2D`) take a 2D object or a particle and add it under a 2D container where its element is among its siblings (`add2D`, `packages/2d/src/children.ts`), or under a 3D node through core's `addToScene` (the scene's screen layer, or an anchor), then put an animated sprite on its root's clock. core's hooks of @pixi/3d's nodes (`nodes3D`, `packages/core/src/support/nodes3D.ts`) add a 3D node to a 3D node's children, through `addChildAt` before a sibling, and leave a 3D node under 2D out with a warning. The default camera joins the root's scene through `add` too. `remove` mirrors them with `remove2D`, `removeFromScene` and `removeChild`.
 - `isInteractive`: a `Container3D`, a pixi.js `Container` or a `Particle`. `defaultAttach`: `'geometry'` for a `Geometry3D`, `'material'` for a `BaseMaterial3D`.
 - `applyProp`: 2d's hooks write the 2D props and attaches that aren't an assignment (`applyProp2D`, "pixi.js 2D" below); every other key, and every key of a 3D object, is core's to write.
 - `hitTest`: a 2D element hit tests its screen layer (`hitTestScreen`, "pixi.js 2D" below); a 3D node casts the raycaster of its root or portal, core's `RootRaycaster` with @pixi/3d's hit volumes or threejs-compat's three `Raycaster`, and each hit takes its draw order in the 3D by its distance.
 - `compareHits`: draw order (`packages/core/src/events/hitOrder.ts`). Each hit carries where it is drawn: pairs of a band (2D over the 3D, the 3D, 2D under it) and a place in it (a 2D object's place from the front, a 3D hit's distance), the outermost layer first. A portal drawn inside another layer starts with the order of what holds it, and a hit inside a layer sorts before the hit of what holds it, as a child's event comes before its parent's. `distance` stays the ray's.
-- `dispose`: the owner's `dispose` hook when it has one, else the object's own `dispose`; a `Scene` is never freed. 3d's hook calls a node's, geometry's or material's `dispose` where a package gives it one (threejs-compat's classes), else @pixi/3d's `destroy`. 2d's hook destroys a container, a graphics context or a filter with pixi's `destroy()`, and a `BlurFilter`'s two passes with it.
+- `dispose`: the owner's `dispose` hook when it has one, else the object's own `dispose`; a `Scene` is never freed. core's `nodes3D` and 3d's `objects3D` call a node's, geometry's or material's `dispose` where a package gives it one (threejs-compat's classes), else @pixi/3d's `destroy`. 2d's hook destroys a container, a graphics context or a filter with pixi's `destroy()`, and a `BlurFilter`'s two passes with it.
 
 `packages/core/src/support/provider.ts` offers the support in the provider's `webgpu` slot, the one whose path awaits `init()`. The loader, `loadPixiSupport()`, first runs every registered package's `install` (threejs-compat's `installObject3DSurface()`, 2d's frame jobs, ...), so the prototype patches happen when the first root configures and never on import, and registers the root extension `react-fiber:screen`, which gives each root's scene its screen layer.
 
@@ -159,7 +161,7 @@ r3f's core builds a root's scene, camera, raycaster, pointer and frustum itself,
 - **`args`** are the constructor's arguments, @pixi/3d's options object. A geometry has no props that rebuild it, so new `args` rebuild it, as in r3f.
 - **Props** are the fields, typed by `Element3D` (`packages/3d/src/elements.ts`): every element's props (`ThreeElement`), with each field the constructor's options also name widened to what the option takes, which is what its setter takes: `baseColor` reads back a number and takes any `ColorSource`, a light's `color` reads back a pixi `Color`, `position` takes `{ x, y, z }`.
 - **r3f's prop writes** land on @pixi/3d's types as they are: an `ObservableVector3` has `set(x, y = x, z = x)` and `fromArray`, so `position={[1, 2, 3]}` goes through `fromArray` and `scale={2}` through `set(2)`; an `ObservableQuaternion` takes `quaternion={[x, y, z, w]}` through `fromArray`; `angle` is an `EulerDegrees` with `set`; pierced props (`position-x`, `textures-baseColor`) and plain objects are assigned, and the setters copy them. A colour field is a getter over a number or a pixi `Color`, which has no `set`, so a colour prop is assigned and the setter parses it. Nothing in 3d adapts these: @pixi/3d's API takes r3f's forms.
-- **Hooks**: `objects3D` (above). Geometries and materials attach to a mesh's `geometry` and `material`; @pixi/3d's empty geometry and material stand until they do.
+- **Hooks**: `objects3D` for geometries and materials, core's `nodes3D` for nodes (above). Geometries and materials attach to a mesh's `geometry` and `material`; @pixi/3d's empty geometry and material stand until they do.
 - **Loading** is r3f's: `useLoader` with core's `AssetsLoader` (pixi's `Assets` in a loader's shape), or `useAsset`, which suspends until `Assets.load` is done. @pixi/3d registers its glTF loader with `Assets`, so a `.glb` loads as a `Scene3DSource`, which `<model3D args={[source]}>` builds a model of.
 
 Lights and cameras face their local -Z, as @pixi/3d's do, so they are aimed with `rotation` or `angle`. A root's default camera is core's `RootPerspectiveCamera`. `<camera3D>` is the one element that isn't @pixi/3d's class as it is: it is core's `RootCamera`, @pixi/3d's `Camera3D` with r3f's camera members, made from @pixi/3d's options, so a camera element can become the root's camera (`set({ camera })`) or a `<View3D>`'s; @pixi/3d's own `Camera3D` lacks the members r3f's core calls.
@@ -308,7 +310,7 @@ Their events sort where they are drawn. A `<View3D>`'s screen layer is one entry
 Each package's entries are files of its `src` that its `package.json`, its `tsdown.config.ts`, `tsconfig.base.json` and the Vite aliases name:
 
 - `@react-fiber/core`, `packages/core/src/index.tsx`, mirrors the export list of r3f v10's `index.tsx`, which is everything `core/index.tsx` exports plus the entry's own `Canvas`, `createRoot`, `events`, `ThreeElements`, the build flags and the `ReactThreeFiber` namespace. Each value is r3f's own function, re-declared with a type from `packages/core/src/types`, which names pixi-3d, pixi.js or a registered class (`Registered<K>`). Nothing is `export *`'d from the fork, so the declaration bundle never names three, and modules like Environment never enter the bundle. It adds the pixi side: `PixiRenderer`, `useRenderTarget` (our own, since r3f's never disposes its target), `useAsset` and `AssetsLoader`, a root's default classes (`RootScene`, `RootPerspectiveCamera`, `RootRaycaster`, ...), `presetsObj`, the bridges, the 2D types and `Register`.
-- `@react-fiber/core/extension`, `packages/core/src/extension.ts`: the registry (`FiberExtensionType`, `ObjectHooks`, `SupportParts`), the stage (`addToScene`, `addInElementOrder`, `hitTestScreen`, ...), hit order (`drawOrder`, `setHitOrder`, the bands), and the renderer parts a 3D package extends (camera matrices, backdrops, `program`, `markMaterialTexture`).
+- `@react-fiber/core/extension`, `packages/core/src/extension.ts`: the registry (`FiberExtensionType`, `ObjectHooks`, `SupportParts`), the stage (`addToScene`, `addInElementOrder`, `hitTestScreen`, ...), and the renderer parts a 3D package extends (camera matrices, backdrops, `program`, `markMaterialTexture`).
 - `@react-fiber/2d`, `packages/2d/src/index.ts`: `useAsset` and `AssetsLoader`, core's; importing it registers the 2D elements.
 - `@react-fiber/3d`, `packages/3d/src/index.ts`: the element types (`Element3D`, `Elements3D`, `OptionProps3D`); importing it registers @pixi/3d's elements and hooks.
 - `@react-fiber/threejs-compat`, `packages/threejs-compat/src/index.ts`, is r3f's API for an r3f app that swaps `@react-three/fiber`: it re-exports core whole and adds `Environment`, `useEnvironment` and `useTextures` (our own implementations of r3f's, which reach three's loaders), `ThreeRenderer`, `catalog` and the compat member types. It augments `Register` with three's classes and `ThreeElements` with the catalog's elements, and importing it installs the package (`install.ts`).

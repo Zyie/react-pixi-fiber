@@ -50,12 +50,19 @@ export const PIXI_ONLY = {
 export const NATIVE_FOLDERS = ['3d', 'docs/3d', 'docs/core'] as const;
 
 /**
+ * The folders of keys whose scenes run on `@react-fiber/core` and `@react-fiber/2d` alone, as a 2D app
+ * does: `tests/scenes/2d` and `examples/2d`. The `2d` vitest project runs them on a page where neither
+ * `@react-fiber/3d` nor `@react-fiber/threejs-compat` can load, and the playground loads neither for them.
+ */
+export const TWO_D_FOLDERS = ['2d', 'docs/2d'] as const;
+
+/**
  * The folders of keys whose scenes and examples draw what three.js can't, pixi.js 2D or @pixi/3d's own
  * elements, so they are `PIXI_ONLY` without saying so: `tests/scenes/2d`, `tests/scenes/mixed`,
  * `examples/2d` and the {@link NATIVE_FOLDERS}. The `three` project and the playground's three.js frame
  * don't load them, since they import names only this library exports.
  */
-export const PIXI_ONLY_FOLDERS = ['2d', 'mixed', 'docs/2d', ...NATIVE_FOLDERS] as const;
+export const PIXI_ONLY_FOLDERS = [...TWO_D_FOLDERS, 'mixed', ...NATIVE_FOLDERS] as const;
 
 /**
  * Whether a scene's key is in one of {@link NATIVE_FOLDERS}
@@ -68,3 +75,9 @@ export const isNativeKey = (key: string): boolean => NATIVE_FOLDERS.some((folder
  * @param key - The scene's key, such as `2d/graphics` or `docs/2d/first-2d-scene`
  */
 export const isPixiOnlyKey = (key: string): boolean => PIXI_ONLY_FOLDERS.some((folder) => key.startsWith(`${folder}/`));
+
+/**
+ * Whether a scene's key is in one of {@link TWO_D_FOLDERS}
+ * @param key - The scene's key, such as `2d/graphics` or `docs/2d/first-2d-scene`
+ */
+export const isTwoDKey = (key: string): boolean => TWO_D_FOLDERS.some((folder) => key.startsWith(`${folder}/`));

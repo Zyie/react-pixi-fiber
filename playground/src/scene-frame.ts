@@ -1,5 +1,5 @@
 import type { Example } from '../../examples/example';
-import { PIXI_ONLY, isNativeKey, isPixiOnlyKey } from '../../tests/harness/scene-constants';
+import { PIXI_ONLY, isNativeKey, isPixiOnlyKey, isTwoDKey } from '../../tests/harness/scene-constants';
 import { skipReason, withFolderDefaults } from '../../tests/harness/scene-runner';
 import type { RendererType, TestScene } from '../../tests/harness/scene-runner';
 import { findEntry } from './scenes';
@@ -24,8 +24,11 @@ try {
 
   // A 2D scene imports names only this library exports, so the three.js frame doesn't load it.
   const pixiOnly = renderer === 'three' && isPixiOnlyKey(entry.key);
-  // As the tests' pages: a native scene runs on @react-fiber/3d alone, every other on threejs-compat.
-  if (!pixiOnly) await (isNativeKey(entry.key) ? import('@react-fiber/3d') : import('@react-fiber/threejs-compat'));
+  // As the tests' pages: a 2D scene runs on core and 2d alone, a native scene on @react-fiber/3d, every
+  // other on threejs-compat.
+  if (!pixiOnly && !isTwoDKey(entry.key)) {
+    await (isNativeKey(entry.key) ? import('@react-fiber/3d') : import('@react-fiber/threejs-compat'));
+  }
   const module = pixiOnly ? {} : ((await entry.load()) as { scene?: TestScene; example?: Example });
   const scene: TestScene = withFolderDefaults(entry.key, module.scene ?? module.example ?? PIXI_ONLY_SCENE);
   const skip = skipReason(scene, renderer);

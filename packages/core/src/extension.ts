@@ -2,7 +2,7 @@
  * `@react-fiber/core/extension`: what the packages that build on core plug in with, not app code
  *
  * The registry (`FiberExtensionType` and the shapes registered under it), the stage a package's
- * objects join (the screen layer, element order, hit testing and draw order), and the renderer parts a
+ * objects join (the screen layer, element order and hit testing), and the renderer parts a
  * 3D package extends. `@react-fiber/2d`, `@react-fiber/3d` and `@react-fiber/threejs-compat` use it;
  * apps import from `@react-fiber/core`.
  */
@@ -25,4 +25,3 @@ export {
 } from './stage/screen';
 export { clearCursorsUnder } from './stage/cursor';
 export { hitTestScreen, noteCast } from './stage/hitTest';
-export { IN_3D, drawOrder, layerOrderOf, setHitOrder, type DrawOrder } from './events/hitOrder';

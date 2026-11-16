@@ -10,10 +10,12 @@ import type { Registered } from '../types/register';
 import type { RootState, RootStore } from '../types/state';
 import { pixiHooks } from './hooks';
 import type { PixiHooks } from './hooks';
+import { nodes3D } from './nodes3D';
 import { FiberExtensionType, catalog, classes, installParts, supportPart } from './registry';
 
 extensions.add(
   { type: FiberExtensionType.Catalog, name: 'core', priority: -1, ref: { Anchor2D } },
+  { type: FiberExtensionType.Objects, name: 'core', priority: -1, ref: nodes3D },
   { type: FiberExtensionType.Classes, name: 'core', priority: -1, ref: rootClasses },
   { type: FiberExtensionType.Support, name: 'core', priority: -1, ref: { RenderTarget: RootRenderTarget } },
 );

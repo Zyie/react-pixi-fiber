@@ -9,12 +9,13 @@
  * as a dependency or peer dependency. It also fails when a file of those imports `@react-fiber/r3f`,
  * which core bundles so every package shares one copy of r3f's core through core's entries.
  *
- * It then type-checks two apps against the built declarations, found through `node_modules` and each
+ * It then type-checks three apps against the built declarations, found through `node_modules` and each
  * package's `exports`, strict and with TypeScript's default `skipLibCheck: false`, and fails on any
- * error, in the app or in `dist`: `consumer/app.tsx`, an r3f app on threejs-compat, and
- * `native/app.tsx`, an app on core, 2d and 3d alone. Last, it bundles the native app and fails when the
- * bundle holds a module of threejs-compat or three: without the compat package, nothing three-shaped is
- * bundled.
+ * error, in the app or in `dist`: `consumer/app.tsx`, an r3f app on threejs-compat, `native/app.tsx`,
+ * an app on core, 2d and 3d alone, and `two-d/app.tsx`, a 2D app on core and 2d alone. Last, it bundles
+ * the native app and fails when the bundle holds a module of threejs-compat or three, since without the
+ * compat package nothing three-shaped is bundled, and bundles the 2D app and fails when it holds one of
+ * those or of @react-fiber/3d.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -72,7 +73,7 @@ if (problems.length) {
 }
 console.log(`dist of ${PACKAGES.join(', ')} is free of three.js and r3f's fork (${checked} files)`);
 
-for (const app of ['consumer', 'native']) {
+for (const app of ['consumer', 'native', 'two-d']) {
   const errors = typeCheck(`scripts/build/${app}/tsconfig.json`);
 
   if (errors.length) {
@@ -85,24 +86,51 @@ for (const app of ['consumer', 'native']) {
     process.exit(1);
   }
 }
-console.log('An app on threejs-compat and one on 2d and 3d alone type-check against the built declarations');
+console.log(
+  'An app on threejs-compat, one on 2d and 3d alone and one on 2d alone type-check against the built declarations',
+);
 
-const bundle = await rolldown({
-  input: path.join(REPO_ROOT, 'scripts/build/native/app.tsx'),
-  cwd: REPO_ROOT,
-  platform: 'browser',
-  external: [/^react(?:-dom)?(?:\/|$)/, /^pixi\.js(?:\/|$)/, /^@pixi\/3d(?:\/|$)/],
-  transform: { jsx: 'react-jsx' },
-  logLevel: 'silent',
-});
-const { output } = await bundle.generate({ format: 'esm' });
-await bundle.close();
-const modules = output.flatMap((chunk) => (chunk.type === 'chunk' ? chunk.moduleIds : []));
-const threeShaped = modules.filter((id) => /[\\/](?:threejs-compat|three)[\\/]/.test(id));
-
-if (threeShaped.length) {
-  console.error(`The app on 2d and 3d alone bundles threejs-compat or three:\n  ${threeShaped.join('\n  ')}`);
-  process.exit(1);
+/**
+ * The module ids of an app's bundle, with react, pixi.js and @pixi/3d left out
+ * @param app - The app's folder in `scripts/build`
+ */
+async function bundledModules(app: string): Promise<string[]> {
+  const bundle = await rolldown({
+    input: path.join(REPO_ROOT, `scripts/build/${app}/app.tsx`),
+    cwd: REPO_ROOT,
+    platform: 'browser',
+    external: [/^react(?:-dom)?(?:\/|$)/, /^pixi\.js(?:\/|$)/, /^@pixi\/3d(?:\/|$)/],
+    transform: { jsx: 'react-jsx' },
+    logLevel: 'silent',
+  });
+  const { output } = await bundle.generate({ format: 'esm' });
+  await bundle.close();
+  return output.flatMap((chunk) => (chunk.type === 'chunk' ? chunk.moduleIds : []));
 }
-const ours = modules.filter((id) => id.includes(`${path.sep}packages${path.sep}`)).length;
-console.log(`The app on 2d and 3d alone bundles ${ours} modules of the packages, none of threejs-compat or three`);
+
+/** The apps bundled, each with the package folders its bundle must not hold */
+const BUNDLED = [
+  {
+    app: 'native',
+    name: 'The app on 2d and 3d alone',
+    forbidden: /[\\/](?:threejs-compat|three)[\\/]/,
+    left: 'threejs-compat or three',
+  },
+  {
+    app: 'two-d',
+    name: 'The 2D app on 2d alone',
+    forbidden: /[\\/](?:threejs-compat|three|3d)[\\/]/,
+    left: '@react-fiber/3d, threejs-compat or three',
+  },
+];
+
+for (const { app, name, forbidden, left } of BUNDLED) {
+  const modules = await bundledModules(app);
+  const unwanted = modules.filter((id) => forbidden.test(id));
+  if (unwanted.length) {
+    console.error(`${name} bundles a package it doesn't import:\n  ${unwanted.join('\n  ')}`);
+    process.exit(1);
+  }
+  const ours = modules.filter((id) => id.includes(`${path.sep}packages${path.sep}`)).length;
+  console.log(`${name} bundles ${ours} modules of the packages, none of ${left}`);
+}
