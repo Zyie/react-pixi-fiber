@@ -1,17 +1,17 @@
 # react-three-fiber with renderer hooks
 
 A fork of [react-three-fiber](https://github.com/pmndrs/react-three-fiber)'s `packages/fiber` (`src`,
-`types`) at `v10` commit `58acabc0fc996bac5a25320ca3a8670bdd209db7`, published in this repo as
-`@react-fiber/r3f`. Core keeps React's
-tree, props, events and the frame loop. Where it reached into three.js objects, it now asks the root's
-renderer support through eight hooks. three's two supports implement them with the code core ran before,
-so three.js apps behave as they did, and r3f's own test suite passes unchanged.
+`types`, and a test of its own) at `v10` commit `58acabc0fc996bac5a25320ca3a8670bdd209db7`, published in
+this repo as `@react-fiber/r3f`. Core keeps React's tree, props, events and the frame loop. Where it
+reached into three.js objects, it now asks the root's renderer support through eight hooks. three's two
+supports implement them with the code core ran before, so three.js apps behave as they did, r3f's own
+test suite passes unchanged, and a new test runs a root on a support that isn't three's.
 
 react-pixi-fiber runs pixi.js 2D and `@pixi/3d` on this core with a support of its own: its
 `@react-fiber/core` package bundles this core and gives roots a renderer support that the 2D and 3D
 packages fill.
 
-The whole change is [`fork.diff`](./fork.diff): <!-- diff-size -->15 files changed, 377 lines added, 116 lines removed<!-- /diff-size -->.
+The whole change is [`fork.diff`](./fork.diff): <!-- diff-size -->16 files changed, 612 lines added, 116 lines removed<!-- /diff-size -->.
 `npm run diff:r3f` writes it, and `npm run test:lint` fails when it is stale.
 
 ## The interface
@@ -210,7 +210,14 @@ classes answer it:
 
 ## Running r3f's tests on the fork
 
-Upstream at this commit and the fork give the same result: 62 test files, 754 tests passed and 4 todo.
+Upstream's tests give the same result at this commit and on the fork: 62 test files, 754 tests passed and
+4 todo. Each runs through three's hooks, so they would pass if core skipped one. The fork adds
+`tests/renderer-hooks.test.tsx`, a root on a support that isn't three's: kind `'custom'`, a scene graph of
+plain objects and a spy on every hook. It covers the default camera joining the scene through `add`; an
+insert and a keyed move through `add` with `before`; `remove` and `dispose`; `isInteractive` deciding
+what is added and what attaches where `defaultAttach` says; `applyProp` on a prop, a removed prop, an
+attach and a detach; `hitTest` for each object with handlers and the order `compareHits` gives their
+handlers; and a node that suspends again hidden through `visible`. With it: 63 files, 760 passed, 4 todo.
 `pnpm typecheck`, `prettier --check` and `eslint` are as clean as upstream's, which has one unused-import
 warning in `src/webgpu/index.tsx`.
 

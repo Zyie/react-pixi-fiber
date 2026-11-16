@@ -10,8 +10,8 @@
  *   missing, or when `git apply` of the diff in a fresh git checkout of upstream's files doesn't give the
  *   fork's files exactly. `npm run test:lint` runs it.
  *
- * The diff covers what the fork copies from `packages/fiber` (`src`, `types`): changed, added and
- * deleted files, with paths from the root of react-three-fiber's repository (`packages/fiber/src/...`),
+ * The diff covers what the fork copies from `packages/fiber` (`src`, `types`, and our test of the hooks,
+ * `tests/renderer-hooks.test.tsx`): changed, added and deleted files, with paths from the root of react-three-fiber's repository (`packages/fiber/src/...`),
  * so `git apply fork.diff` takes it at the root of a clone. git reads a patch's paths from the
  * repository's root and skips, without an error, those outside the folder it runs in, so a diff
  * relative to `packages/fiber` applied there would change nothing. Our own files in the tree are listed
@@ -40,8 +40,8 @@ const DIFF = `${FORK}/fork.diff`;
 const README = `${FORK}/README.md`;
 const SIZE_MARKERS = ['<!-- diff-size -->', '<!-- /diff-size -->'] as const;
 
-/** What the fork copies from `packages/fiber`: whole folders, and single files */
-const COPIED = ['src', 'types'];
+/** What the fork copies from `packages/fiber`: whole folders, and single files, such as our test of the hooks */
+const COPIED = ['src', 'types', 'tests/renderer-hooks.test.tsx'];
 
 /** Files in `packages/r3f` that are ours, relative to it */
 const EXTRAS = new Set([
