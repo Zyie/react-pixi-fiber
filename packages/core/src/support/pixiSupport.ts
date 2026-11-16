@@ -3,6 +3,7 @@ import { extensions } from 'pixi.js';
 
 import { Anchor2D } from '../bridges/Anchor2D';
 import { rootClasses } from '../defaults';
+import { RootRenderTarget } from '../defaults/RootRenderTarget';
 import { PixiRenderer } from '../renderer/PixiRenderer';
 import { ensureScreen, releaseScreen } from '../stage/screen';
 import type { Registered } from '../types/register';
@@ -14,6 +15,7 @@ import { FiberExtensionType, catalog, classes, installParts, supportPart } from 
 extensions.add(
   { type: FiberExtensionType.Catalog, name: 'core', priority: -1, ref: { Anchor2D } },
   { type: FiberExtensionType.Classes, name: 'core', priority: -1, ref: rootClasses },
+  { type: FiberExtensionType.Support, name: 'core', priority: -1, ref: { RenderTarget: RootRenderTarget } },
 );
 
 /**

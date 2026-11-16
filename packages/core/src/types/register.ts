@@ -1,8 +1,8 @@
 import type { Camera3D, Container3D, Frustum, ObservableVector3, Ray, RaycastHit3D, Vector2, Vector3 } from '@pixi/3d';
 import type { ColorSource, PointData, Texture } from 'pixi.js';
 
+import type { RootRenderTarget, RootRenderTargetOptions } from '../defaults/RootRenderTarget';
 import type { PixiRenderer } from '../renderer/PixiRenderer';
-import type { DrawableTarget } from '../renderer/renderTargets';
 
 /**
  * What core calls on a raycaster: the root's, which pointer events set from the camera, and an
@@ -89,9 +89,9 @@ export interface RegisterDefaults {
   /** The class of the root's renderer */
   Renderer: typeof PixiRenderer;
   /** The class of what `useRenderTarget` makes */
-  RenderTarget: new (width: number, height: number, options?: object) => DrawableTarget;
+  RenderTarget: typeof RootRenderTarget;
   /** The options `useRenderTarget` takes */
-  RenderTargetOptions: object;
+  RenderTargetOptions: RootRenderTargetOptions;
   /** What a colour prop takes besides a pixi `ColorSource` */
   ColorRepresentation: ColorSource;
   /** The class of a colour a colour prop holds */

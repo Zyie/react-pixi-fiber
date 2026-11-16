@@ -138,6 +138,14 @@ export {
   type PixiRendererParameters,
   type PixiShadowMap,
 } from './renderer/PixiRenderer';
+export { RootCamera } from './defaults/RootCamera';
+export { RootFrustum } from './defaults/RootFrustum';
+export { RootOrthographicCamera } from './defaults/RootOrthographicCamera';
+export { RootPerspectiveCamera } from './defaults/RootPerspectiveCamera';
+export { RootRaycaster } from './defaults/RootRaycaster';
+export { RootRenderTarget, type RootRenderTargetOptions } from './defaults/RootRenderTarget';
+export { RootScene } from './defaults/RootScene';
+export { RootVector3 } from './defaults/RootVector3';
 export type { PixiSupport } from './support/pixiSupport';
 export type { PixiHooks, SceneHit, SceneObject } from './support/hooks';
 export type * from './types/twoD';

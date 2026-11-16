@@ -1,4 +1,5 @@
 import { Container3D } from '@pixi/3d';
+import type { ColorSource } from 'pixi.js';
 
 /**
  * A root's default scene, and the scene a `<View3D>` or a `<RenderTexture2D>` draws, while no package
@@ -12,4 +13,10 @@ export class RootScene extends Container3D {
   public readonly isScene = true;
   /** Always `'Scene'`: the dispose hook leaves a scene alone */
   public readonly type = 'Scene';
+  /**
+   * A colour the renderer clears to before it draws the scene, or `null` for the clear colour;
+   * `<Canvas background>` sets it, and `<primitive object={new Color('navy')} attach="background" />`
+   * in a `<View3D>`
+   */
+  public background: ColorSource | null = null;
 }
