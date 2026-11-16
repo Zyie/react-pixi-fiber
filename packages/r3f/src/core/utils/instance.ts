@@ -34,13 +34,11 @@ export function findInitialRoot<T>(instance: Instance<T>): RootStore {
 export function getRootState<T extends THREE.Object3D = THREE.Object3D>(obj: T) {
   let state = (obj as Instance<T>['object']).__r3f?.root.getState()
   if (!state) {
-    obj.traverseAncestors((ancestor) => {
-      const parentState = (ancestor as Instance['object']).__r3f?.root.getState()
-      if (parentState) {
-        state = parentState
-        return false // Stop traversal
-      }
-    })
+    // Walks `parent` as three's traverseAncestors did, which ignored the callback's `return false`,
+    // so the outermost managed ancestor wins
+    for (let ancestor = obj.parent; ancestor; ancestor = ancestor.parent) {
+      state = (ancestor as Instance['object']).__r3f?.root.getState() ?? state
+    }
   }
   return state
 }

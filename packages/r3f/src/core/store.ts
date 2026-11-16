@@ -411,9 +411,9 @@ export const createStore = (
       // Ensure camera is a child of the scene so camera children (HUDs, etc.) render
       // Skip if user has already parented the camera elsewhere
       // https://github.com/pmndrs/react-three-fiber/issues/3632
-      const { rootScene } = rootStore.getState()
+      const { rootScene, internal } = rootStore.getState()
       if (camera && rootScene && !camera.parent) {
-        rootScene.add(camera)
+        internal.support.add(rootScene, camera)
       }
 
       // Update viewport

@@ -120,7 +120,9 @@ import type { Act, Bridge, ConstructorRepresentation, EquConfig, UnblockProps } 
 export { Canvas } from './root/Canvas';
 export { createRoot } from './root/createRoot';
 
+export { useAsset } from './hooks/useAsset';
 export { useRenderTarget, type UseRenderTarget } from './hooks/useRenderTarget';
+export { AssetsLoader } from './loaders/AssetsLoader';
 export type { PresetsType, R3FRenderTarget } from './types/environment';
 export type {
   Hit3D,
@@ -652,26 +654,27 @@ export const act: Act = (React as unknown as { act: Act }).act;
 export const context: React.Context<RootStore> = coreContext as unknown as React.Context<RootStore>;
 
 /**
- * The catalog roots resolve classes from, once a root has loaded it
+ * The classes roots build their default scene, camera and raycaster from, r3f's `support.three`,
+ * once a root has loaded them
  * @category core
  * @advanced
  */
-export const getThree: () => Registered<'Catalog'> = coreGetThree as unknown as () => Registered<'Catalog'>;
+export const getThree: () => Registered<'Classes'> = coreGetThree as unknown as () => Registered<'Classes'>;
 
 /**
- * Whether a root has loaded the catalog yet
+ * Whether a root has loaded the classes yet
  * @category core
  * @advanced
  */
 export const hasThree: () => boolean = coreHasThree;
 
 /**
- * Resolves with the catalog once a root has loaded it
+ * Resolves with the classes once a root has loaded them
  * @category core
  * @advanced
  */
-export const whenThree: () => Promise<Registered<'Catalog'>> = coreWhenThree as unknown as () => Promise<
-  Registered<'Catalog'>
+export const whenThree: () => Promise<Registered<'Classes'>> = coreWhenThree as unknown as () => Promise<
+  Registered<'Classes'>
 >;
 
 /**

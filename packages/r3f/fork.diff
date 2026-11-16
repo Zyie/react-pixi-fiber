@@ -1,10 +1,58 @@
 # packages/r3f against react-three-fiber packages/fiber at 58acabc0fc996bac5a25320ca3a8670bdd209db7
 # Written by npm run diff:r3f; apply in packages/fiber with git apply.
+diff --git a/src/core/configuration.ts b/src/core/configuration.ts
+index 0041e16..65273c4 100644
+--- a/src/core/configuration.ts
++++ b/src/core/configuration.ts
+@@ -257,7 +257,7 @@ export function createRootConfiguration<TCanvas extends HTMLCanvasElement | Offs
+       // This ensures camera children (HUDs, etc.) render properly
+       // https://github.com/pmndrs/react-three-fiber/issues/3632
+       const camera = tempCamera
+-      if (camera && !camera.parent) scene.add(camera)
++      if (camera && !camera.parent) state.internal.support.add(scene, camera)
+     }
+ 
+     // Store events internally
 diff --git a/src/core/events.ts b/src/core/events.ts
-index 787fd83..44e7ed1 100644
+index 787fd83..93a4641 100644
 --- a/src/core/events.ts
 +++ b/src/core/events.ts
-@@ -231,20 +231,8 @@ export function createEvents(store: RootStore) {
+@@ -1,6 +1,7 @@
+ import type * as THREE from 'three'
+ import { getThree } from './three'
+ import { getRootState } from './utils'
++import { objectKey } from './utils/objectKey'
+ import { unregisterVisibility } from './visibility'
+ 
+ //* Type Imports ==============================
+@@ -44,7 +45,7 @@ function getPointerId(event: DomEvent): number {
+ }
+ 
+ function makeId(event: Intersection) {
+-  return (event.eventObject || event.object).uuid + '/' + event.index + event.instanceId
++  return objectKey(event.eventObject || event.object) + '/' + event.index + event.instanceId
+ }
+ 
+ /**
+@@ -91,7 +92,7 @@ function releaseInternalPointerCapture(internal: RootState['internal'], obj: THR
+  * Captures are re-keyed rather than released, so the DOM-level capture on `captureData.target` is
+  * left alone — releasing and re-acquiring it is precisely the glitch being avoided.
+  *
+- * Visibility handlers are deliberately not transferred: that registry is keyed by `object.uuid`, so
++ * Visibility handlers are deliberately not transferred: that registry is keyed by the object, so
+  * the replacement re-registers itself through `applyProps`. The old entry is dropped here so it
+  * cannot outlive the object it described.
+  */
+@@ -109,7 +110,7 @@ export function swapInteractivity(store: RootStore, object: THREE.Object3D, newO
+       if (pointerState.initialHits[i] === object) pointerState.initialHits[i] = newObject
+     }
+ 
+-    // Hover entries are keyed by uuid, so a swap needs a new key as well as new references —
++    // Hover entries are keyed by object, so a swap needs a new key as well as new references —
+     // rewriting the value alone would strand the entry under the old object's id.
+     pointerState.hovered.forEach((value, key) => {
+       if (value.eventObject === object || value.object === object) {
+@@ -231,20 +232,8 @@ export function createEvents(store: RootStore) {
  
        if (!state.raycaster.camera) return []
  
@@ -27,7 +75,7 @@ index 787fd83..44e7ed1 100644
      }
  
      // Collect events
-@@ -274,8 +262,8 @@ export function createEvents(store: RootStore) {
+@@ -274,8 +263,8 @@ export function createEvents(store: RootStore) {
          // Default priority is 1 (from createPointerEvents), but may be undefined for some objects
          const aPriority = aState?.events?.priority ?? 1
          const bPriority = bState?.events?.priority ?? 1
@@ -68,9 +116,29 @@ index a5f831f..4ca6102 100644
 -type RendererNamespace = NonNullable<ReturnType<RootStore['getState']>['internal']['support']>['three']
 +type RendererNamespace = NonNullable<ReturnType<RootStore['getState']>['internal']['support']>['catalog']
 diff --git a/src/core/portal.tsx b/src/core/portal.tsx
-index 819a4d3..3806fac 100644
+index 819a4d3..4e61dc4 100644
 --- a/src/core/portal.tsx
 +++ b/src/core/portal.tsx
+@@ -7,6 +7,7 @@ import { context } from './store'
+ import { reconciler } from './reconciler'
+ import { getThree } from './three'
+ import { updateCamera, useIsomorphicLayoutEffect, useMutableCallback } from './utils'
++import { objectKey } from './utils/objectKey'
+ import { cloneState, isAccessor, keepAccessors } from './utils/stateAccessors'
+ import type { RootState, EventManager, InjectState } from '#types'
+ 
+@@ -61,9 +62,8 @@ export function Portal({ children, container, state }: PortalProps): JSX.Element
+   if (!resolvedContainer) return <></>
+ 
+   // Render the actual portal with resolved container
+-  // Use container.uuid as key to force remount when container changes
+-  // Fallback to container reference if uuid doesn't exist (defensive)
+-  const portalKey = resolvedContainer.uuid ?? `portal-${resolvedContainer.id ?? 'unknown'}`
++  // Key by the container to force remount when container changes
++  const portalKey = objectKey(resolvedContainer)
+   return <PortalInner key={portalKey} children={children} container={resolvedContainer} state={state} />
+ }
+ 
 @@ -98,9 +98,10 @@ function PortalInner({ state = {}, children, container }: PortalInnerProps): JSX
    // The reconciler owns child disposal on removal; a layout cleanup must not free them.
    useIsomorphicLayoutEffect(() => {
@@ -337,7 +405,7 @@ index 498a00a..96f7216 100644
        state.internal.support = support
        ensureStoreThreeObjects(store)
 diff --git a/src/core/store.ts b/src/core/store.ts
-index 043815b..5a0623d 100644
+index 043815b..1628b50 100644
 --- a/src/core/store.ts
 +++ b/src/core/store.ts
 @@ -22,7 +22,7 @@ import type {
@@ -358,6 +426,59 @@ index 043815b..5a0623d 100644
  
          // Scheduler for useFrameNext (initialized in loop.ts)
          scheduler: null,
+@@ -411,9 +411,9 @@ export const createStore = (
+       // Ensure camera is a child of the scene so camera children (HUDs, etc.) render
+       // Skip if user has already parented the camera elsewhere
+       // https://github.com/pmndrs/react-three-fiber/issues/3632
+-      const { rootScene } = rootStore.getState()
++      const { rootScene, internal } = rootStore.getState()
+       if (camera && rootScene && !camera.parent) {
+-        rootScene.add(camera)
++        internal.support.add(rootScene, camera)
+       }
+ 
+       // Update viewport
+diff --git a/src/core/utils/instance.ts b/src/core/utils/instance.ts
+index c3daa69..3eb5d3d 100644
+--- a/src/core/utils/instance.ts
++++ b/src/core/utils/instance.ts
+@@ -34,13 +34,11 @@ export function findInitialRoot<T>(instance: Instance<T>): RootStore {
+ export function getRootState<T extends THREE.Object3D = THREE.Object3D>(obj: T) {
+   let state = (obj as Instance<T>['object']).__r3f?.root.getState()
+   if (!state) {
+-    obj.traverseAncestors((ancestor) => {
+-      const parentState = (ancestor as Instance['object']).__r3f?.root.getState()
+-      if (parentState) {
+-        state = parentState
+-        return false // Stop traversal
+-      }
+-    })
++    // Walks `parent` as three's traverseAncestors did, which ignored the callback's `return false`,
++    // so the outermost managed ancestor wins
++    for (let ancestor = obj.parent; ancestor; ancestor = ancestor.parent) {
++      state = (ancestor as Instance['object']).__r3f?.root.getState() ?? state
++    }
+   }
+   return state
+ }
+diff --git a/src/core/utils/objectKey.ts b/src/core/utils/objectKey.ts
+new file mode 100644
+index 0000000..5b6ec3c
+--- /dev/null
++++ b/src/core/utils/objectKey.ts
+@@ -0,0 +1,12 @@
++const objectKeys = new WeakMap<object, string>()
++let nextObjectKey = 0
++
++/**
++ * A key for an object, unique for its lifetime, which core keeps itself so it can key objects that
++ * have no `uuid` (hover and capture entries, the visibility registry, a portal's container).
++ */
++export function objectKey(object: object): string {
++  let key = objectKeys.get(object)
++  if (key === undefined) objectKeys.set(object, (key = `${nextObjectKey++}`))
++  return key
++}
 diff --git a/src/core/utils/props.ts b/src/core/utils/props.ts
 index 3566163..cff0fa5 100644
 --- a/src/core/utils/props.ts
@@ -398,6 +519,45 @@ index 3566163..cff0fa5 100644
    }
  
    // Instance was updated, request a frame
+diff --git a/src/core/visibility.ts b/src/core/visibility.ts
+index c89c2fb..4d1f1dc 100644
+--- a/src/core/visibility.ts
++++ b/src/core/visibility.ts
+@@ -6,6 +6,7 @@
+ import type { Frustum, Material, Mesh, Object3D } from 'three'
+ import type { Node } from 'three/webgpu'
+ import { updateFrustum } from './utils'
++import { objectKey } from './utils/objectKey'
+ import { getThree } from './three'
+ 
+ //* Type Imports ==============================
+@@ -222,7 +223,7 @@ export function registerVisibility(
+     lastVisibleState: null,
+   }
+ 
+-  registry.set(object.uuid, entry)
++  registry.set(objectKey(object), entry)
+ 
+   // Auto-enable occlusion if needed
+   if (handlers.onOccluded || handlers.onVisible) {
+@@ -245,7 +246,7 @@ export function registerVisibility(
+  */
+ export function unregisterVisibility(store: RootStore, object: Object3D): void {
+   const { internal } = store.getState()
+-  internal.visibilityRegistry.delete(object.uuid)
++  internal.visibilityRegistry.delete(objectKey(object))
+   internal.occlusionCache.delete(object)
+ }
+ 
+@@ -273,7 +274,7 @@ export function updateVisibilityHandlers(
+   handlers: Pick<EventHandlers, 'onFramed' | 'onOccluded' | 'onVisible'>,
+ ): boolean {
+   const { internal } = store.getState()
+-  const entry = internal.visibilityRegistry.get(object.uuid)
++  const entry = internal.visibilityRegistry.get(objectKey(object))
+   if (!entry) return false
+ 
+   entry.handlers = handlers
 diff --git a/src/support/threeHooks.ts b/src/support/threeHooks.ts
 new file mode 100644
 index 0000000..37b4818

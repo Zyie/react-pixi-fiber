@@ -2,14 +2,15 @@ import { Assets } from 'pixi.js';
 
 /**
  * pixi's `Assets` as a loader `useLoader` takes: whatever `Assets.load` loads, a texture, a
- * spritesheet, a bitmap font, JSON, through r3f's Suspense and cache
+ * spritesheet, a bitmap font, JSON, a glTF model (`@pixi/3d`'s `Scene3DSource`), through r3f's
+ * Suspense and cache
  *
  * `useLoader` keeps what it loads by URL, and `Assets` keeps it too; `useLoader.clear` forgets it in
  * React only, so call `Assets.unload` to free it. {@link useAsset} is the same with the result typed.
  * @example
  * ```tsx
  * import { useLoader } from '@react-fiber/core';
- * import { AssetsLoader } from '@react-fiber/2d';
+ * import { AssetsLoader } from '@react-fiber/core';
  * import type { Spritesheet } from 'pixi.js';
  *
  * const sheet = useLoader(AssetsLoader, '/sprites/sheet.json') as Spritesheet;

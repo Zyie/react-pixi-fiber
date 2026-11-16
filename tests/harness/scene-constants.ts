@@ -42,12 +42,26 @@ export const PIXI_ONLY = {
 } as const satisfies { skip: { renderers: ['three']; reason: string }; parity: false };
 
 /**
- * The folders of keys whose scenes and examples draw pixi.js 2D, which three.js can't, so they are
- * `PIXI_ONLY` without saying so: `tests/scenes/2d`, `tests/scenes/mixed` and `examples/2d`. The
- * `three` project and the playground's three.js frame don't load them, since they import names only
- * this library exports.
+ * The folders of keys whose scenes run without `@react-fiber/threejs-compat`: `tests/scenes/3d` and
+ * `examples/3d`, @pixi/3d's elements from `@react-fiber/3d` with `@react-fiber/2d`. The `native` vitest
+ * project runs them on a page where the compat package can't load, and the playground leaves it out of
+ * their frames.
  */
-export const PIXI_ONLY_FOLDERS = ['2d', 'mixed', 'docs/2d'] as const;
+export const NATIVE_FOLDERS = ['3d', 'docs/3d'] as const;
+
+/**
+ * The folders of keys whose scenes and examples draw what three.js can't, pixi.js 2D or @pixi/3d's own
+ * elements, so they are `PIXI_ONLY` without saying so: `tests/scenes/2d`, `tests/scenes/mixed`,
+ * `examples/2d` and the {@link NATIVE_FOLDERS}. The `three` project and the playground's three.js frame
+ * don't load them, since they import names only this library exports.
+ */
+export const PIXI_ONLY_FOLDERS = ['2d', 'mixed', 'docs/2d', ...NATIVE_FOLDERS] as const;
+
+/**
+ * Whether a scene's key is in one of {@link NATIVE_FOLDERS}
+ * @param key - The scene's key, such as `3d/basic` or `docs/3d/first-scene`
+ */
+export const isNativeKey = (key: string): boolean => NATIVE_FOLDERS.some((folder) => key.startsWith(`${folder}/`));
 
 /**
  * Whether a scene's key is in one of {@link PIXI_ONLY_FOLDERS}

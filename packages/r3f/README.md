@@ -11,7 +11,7 @@ react-pixi-fiber runs pixi.js 2D and `@pixi/3d` on this core with a support of i
 `@react-fiber/core` package bundles this core and gives roots a renderer support that the 2D and 3D
 packages fill.
 
-The whole change is [`fork.diff`](./fork.diff): <!-- diff-size -->12 files changed, 201 lines added, 102 lines removed<!-- /diff-size -->.
+The whole change is [`fork.diff`](./fork.diff): <!-- diff-size -->16 files changed, 232 lines added, 121 lines removed<!-- /diff-size -->.
 `npm run diff:r3f` writes it, and `npm run test:lint` fails when it is stale.
 
 ## The interface
@@ -73,7 +73,7 @@ spread. It imports nothing from three.
 
 | Hook                            | What core did before                                                                                                                 | Where core calls it                                                                                            |
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| `add(parent, child, before?)`   | `parent.add(child)`; to insert before a sibling, it spliced `parent.children`, set `child.parent` and dispatched `added` and `childadded` | `handleContainerEffects` (append, insert, keyed move), `swapReconstructedInstances`, a portal's injected scene |
+| `add(parent, child, before?)`   | `parent.add(child)`; to insert before a sibling, it spliced `parent.children`, set `child.parent` and dispatched `added` and `childadded` | `handleContainerEffects` (append, insert, keyed move), `swapReconstructedInstances`, a portal's injected scene, the default camera joining the root's scene |
 | `remove(parent, child)`         | `parent.remove(child)`                                                                                                               | `removeChild`, `swapReconstructedInstances`, a portal's injected scene                                        |
 | `isInteractive(object)`         | `isObject3D(object)`                                                                                                                 | the add and remove gates, `hideInstance` and `unhideInstance`, handler and visibility registration in `applyProps` |
 | `defaultAttach(object)`         | `isBufferGeometry` attached to `geometry`, `isMaterial` to `material`                                                                | `applyProps`, for an element with no `attach`                                                                  |
@@ -118,6 +118,18 @@ Why each one is needed:
 - **Supports written before the hooks keep working.** `initializeRenderer` fills a missing hook with
   three's and a missing `catalog` with `three`, so a support without them, such as the hand-built mock in
   `tests/webgl2-fallback-multicanvas.test.tsx`, runs as it did.
+- **Core keys objects itself.** Hover and capture entries, the visibility registry and a portal's key
+  were keyed by `object.uuid`; they are now keyed by `objectKey(object)` (`core/utils/objectKey.ts`), a
+  string core keeps per object in a `WeakMap`. three's keys were unique per object and so are these, so
+  nothing changes for three, and a scene graph without `uuid` (pixi.js's 2D, @pixi/3d's nodes) gets
+  distinct keys. It isn't exported, so the public API is unchanged.
+- **`getRootState` walks `parent`.** For a hit on an object with no element (a node inside a
+  `<primitive>`), core found the root through `traverseAncestors`, three's method. It now walks
+  `parent` itself and keeps the outermost ancestor with a root, as three's `traverseAncestors` did, since
+  it ignores the callback's `return false`. Behavior inside portals is the same.
+- **The default camera joins the scene through `add`.** `configure()` and the store added the default
+  camera to the root's scene with `scene.add(camera)`; they now call the support's `add` hook, as every
+  other tree change does, so the root's scene needs no `add` method of its own.
 
 ## What core still reads on objects
 
@@ -127,11 +139,14 @@ classes answer it:
 - **Core's own objects** (`configuration.ts`, `store.ts`, `portal.tsx`, `renderer.ts`, `events.ts`): the
   default raycaster, camera and scene, `pointer` and `frustum`, built from `Raycaster`,
   `PerspectiveCamera`, `OrthographicCamera`, `Scene`, `Vector2`, `Vector3` and `Frustum` in
-  `support.three`. Core calls `raycaster.camera`, `setFromCamera` and `ray`; a camera's `position`,
-  `lookAt`, `aspect` or bounds, `zoom`, `fov`, `manual`, `updateProjectionMatrix`, `getWorldPosition`,
-  `projectionMatrix` and `matrixWorldInverse`; `scene.add(camera)`; `Vector3.unproject`; and
-  `Frustum.setFromProjectionMatrix`. The support already hands over these classes, and a renderer giving
-  classes with these members is a smaller contract than a hook per object.
+  `support.three`. Core calls `raycaster.camera`, `setFromCamera` and `ray`; a camera's `isCamera`,
+  `position`, `lookAt(x, y, z)`, `aspect` or bounds, `zoom`, `fov`, `manual`, `updateProjectionMatrix`,
+  `getWorldPosition`, `projectionMatrix` and `matrixWorldInverse`; a scene's `isScene`; a vector's
+  `isVector3`, `copy` and `unproject`; and the frustum's `setFromProjectionMatrix`, `clone` and
+  `intersectsObject`. The support already hands over these classes, and a renderer giving classes with
+  these members is a smaller contract than a hook per object. react-pixi-fiber's `@react-fiber/core`
+  gives @pixi/3d's camera, scene, vector and frustum classes with these members, and a raycaster that
+  picks with @pixi/3d's hit volumes, so a root needs nothing three-shaped.
 - **`applyProps` value writes**: `set`, `copy`, `fromArray`, `setScalar`, `isColor`, a layers `mask` and
   `ShaderMaterial` uniforms, else plain assignment. They are duck typed: a value no rule matches is
   assigned, and the renderer's own setters take it.
@@ -141,13 +156,9 @@ classes answer it:
 - **Color management and renderer setup**: `outputColorSpace`, `toneMapping` and `shadowMap` on the
   renderer, and a texture's `colorSpace` for three's textures. They are written on the renderer the
   support constructed, which takes or ignores them.
-- **Events and hiding**: `uuid` (dedupe and hover keys, the visibility registry), `traverseAncestors`
-  (`getRootState`, for a hit object with no element), `parent` (bubbling), `visible`,
-  `userData.interactivePriority` and `raycast !== null` (the opt-out). Most scene graphs have them. A
-  renderer without `uuid` or `traverseAncestors` would need core to keep an id of its own and walk
-  `parent`. Walking `parent` to the nearest managed ancestor changes three's behavior inside a portal:
-  three's `traverseAncestors` ignores the callback's `return false`, so the outermost managed ancestor
-  wins today. That is left for a separate change.
+- **Events and hiding**: `parent` (bubbling and `getRootState`), `visible`,
+  `userData.interactivePriority` (optional) and `raycast !== null` (the opt-out). Most scene graphs have
+  them.
 
 ## Running r3f's tests on the fork
 

@@ -1,14 +1,14 @@
-import { useLoader } from '@react-fiber/core';
+import { useLoader } from '@react-fiber/r3f/src/core/hooks/useLoader';
 
-import { AssetsLoader } from './AssetsLoader';
+import { AssetsLoader } from '../loaders/AssetsLoader';
 
 /**
  * Loads assets with pixi's `Assets` and suspends until they are ready, `useLoader` with
- * {@link AssetsLoader}: a texture, a spritesheet, a bitmap font, anything `Assets.load` takes. Wrap
- * the caller in `<Suspense>`.
+ * {@link AssetsLoader}: a texture, a spritesheet, a bitmap font, a glTF model's `Scene3DSource`,
+ * anything `Assets.load` takes. Wrap the caller in `<Suspense>`.
  * @example
  * ```tsx
- * import { useAsset } from '@react-fiber/2d';
+ * import { useAsset } from '@react-fiber/core';
  * import type { Spritesheet } from 'pixi.js';
  *
  * function Walker() {

@@ -33,7 +33,7 @@ import type { Properties } from './utils';
  * @category events
  * @standard
  */
-export interface Intersection2D extends Omit<Registered<'Intersection'>, 'object'> {
+export interface Intersection2D extends Pick<Registered<'Intersection'>, 'distance' | 'point'> {
   /** The 2D object under the pointer */
   object: Container;
   /**

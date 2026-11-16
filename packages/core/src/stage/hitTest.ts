@@ -200,7 +200,6 @@ export function hitTestScreen(container: Container, state: RootState): Intersect
     const hit: Intersection2D = {
       distance: 0,
       point: new Vector3(x, y, 0),
-      face: null,
       object,
       global,
       local: object.toLocal(global),

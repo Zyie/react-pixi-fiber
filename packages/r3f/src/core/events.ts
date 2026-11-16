@@ -1,6 +1,7 @@
 import type * as THREE from 'three'
 import { getThree } from './three'
 import { getRootState } from './utils'
+import { objectKey } from './utils/objectKey'
 import { unregisterVisibility } from './visibility'
 
 //* Type Imports ==============================
@@ -44,7 +45,7 @@ function getPointerId(event: DomEvent): number {
 }
 
 function makeId(event: Intersection) {
-  return (event.eventObject || event.object).uuid + '/' + event.index + event.instanceId
+  return objectKey(event.eventObject || event.object) + '/' + event.index + event.instanceId
 }
 
 /**
@@ -91,7 +92,7 @@ function releaseInternalPointerCapture(internal: RootState['internal'], obj: THR
  * Captures are re-keyed rather than released, so the DOM-level capture on `captureData.target` is
  * left alone — releasing and re-acquiring it is precisely the glitch being avoided.
  *
- * Visibility handlers are deliberately not transferred: that registry is keyed by `object.uuid`, so
+ * Visibility handlers are deliberately not transferred: that registry is keyed by the object, so
  * the replacement re-registers itself through `applyProps`. The old entry is dropped here so it
  * cannot outlive the object it described.
  */
@@ -109,7 +110,7 @@ export function swapInteractivity(store: RootStore, object: THREE.Object3D, newO
       if (pointerState.initialHits[i] === object) pointerState.initialHits[i] = newObject
     }
 
-    // Hover entries are keyed by uuid, so a swap needs a new key as well as new references —
+    // Hover entries are keyed by object, so a swap needs a new key as well as new references —
     // rewriting the value alone would strand the entry under the old object's id.
     pointerState.hovered.forEach((value, key) => {
       if (value.eventObject === object || value.object === object) {

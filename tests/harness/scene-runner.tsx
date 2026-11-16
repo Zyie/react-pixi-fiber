@@ -1,5 +1,5 @@
-import { createRoot, events } from '@react-fiber/threejs-compat';
-import type { PixiRenderer, ReconcilerRoot, RenderProps, RootState, RootStore } from '@react-fiber/threejs-compat';
+import { createRoot, events } from '@react-fiber/core';
+import type { PixiRenderer, ReconcilerRoot, RenderProps, RootState, RootStore } from '@react-fiber/core';
 import { Component, Suspense, useLayoutEffect } from 'react';
 import type { ReactNode } from 'react';
 import '@react-fiber/2d';
