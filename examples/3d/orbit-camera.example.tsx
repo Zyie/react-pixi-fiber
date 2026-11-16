@@ -1,5 +1,5 @@
-import { OrbitCamera3D } from '@react-fiber/3d';
 // #region result
+import { OrbitCamera3D } from '@react-fiber/3d';
 import { Canvas } from '@react-fiber/core';
 // #endregion result
 
