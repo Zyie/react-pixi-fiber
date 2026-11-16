@@ -787,7 +787,7 @@ export function toPixiColor(color: Color): [number, number, number] {
 
 /**
  * A colour's channels encoded to sRGB as three outputs them, for what pixi.js draws without decoding:
- * a clear colour, a 2D tint. The array is reused by the next call.
+ * a clear colour, a colour background. The array is reused by the next call.
  * @param color - The colour, linear
  * @returns `[r, g, b]` in sRGB, clamped to 0 to 1
  * @internal

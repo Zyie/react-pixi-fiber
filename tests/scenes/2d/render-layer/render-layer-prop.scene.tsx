@@ -6,7 +6,7 @@ import { useState } from 'react';
 function Cards({ x, layer }: { x: number; layer: RenderLayer | null }) {
   return (
     <container2D x={x} y={60}>
-      <sprite2D texture={Texture.WHITE} tint={0xe6194b} width={90} height={90} renderLayer={layer} />
+      <sprite2D texture={Texture.WHITE} tint={0xe6194b} width={90} height={90} parentRenderLayer={layer} />
       <sprite2D texture={Texture.WHITE} tint={0x3cb44b} width={90} height={90} x={30} y={30} />
       <sprite2D texture={Texture.WHITE} tint={0x4363d8} width={90} height={90} x={60} y={60} />
     </container2D>
@@ -27,11 +27,11 @@ function Layered({ lifted }: { lifted: boolean }) {
 }
 
 /**
- * The `renderLayer` prop draws a container in a `<renderLayer2D>` where the layer is, not where it is in
+ * The `parentRenderLayer` prop draws a container in a `<renderLayer2D>` where the layer is, not where it is in
  * its parent. The layer comes after the cards, so its ref is kept in state, which re-renders the cards
  * with it once it is set. Each group stacks red, green and blue cards in that order, under a
  * yellow band drawn after both. On the left the red card is in the layer, last in the tree, so it draws
- * over its siblings and the band. On the right it was in the layer, then `act` set `renderLayer` to
+ * over its siblings and the band. On the right it was in the layer, then `act` set `parentRenderLayer` to
  * `null`, and it is back at the bottom of its stack, under the band.
  */
 export const scene: TestScene = {

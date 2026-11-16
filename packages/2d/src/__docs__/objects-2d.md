@@ -16,9 +16,9 @@ The object is built again when an item of `args` changes, as in r3f, so use them
 
 ## Properties
 
-A prop sets the field of the same name: `x`, `y`, `alpha`, `tint`, `rotation`, `angle`, `zIndex`, `visible`, `blendMode`, `eventMode`, `cursor`, `hitArea`, `mask`, `texture`, `text`, `style`. A point takes r3f's forms: one number for both axes (`anchor={0.5}`, `scale={2}`), an array (`position={[10, 20]}`), or a point. A colour, such as `tint`, a fill or a text style's `fill`, takes anything pixi's `Color` takes, and a three `Color` from `@react-fiber/threejs-compat/three` too, as a material's `color` does.
+A prop sets the field of the same name: `x`, `y`, `alpha`, `tint`, `rotation`, `angle`, `zIndex`, `visible`, `blendMode`, `eventMode`, `cursor`, `hitArea`, `mask`, `texture`, `text`, `style`. A point takes r3f's forms: one number for both axes (`anchor={0.5}`, `scale={2}`), an array (`position={[10, 20]}`), or a point. A colour, such as `tint`, a fill or a text style's `fill`, takes anything pixi's `Color` takes. A three `Color` from `@react-fiber/threejs-compat/three` isn't one, since pixi reads its channels as 0 to 255: pass `color.getHex()` or `color.getStyle()`.
 
-A few of pixi's methods are props as well, so they can be declared: `cacheAsTexture` caches a container as a texture ([2D performance](performance-2d.md#cache-what-doesnt-change)), `renderLayer` draws it in a render layer (below), `mask` takes pixi's mask options as `setMask` does ([Masks](filters-and-masks-2d.md#masks)), and an animated sprite's `playing` plays or stops it. For other methods, r3f's `once()` calls a method when the element mounts: `<colorMatrixFilter2D sepia={once()} />`.
+A few of pixi's methods are props as well, so they can be declared: `cacheAsTexture` caches a container as a texture ([2D performance](performance-2d.md#cache-what-doesnt-change)), `parentRenderLayer` draws it in a render layer (below), `mask` takes pixi's mask options as `setMask` does ([Masks](filters-and-masks-2d.md#masks)), and an animated sprite's `playing` plays or stops it. For other methods, r3f's `once()` calls a method when the element mounts: `<colorMatrixFilter2D sepia={once()} />`.
 
 <!-- snippet: examples/2d/args-and-props.example.tsx#props -->
 
@@ -70,14 +70,14 @@ A filter, a mask or a graphics context is no child: it attaches to a field of it
 
 ## Render layers
 
-A `<renderLayer2D>` draws the elements attached to it where the layer is in the tree, not where they are, so a tooltip deep in a list can draw over everything after it. `renderLayer` attaches an element, and `null` detaches it. The layer usually comes after what it lifts, so keep its ref in state, which renders the elements again once it is set:
+A `<renderLayer2D>` draws the elements attached to it where the layer is in the tree, not where they are, so a tooltip deep in a list can draw over everything after it. `parentRenderLayer`, pixi's field for the layer a container is attached to, attaches an element, and `null` detaches it. The layer usually comes after what it lifts, so keep its ref in state, which renders the elements again once it is set:
 
 ```tsx
 const [layer, setLayer] = useState<RenderLayer | null>(null);
 
 <>
   <container2D>
-    <sprite2D texture={card} renderLayer={layer} />
+    <sprite2D texture={card} parentRenderLayer={layer} />
     <sprite2D texture={card} x={30} />
   </container2D>
   <renderLayer2D ref={setLayer} />

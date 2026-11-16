@@ -22,7 +22,7 @@ import type {
 } from 'pixi.js';
 
 import type { IntersectionEvent } from './events';
-import type { Registered, RegisteredInstance } from './register';
+import type { Registered } from './register';
 import type { Properties } from './utils';
 
 /**
@@ -120,8 +120,8 @@ export interface EventHandlers2D {
 }
 
 /**
- * The props this package adds to every 2D container: what its mask, render layer and texture cache
- * take as props
+ * The props of every 2D container that take more than its fields: its filters and mask, which
+ * elements also attach to, its render layer and its texture cache
  * @category types
  * @advanced
  */
@@ -134,22 +134,20 @@ export interface ContainerProps2D {
    * `attach="mask"` child's
    */
   mask: Mask | Partial<MaskOptionsAndMask>;
-  /** The render layer that draws this container, or `null` for none; `layer.attach(this)` as a prop */
-  renderLayer: RenderLayer | null;
+  /** The render layer that draws this container, or `null` for none: `layer.attach(this)` as a prop */
+  parentRenderLayer: RenderLayer | null;
   /** Caches the container and its children as one texture: `cacheAsTexture(value)` as a prop */
   cacheAsTexture: boolean | CacheAsTextureOptions;
 }
 
 /**
- * The props of a 2D object whose setter takes more than its getter returns: `tint` any colour or a
- * three `Color` from `@react-fiber/threejs-compat/three`, a
- * container's {@link ContainerProps2D}, text's `text` and `style` what their setters take, and an
- * animated sprite's `textures` and `playing`, which plays or stops it
+ * The props of a 2D object whose setter takes more than its getter returns: `tint` any colour pixi's
+ * `Color` takes, a container's {@link ContainerProps2D}, text's `text` and `style` what their setters
+ * take, and an animated sprite's `textures` and `playing`, which plays or stops it
  * @category types
  * @advanced
  */
-// oxlint-disable-next-line typescript/no-redundant-type-constituents -- no colour class until a package registers one
-export type SetterProps2D<P> = (P extends { tint: number } ? { tint: ColorSource | RegisteredInstance<'Color'> } : {}) &
+export type SetterProps2D<P> = (P extends { tint: number } ? { tint: ColorSource } : {}) &
   (P extends Container ? ContainerProps2D : {}) &
   (P extends { text: string; style: object }
     ? {

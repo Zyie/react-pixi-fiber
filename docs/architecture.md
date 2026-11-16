@@ -17,7 +17,7 @@ packages/core/src/            @react-fiber/core
   bridges/                    Anchor2D, View3D, Layer3D, RenderTexture2D
   hooks/                      useRenderTarget
   types/                      RootState, ThreeElements, events, props, Register: our types
-packages/2d/src/              @react-fiber/2d: pixi.js's 2D classes under 2D names, their hooks and surface, the
+packages/2d/src/              @react-fiber/2d: pixi.js's 2D classes under 2D names, their hooks and props, the
                               2D frame jobs, AssetsLoader and useAsset
 packages/3d/src/              @react-fiber/3d: a skeleton; @pixi/3d's object hooks (objects3D)
 packages/threejs-compat/src/  @react-fiber/threejs-compat
@@ -36,7 +36,7 @@ packages/threejs-compat/src/  @react-fiber/threejs-compat
   animation/                  three's AnimationMixer, clips, tracks and EventDispatcher
   environment/                render targets, CubeCamera, Controls, <Environment> and its hooks, EnvironmentMaps
   addons/                     loaders/ controls/ environment/: GLTFLoader, OrbitControls, HDRLoader, ...
-  compat/                     three's members on pixi-3d's prototypes: Object3D, materials, raycasting, pixi colours
+  compat/                     three's members on pixi-3d's prototypes: Object3D, materials, raycasting
 packages/docs/                @react-fiber/docs: the docs site
 ```
 
@@ -62,10 +62,10 @@ Besides the diff, the fork holds files of ours, listed in the script's `EXTRAS`:
 
 Core never imports `three` for a value. It reaches the renderer through these seams, and each is ours to fill:
 
-- The renderer hooks (`RendererHooks` in `types/provider.d.ts`): `add` and `remove` for every tree change, `isInteractive` for which objects are nodes, `defaultAttach`, `hitTest` and `compareHits` in the event pipeline, and `dispose`.
+- The renderer hooks (`RendererHooks` in `types/provider.d.ts`): `add` and `remove` for every tree change, `isInteractive` for which objects are nodes, `defaultAttach` and `applyProp` for props and attaches, `hitTest` and `compareHits` in the event pipeline, and `dispose`.
 - `getThree()` (`core/three.ts`): `support.three` of the first root. Core builds its own objects from it: `Raycaster`, `Vector2`, `Vector3`, `Scene`, `PerspectiveCamera`, `Frustum`, and reads a few constants.
 - `resolveConstructor()` (`core/extend.ts`): an element name resolves through `extend()` registrations, then `support.catalog` of the root's renderer.
-- Duck typing that is left: `uuid`, `traverseAncestors`, `parent`, `visible`, `userData`, `raycast !== null`, and the members core calls on its own camera, raycaster and frustum. Core never uses `instanceof`.
+- Duck typing that is left: `parent`, `visible`, `userData`, `raycast !== null`, and the members core calls on its own camera, raycaster and frustum. Core keys objects by ids it keeps (`getObjectId` in `core/utils/objectId.ts`), not by `uuid`, and finds the root of a hit object with no element by walking `parent`. Core never uses `instanceof`.
 
 We use core's modules (root, reconciler, store, loop, events, portal, hooks) through `packages/core/src/index.tsx`. We don't use `core/components/Environment`, `core/hooks/useEnvironment` (three's addons) or `core/hooks/useRenderTarget` (it never disposes its target); threejs-compat's `environment` has adapted copies of the first two, and core's `hooks/useRenderTarget.ts` of the third. Nor do we use r3f's entries (`index.tsx`, `legacy.tsx`, `webgpu/`), `web/Canvas.tsx` (it imports Environment; `packages/core/src/root/Canvas.tsx` is its adapted copy) or `support/*` (three's renderers, with three's hooks in `support/threeHooks.ts`). They stay in the fork as upstream has them, but for the hooks. `legacy.tsx` and `support/webgl.ts` matter: the parity harness renders scenes through them.
 
@@ -86,15 +86,15 @@ import { extensions } from 'pixi.js';
 extensions.add(
   { type: FiberExtensionType.Catalog, name: '2d', ref: catalog2D },
   { type: FiberExtensionType.Objects, name: '2d', ref: objects2D },
-  { type: FiberExtensionType.Support, name: '2d', ref: { install: install2DSurface } },
+  { type: FiberExtensionType.Support, name: '2d', ref: { install: () => registerRootExtension(frameExtension) } },
 );
 ```
 
 What registers today:
 
 - **core** itself: `Anchor2D` in the catalog, at priority -1.
-- **2d** (`packages/2d/src/index.ts`): the 2D classes; `objects2D`, the hooks of a pixi `Container` or `Particle`; and an `install` that patches pixi.js's 2D classes (`install2DSurface`) and registers each root's 2D frame jobs.
-- **threejs-compat** (`packages/threejs-compat/src/install.ts`): its catalog; `objects3D` from `@react-fiber/3d`; and `ThreeRenderer`, three's render targets and an `install` that runs `installObject3DSurface` and lets pixi's `Color` take a three `Color`.
+- **2d** (`packages/2d/src/index.ts`): the 2D classes; `objects2D`, the hooks of a pixi `Container`, `Particle`, `Filter` or `GraphicsContext`; and an `install` that registers each root's 2D frame jobs. It changes no pixi.js class.
+- **threejs-compat** (`packages/threejs-compat/src/install.ts`): its catalog; `objects3D` from `@react-fiber/3d`; and `ThreeRenderer`, three's render targets and an `install` that runs `installObject3DSurface`.
 
 Types follow the same split. core's types name the classes a root's objects are through `Registered<K>`: the class a package registers under `K` in the `Register` interface, or core's default from `RegisterDefaults` (@pixi/3d's `Container3D` for a scene, `Camera3D` for a camera, core's `PixiRenderer`, ...). threejs-compat augments `Register` with three's classes, so wherever it is installed `useThree().camera` is three's `PerspectiveCamera`, and a package adds its elements to `ThreeElements` the same way (`interface ThreeElements extends ThreeElementsOf<typeof catalog2D> {}`).
 
@@ -113,13 +113,14 @@ Types follow the same split. core's types name the classes a root's objects are 
 
 Each hook asks the `ObjectHooks` of the package that owns the object, the first whose `test` takes it: the child for `add` and `remove`, the object itself for the rest. `compareHits` is core's own.
 
-- `add(parent, child, before)` and `remove`: 2d's hooks (`objects2D`) take a 2D object or a particle and add it under a 2D container where its element is among its siblings (`add2D`, `packages/2d/src/surface.ts`), or under a 3D node through core's `addToScene` (the scene's screen layer, or an anchor), then put an animated sprite on its root's clock. @pixi/3d's hooks (`objects3D`, `packages/3d/src/objects3D.ts`, which threejs-compat registers) add a 3D node to a 3D node's children, through `addChildAt` before a sibling, and leave a 3D node under 2D out with a warning. `remove` mirrors them with `remove2D`, `removeFromScene` and `removeChild`.
+- `add(parent, child, before)` and `remove`: 2d's hooks (`objects2D`) take a 2D object or a particle and add it under a 2D container where its element is among its siblings (`add2D`, `packages/2d/src/children.ts`), or under a 3D node through core's `addToScene` (the scene's screen layer, or an anchor), then put an animated sprite on its root's clock. @pixi/3d's hooks (`objects3D`, `packages/3d/src/objects3D.ts`, which threejs-compat registers) add a 3D node to a 3D node's children, through `addChildAt` before a sibling, and leave a 3D node under 2D out with a warning. `remove` mirrors them with `remove2D`, `removeFromScene` and `removeChild`.
 - `isInteractive`: a `Container3D`, a pixi.js `Container` or a `Particle`. `defaultAttach`: `'geometry'` for a `Geometry3D`, `'material'` for a `BaseMaterial3D`.
+- `applyProp`: 2d's hooks write the 2D props and attaches that aren't an assignment (`applyProp2D`, "pixi.js 2D" below); every other key, and every key of a 3D object, is core's to write.
 - `hitTest`: a 2D element hit tests its screen layer (`hitTestScreen`, "pixi.js 2D" below); a 3D node casts the raycaster of its root or portal, and each hit takes its draw order in the 3D.
 - `compareHits`: draw order (`packages/core/src/events/hitOrder.ts`). Each hit carries where it is drawn: pairs of a band (2D over the 3D, the 3D, 2D under it) and a place in it (a 2D object's place from the front, a 3D hit's distance), the outermost layer first. A portal drawn inside another layer starts with the order of what holds it, and a hit inside a layer sorts before the hit of what holds it, as a child's event comes before its parent's. `distance` stays the ray's.
-- `dispose`: the owner's `dispose` hook when it has one, else the object's own `dispose`, which the compat layer and the 2D surface give pixi's classes; a `Scene` is never freed.
+- `dispose`: the owner's `dispose` hook when it has one, else the object's own `dispose`, which the compat layer gives pixi-3d's classes; a `Scene` is never freed. 2d's hook destroys a container, a graphics context or a filter with pixi's `destroy()`, and a `BlurFilter`'s two passes with it.
 
-`packages/core/src/support/provider.ts` offers the support in the provider's `webgpu` slot, the one whose path awaits `init()`. The loader, `loadPixiSupport()`, first runs every registered package's `install` (`installObject3DSurface()`, `install2DSurface()`, ...), so the prototype patches happen when the first root configures and never on import, and registers the root extension `react-fiber:screen`, which gives each root's scene its screen layer.
+`packages/core/src/support/provider.ts` offers the support in the provider's `webgpu` slot, the one whose path awaits `init()`. The loader, `loadPixiSupport()`, first runs every registered package's `install` (threejs-compat's `installObject3DSurface()`, 2d's frame jobs, ...), so the prototype patches happen when the first root configures and never on import, and registers the root extension `react-fiber:screen`, which gives each root's scene its screen layer.
 
 Where core builds objects of its own outside r3f's core, for the bridges and 2D hits, it takes the classes from the root's support as r3f's core does (`classesOf` in `packages/core/src/support/classes.ts`): a `<View3D>`'s scene and camera, a `<RenderTexture2D>`'s scene, an anchor's occlusion raycaster, a 2D hit's `point`. Those classes take three's arguments and have three's members, the ones r3f's core calls on its own.
 
@@ -150,8 +151,6 @@ The patches reach a few of pixi-3d's internals: `_onUpdate` (to mark a node chan
 The `Raycaster` (`packages/threejs-compat/src/compat/Raycaster.ts`) builds its ray from the camera's own matrices (any camera picks, not only one a view draws with), walks objects through their `raycast` method as three does, and returns three's intersection shape: `distance`, `point`, `object`, `face` (`a`, `b`, `c`, `normal`), `faceIndex`, `barycoord`, `uv`, `normal`, `instanceId`. A mesh's `raycast` is three r187's `Mesh.raycast`: a bounding sphere and box test, then three's watertight triangle test on every triangle, read through the position attribute's stride and offset, so every triangle the ray crosses is a hit. The loop runs in `crossTriangles` over typed arrays and numbers, so it allocates nothing per triangle. As in three, hidden objects are hit, and the material's `side` (or pixi-3d's `doubleSided`) decides which faces count. A `BufferGeometry` hands pixi-3d `1 - v`, so its hits report `uv` turned back. `Points`, `Line`, `LineSegments`, `LineLoop` and `Sprite` have `raycast` methods of their own (`packages/threejs-compat/src/catalog/drawables/raycastDrawables.ts`), three's, with `raycaster.params` thresholds and `index` and `distanceToRay` on their hits; the event layer reaches them as it reaches meshes. There are no `layers`.
 
 `packages/core/src/events/pointerEvents.ts` is the event layer `<Canvas>` and the `events` export use: r3f's `createPointerEvents`, with `onDoubleClick` given the last pointerdown's `pointerId`, since r3f v10 keys pointerdown hits by it and Chrome's `dblclick` has none.
-
-`installPixiColor` (`packages/threejs-compat/src/compat/pixiColor.ts`) lets pixi's `Color` take a three `Color`, converted with `toDisplayColor`, so a 2D `tint`, fill or filter colour takes what a material's `color` takes.
 
 The `Raycaster` counts every time it is set (`noteCast`, core's), which is how a screen layer's hit test knows a new pointer event began.
 
@@ -234,15 +233,18 @@ The swaps reach two more pixi-3d internals, `View3D._toneMappingBit` and `View3D
 
 pixi.js's 2D classes are elements of the same r3f tree as the 3D, under r3f's rules. `packages/2d/src/catalog.ts` exports each display class, filter, `GraphicsContext` and `Particle` under its class name with a `2D` suffix (`Sprite2D`, `HtmlText2D` for `HTMLText`), and `packages/2d/src/index.ts`, the package's entry, registers them as a catalog and adds them to `ThreeElements`, so `<sprite2D>` resolves and is typed like `<mesh>`. The classes are pixi.js's own, not subclasses: a ref gets the pixi object, and an app imports the classes from `pixi.js`, so no entry re-exports them. The entry exports `useAsset` and `AssetsLoader`; the 2D types (`ThreeEvent2D`, `Intersection2D`, ...) are core's, since its element and event types read them. An app's own 2D class is registered with r3f's plain `extend({ Button2D: Button })`.
 
-**The element surface.** 2d's hooks (`objects2D`) add a 2D object where its element is among its siblings (`add2D`, and `addInElementOrder` with `indexByElementOrder` in `packages/core/src/stage/screen.ts`), so an insert or a keyed move goes through pixi's own `addChildAt`. `install2DSurface` (`packages/2d/src/surface.ts`), 2d's `install`, runs when the first root loads the support, and gives pixi.js's classes what core and the hooks still read of an element's object:
+**The element surface.** pixi.js's classes stay as pixi.js made them: 2d patches no prototype, and `tests/unit/pixi-prototypes.test.tsx` holds it to that. What r3f's core reads of an element's object is in core's fork (ids it keeps, `parent`) or in 2d's hooks, `objects2D` (`packages/2d/src/objects2D.ts`):
 
-- `Container`: `isObject3D`, a `uuid`, `traverse`, `traverseAncestors` and `dispose` (`destroy`).
-- `filters` hands out a list that `attach="filters-0"` writes into and r3f's detach deletes from; each change sets the container's filters to the list without its gaps, since pixi freezes the array it keeps. `mask` reads `null` when unset, so a detach clears it, and a mask element with no parent is added as a child of what it masks, so its transform follows that object. `mask` also takes `setMask`'s options (`{ mask, inverse: true }`); options without a `mask` keep the current one.
-- Methods that are props too: `cacheAsTexture` calls the method, `renderLayer` calls `layer.attach` or, with `null`, `detach`, and an `AnimatedSprite`'s `playing` calls `play()` or `stop()`.
-- `Graphics` and `GraphicsContext` take a `draw` prop that clears and draws, run when a new function is passed.
-- `Particle` is a child the `add` hook puts in a `ParticleContainer` (in element order) and `remove` takes out; `raycast` is `null`, so it never joins the interaction list.
-- With threejs-compat installed, pixi's `Color` takes a three `Color` too (its `installPixiColor`), so `tint`, fills and filter colours take what a material's `color` takes.
-- `GraphicsContext` and `Filter` get `dispose`, so unmounting frees what an element made. A `BlurFilter`'s `dispose` frees its two passes too. pixi's `destroy()` defaults leave a texture or a context passed in alone.
+- `add` and `remove` put a 2D object where its element is among its siblings (`add2D`, and `addInElementOrder` with `indexByElementOrder` in `packages/core/src/stage/screen.ts`), so an insert or a keyed move goes through pixi's own `addChildAt`. A `Particle` goes in a `ParticleContainer`, in element order.
+- `isInteractive` takes a `Container` or a `Particle`; a filter and a graphics context attach.
+- `dispose` destroys a container, a graphics context or a filter with pixi's `destroy()`, whose defaults leave a texture or a context passed in alone, and a `BlurFilter`'s two passes with it.
+- `applyProp` (`applyProp2D`, `packages/2d/src/props.ts`) writes the props and attaches an assignment can't:
+  - `filters` and `attach="filters-N"`: 2d keeps each container's filters as a list by slot, which a filter element writes into and its detach empties, and sets the container's filters to the list without its gaps, since pixi keeps a frozen copy.
+  - `mask` and `attach="mask"`: a detach clears the mask, which r3f's `delete` can't, since pixi's getter reads `undefined` when unset. A mask element with no parent, as an attached one is, becomes a child of what it masks, so its transform follows that object. `mask` also takes `setMask`'s options (`{ mask, inverse: true }`); options without a `mask` keep the current one.
+  - Methods that are props: `cacheAsTexture` calls the method, `parentRenderLayer` calls `layer.attach` or, with `null`, `detach`, and an `AnimatedSprite`'s `playing`, whose getter is read-only, calls `play()` or `stop()`.
+  - `draw` on a `Graphics` or a `GraphicsContext` clears it and draws, when a new function is passed.
+
+A colour prop takes what pixi's `Color` takes. A three `Color` isn't one: pixi reads its channels as 0 to 255, so convert it, with `getHex()` or `getStyle()`.
 
 **The screen layer.** The screen layer is core's stage. Each root's scene gets one (`ensureScreen`, by the root extension `react-fiber:screen` in `packages/core/src/support/pixiSupport.ts`, which also puts it on `state.screen` and frees it on unmount); a portal's scene gets one when 2D first joins it. The `add` hook (and `Container3D.add`, for three code) sends a 2D object added to a scene to its screen layer, and anchors one added to any other 3D node (see "Bridges"); a 3D object under a 2D one is left out with a warning. The renderer facade draws the layer with the scene, with the scene's `View3D` in the layer's 3D layer (`layerOf`), a container at `VIEW_Z_INDEX`, just under 0: 2D at zIndex 0 and above draws over the 3D, below 0 behind it, and the layer sorts by zIndex. The stage is `ClearRect`, a texture or environment backdrop, then the screen layer. A scene whose children are only cameras, with no texture background or environment, gets no `View3D` until 3D joins it, and draws its screen layer over the clear.
 
@@ -291,7 +293,7 @@ Left out, because they need what pixi-3d doesn't have yet or are typed against t
 
 ## How a frame flows
 
-1. `<Canvas>` measures its container and calls `createRoot(canvas).configure(props)`. The first configure loads the support (`loadPixiSupport`, which runs each registered package's `install`: three's `Object3D` surface, the 2D surface), registers the catalog as `getThree()`, constructs the registered renderer (`ThreeRenderer`) with `{ canvas, antialias }` plus the `renderer` prop, sizes it and awaits `init()`. Core then creates the default `Raycaster`, camera (`PerspectiveCamera(50, 0, 0.1, 1000)` at z = 5, looking at the origin) and `Scene` from the catalog, adds the camera to the scene, sets ACES tone mapping and applies `shadows`.
+1. `<Canvas>` measures its container and calls `createRoot(canvas).configure(props)`. The first configure loads the support (`loadPixiSupport`, which runs each registered package's `install`: three's `Object3D` surface, 2d's frame jobs), registers the catalog as `getThree()`, constructs the registered renderer (`ThreeRenderer`) with `{ canvas, antialias }` plus the `renderer` prop, sizes it and awaits `init()`. Core then creates the default `Raycaster`, camera (`PerspectiveCamera(50, 0, 0.1, 1000)` at z = 5, looking at the origin) and `Scene` from the catalog, adds the camera to the scene, sets ACES tone mapping and applies `shadows`.
 2. `root.render(children)` mounts the tree with r3f's reconciler. Each element resolves to a catalog class, is constructed with `args`, gets its props through core's `applyProps`, and joins its parent through the support's `add` hook, before its sibling when inserted. Geometries and materials attach to the parent's `geometry` or `material` (`defaultAttach`). A 2D element directly in the canvas joins the scene's screen layer.
 3. Every frame, `@pmndrs/scheduler` runs the root's jobs: deferred pointer raycasts, `useFrame` callbacks by phase, then the frustum job (`updateFrustum`, reading the camera's fresh matrices) and the visibility job (`Frustum.intersectsObject` for `onFramed` and `onVisible`), then the render job.
 4. The render job calls `renderer.render(state.scene, state.camera)`. The facade finds or makes the scene's view (none while the scene has only 2D), puts the scene's screen layer in the stage with the view inside it, points it at the camera (or the proxy), puts a colour background on the canvas's clear colour, places the view on the viewport, swaps three's tone curve and output in, hands pixi-3d the lights' shadow settings and aims directional and spot lights at their targets, applies the fog, draws a texture background or bakes the environment, and calls `pixi.render()` on the view's container, into the canvas or the current render target. The lights' own settings are put back once it has drawn. pixi-3d's `View3D` runs its transform pass and draws.
@@ -319,5 +321,5 @@ None of these block us; with the renderer hooks of `packages/r3f/README.md`, whi
 
 pixi.js asks, found through the 2D:
 
-- `BlurFilter.destroy` should destroy its two passes. They stay bound to the WebGPU renderer's uniform buffers; our `dispose` on `BlurFilter` frees them.
+- `BlurFilter.destroy` should destroy its two passes. They stay bound to the WebGPU renderer's uniform buffers; 2d's `dispose` hook frees them.
 - `Renderer.destroy` frees the uniform batch pipe's buffers and the texture pool before the filter system, whose bind group still holds them, and each one warns `[BindGroup] a '...' was destroyed while still bound to a shader`. `PixiRenderer.dispose` destroys the filter system first. A filter still alive when the renderer goes warns the same way, and r3f disposes elements at idle priority, after a root's renderer is released, so unmounting a root whose tree has filters still logs these warnings on WebGPU.
