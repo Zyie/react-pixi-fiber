@@ -30,6 +30,9 @@ const NATIVE_WRAPPERS = wrappersIn(NATIVE_FOLDERS);
 /** The wrappers of the 2D scenes and examples, which run on core and 2d alone, in the `2d` project only */
 const TWO_D_WRAPPERS = wrappersIn(TWO_D_FOLDERS);
 
+/** The synthetic input of the 2D scenes, in the `2d` project beside them */
+const TWO_D_TESTS = ['tests/harness/__tests__/synthetic-input-2d.test.tsx'];
+
 /** The tests of the native project beside its scenes: the unit tests and the synthetic input of its scenes */
 const NATIVE_TESTS = [
   'tests/unit/native/**/*.test.{ts,tsx}',
@@ -165,7 +168,7 @@ export default defineConfig({
         resolve: { alias: [NO_COMPAT, NO_3D, ...fiberAliases('pixi')] },
         test: {
           name: '2d',
-          include: TWO_D_WRAPPERS.map((folder) => `${folder}/*.test.ts`),
+          include: [...TWO_D_WRAPPERS.map((folder) => `${folder}/*.test.ts`), ...TWO_D_TESTS],
           exclude: EXCLUDE,
           provide: { fiber: 'pixi' },
           sequence: { groupOrder: 2 },
@@ -179,7 +182,7 @@ export default defineConfig({
         test: {
           name: 'unit',
           include: ['tests/unit/**/*.test.{ts,tsx}', 'tests/harness/__tests__/**/*.test.{ts,tsx}'],
-          exclude: [...EXCLUDE, ...NATIVE_TESTS],
+          exclude: [...EXCLUDE, ...NATIVE_TESTS, ...TWO_D_TESTS],
           setupFiles: COMPAT_SETUP,
           provide: { fiber: 'pixi' },
           sequence: { groupOrder: 3 },
