@@ -1,0 +1,4 @@
+{
+  // A native folder, type-checked without threejs-compat: see tsconfig.native.json
+  "extends": "../../../tsconfig.native.json"
+}

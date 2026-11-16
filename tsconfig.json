@@ -1,6 +1,7 @@
 {
-  // Everything at once: the packages, the tests, the examples, the playground and the scripts. Each package's
-  // own tsconfig.json checks it alone, against only the packages it depends on (`npm run test:types` runs both).
+  // Everything at once: the packages, the tests, the examples, the playground and the scripts, but for the native
+  // folders, which tsconfig.native.json checks. Each package's own tsconfig.json checks it alone, against only
+  // the packages it depends on (`npm run test:types` runs all of them).
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "paths": {
@@ -23,5 +24,19 @@
   "include": ["packages/*/src", "tests", "examples", "playground", "scripts", "*.config.ts"],
   // packages/r3f is type-checked through what core imports from it. Its own entries (index, legacy, webgpu)
   // each declare three's JSX elements, which would clash with ours. The docs site has its own tsconfig.json.
-  "exclude": ["node_modules", "**/dist", "packages/r3f/**", "packages/docs/**"]
+  // The native folders are tsconfig.native.json's: threejs-compat, in this program, registers three's
+  // classes for every root, and they run without it.
+  "exclude": [
+    "node_modules",
+    "**/dist",
+    "packages/r3f/**",
+    "packages/docs/**",
+    "tests/scenes/3d",
+    "tests/unit/native",
+    "tests/docs/3d",
+    "tests/docs/core",
+    "examples/3d",
+    "examples/core",
+    "scripts/build/native"
+  ]
 }
