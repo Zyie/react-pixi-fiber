@@ -21,17 +21,21 @@ import { SKIP, visitParents } from 'unist-util-visit-parents';
 
 import { blobUrl } from '../../../links/index.ts';
 import { exampleId, referencePicture } from '../../../plugins/example/catalogue.mts';
+import { ROOT, SITE } from '../../paths.mts';
 import { MARKER } from '../../typedoc/snippets.mts';
 import { Example, RunExample } from '../components.mts';
 import type { Flow } from '../markdown.mts';
 import { link, paragraph, parseMarkdown, plainText, text } from '../markdown.mts';
 import { pageOf, titleOf } from './sidebar.mts';
 
+/** The site's folder from the repo root, which a page's images are found from */
+const SITE_FROM_ROOT = path.relative(ROOT, SITE).split(path.sep).join('/');
+
 /** How one doc is turned into a page */
 export interface DocContext {
   /** The doc's path from the repo root, which its relative links start from */
   readonly source: string;
-  /** The page's path from `docs/`, which the paths of its images start from */
+  /** The page's path from the site's folder, which the paths of its images start from */
   readonly output: string;
   /**
    * Where the names the page may link go, such as a public name to its API reference; a map, or the
@@ -84,7 +88,7 @@ function mapImage(src: string, context: DocContext): string {
 
   if (!linked) return src;
 
-  const fromPage = path.posix.relative(path.posix.dirname(`docs/${context.output}`), linked.file);
+  const fromPage = path.posix.relative(path.posix.dirname(`${SITE_FROM_ROOT}/${context.output}`), linked.file);
 
   return fromPage.startsWith('.') ? fromPage : `./${fromPage}`;
 }

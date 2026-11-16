@@ -75,6 +75,13 @@ await test("a link to another guide goes to its page, read as its title where it
   );
 });
 
+await test('a picture alone is the file in the repo, from the page in the site', () => {
+  assert.equal(
+    toMdx('![A cube](../../../../tests/snapshots/docs/3d/props.webgl.png)'),
+    '![A cube](../../../../../tests/snapshots/docs/3d/props.webgl.png)',
+  );
+});
+
 await test('a link to another file of the repo goes to GitHub', () => {
   assert.equal(
     toMdx('The [findings](../../../../docs/feasibility.md).'),

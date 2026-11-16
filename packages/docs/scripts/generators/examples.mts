@@ -79,7 +79,8 @@ export function humanize(name: string): string {
 }
 
 /**
- * A guide as blocks; comments other than snippet markers aren't there
+ * A guide as blocks; its title, which is its own page's heading and not an example page's, and comments
+ * other than snippet markers aren't there
  * @param doc - The guide, from the repo root
  * @param tree - Its tree
  */
@@ -90,6 +91,7 @@ function blocks(doc: string, tree: Root): Block[] {
     if (node.type === 'heading' && node.depth >= 2 && node.depth <= 4) {
       return [{ kind: 'heading', text: plainText(node), anchor: ids.get(node)! }];
     }
+    if (node.type === 'heading' && node.depth === 1) return [];
     if (node.type === 'html') {
       const marker = MARKER.exec(node.value.trim());
 

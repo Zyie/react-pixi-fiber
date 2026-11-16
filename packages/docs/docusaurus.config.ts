@@ -15,7 +15,7 @@ const SOCIAL_CARD_ALT =
 const config: Config = {
   title: 'react-pixi-fiber',
   tagline:
-    "react-three-fiber's API, rendered by pixi-3d, with pixi.js 2D in the same tree. Swap the import, keep your scene.",
+    "react-three-fiber's API for pixi.js 2D and @pixi/3d, in one tree. An r3f app swaps its imports to run on it.",
   favicon: 'img/favicon.png',
   url: SITE_URL,
   baseUrl: '/',
