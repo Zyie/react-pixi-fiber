@@ -1,6 +1,6 @@
 # Events
 
-Objects that implement a `raycast` method, as meshes and instanced meshes do, can be interacted with by declaring events on them. Pointer events, clicks, wheel turns and drag and drop are supported. Each event carries the browser event and what the ray hit: the object, the point, the distance and more. The event system is react-three-fiber's own, unchanged, so everything on this page behaves as r3f documents it; the ray is cast by this package's `Raycaster`, which tests pixi-3d's geometry the way three tests its own.
+Objects that implement a `raycast` method, as meshes and instanced meshes do, can be interacted with by declaring events on them. Pointer events, clicks, wheel turns and drag and drop are supported. Each event carries the browser event and what the ray hit: the object, the point, the distance and more. The event system is react-three-fiber's own, so everything on this page behaves as r3f documents it; the ray is cast by this package's `Raycaster`, which tests pixi-3d's geometry the way three tests its own.
 
 `onPointerMissed` fires on clicks that hit nothing; on the `<Canvas>` it fires when a click hits no object at all, and on an object when a click hits something else. `onDragOverMissed` and `onDropMissed` do the same for drag and drop.
 

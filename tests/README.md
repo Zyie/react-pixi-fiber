@@ -21,7 +21,7 @@ A scene, an example and a docs page import the library by its package names, `re
 | `react-pixi-fiber/three`  | `src/three.ts`                                           | `three`                                                      |
 | `react-pixi-fiber/addons` | `src/addons/index.ts`                                    | `tests/harness/three-addons.ts`, re-exporting `three/addons` |
 
-Both families sit on the same vendored r3f core, so a hook a scene imports is the same function under either. The type checker reads the package names from `tsconfig.json`, on the `pixi` side.
+Both families sit on the same forked r3f core, so a hook a scene imports is the same function under either. The type checker reads the package names from `tsconfig.json`, on the `pixi` side.
 
 ## Visual scenes
 

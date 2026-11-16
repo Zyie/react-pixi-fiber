@@ -4,14 +4,16 @@ How code in `react-pixi-fiber` is written. Authors read it before writing code; 
 
 `docs/architecture.md` explains what each part of `src` does; this file says how it's written.
 
-## The vendored r3f core
+## The forked r3f core
 
-- `src/r3f` is a byte-for-byte copy of react-three-fiber's `packages/fiber` (`src`, `types`, `package.json`). Never edit it, not even to format it or fix a type. _(`npm run test:lint` runs `scripts/r3f/vendor.mts --check`)_
-- To take a new r3f commit, run `npm run sync:repos`, then `npm run vendor:r3f`, then the full test suite. Anything that breaks is fixed in our code, outside `src/r3f`.
-- Our only files inside `src/r3f` are the ones `EXTRAS` in `scripts/r3f/vendor.mts` lists: the generated `README.md` and the `react-reconciler` shims at the path r3f's core imports. A new file there needs an entry in `EXTRAS` and a reason in that script's header.
+- `src/r3f` is react-three-fiber's `packages/fiber` (`src`, `types`, `package.json`) at the commit `scripts/repos/manifest.mts` pins, with its core calling the renderer hooks. Its whole change is `src/r3f/fork.diff`. _(`npm run test:lint` runs `scripts/r3f/fork.mts --check`)_
+- Change it only where core reaches into three.js-shaped objects, through a hook on the support, and keep the diff minimal: upstream's file layout, r3f's format (no semicolons, prettier), no drive-by edits. Each hook gets a row in `src/r3f/README.md`: what core did before and why it's needed. Then run `npm run diff:r3f`, and r3f's own test suite on the fork (the README says how).
+- three's supports implement every hook with what core did before (`src/r3f/src/support/threeHooks.ts`), so three.js apps behave as they did.
+- To take a new r3f commit, follow the README's last section, then run the full test suite.
+- Our only files inside `src/r3f` outside the diff are the ones `EXTRAS` in `scripts/r3f/fork.mts` lists: `README.md`, `fork.diff` and the `react-reconciler` shims at the path r3f's core imports. A new file of ours there needs an entry in `EXTRAS` and a reason in that script's header.
 - oxlint and oxfmt skip `src/r3f`, and `tsconfig.json` excludes it as a root, so it's type-checked only through what `src` imports from it. r3f's own entries (`index.tsx`, `legacy.tsx`, `webgpu/`) declare three's JSX elements; no file in `src` imports them. `legacy.tsx` and `support/webgl.ts` stay loadable, because the parity harness renders scenes through them.
 - Code in `src` that adapts a vendored file copies it into our tree under its own name and keeps r3f's notice in a `/*!` comment, as `src/root/Canvas.tsx` does.
-- Something r3f's core should do differently goes in our layer (support, compat, catalog, renderer) or into an upstream request recorded in `docs/architecture.md`, never into the copy.
+- Something r3f's core should do differently goes in our layer (support, compat, catalog, renderer), a renderer hook, or an upstream request recorded in `docs/architecture.md`.
 
 ## Three is not a dependency
 

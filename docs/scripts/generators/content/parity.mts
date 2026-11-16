@@ -25,7 +25,7 @@ export const PARITY_CLASSES: readonly { readonly id: ParityClass; readonly label
     {
       id: 'as-is',
       label: 'Same',
-      meaning: "r3f's own code runs unchanged, so it behaves exactly as in react-three-fiber.",
+      meaning: "r3f's own code runs, so it behaves exactly as in react-three-fiber.",
     },
     {
       id: 'adapter',

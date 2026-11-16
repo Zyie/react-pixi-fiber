@@ -1,7 +1,7 @@
 /**
  * The API section: an index of the package entries, an overview of each, and a page for every name an
  * entry exports, read from its barrel and the JSDoc of what it exports by docs/scripts/typedoc/api.mts.
- * Most names come from react-three-fiber's core, which react-pixi-fiber vendors unchanged, so their docs
+ * Most names come from react-three-fiber's core, which react-pixi-fiber forks with renderer hooks, so their docs
  * are r3f's own and their pages say so. Only the one-line summary of each entry is written here;
  * `api/model.mts` lays the pages out and says where each is.
  *
@@ -485,7 +485,7 @@ function symbolPage(site: Site, page: SymbolPage, position: number): Page {
   if (vendored) {
     writer.nodes.push(
       paragraph(
-        "react-pixi-fiber runs react-three-fiber's core unchanged, so this works as ",
+        "react-pixi-fiber runs react-three-fiber's own core, so this works as ",
         link(R3F_DOCS, "react-three-fiber's docs"),
         ' describe it, on pixi-3d objects in place of three.js ones. ',
         link(pageUrl(guidePage('differences')), 'Differences from react-three-fiber'),
@@ -672,7 +672,7 @@ function indexPage(site: ApiModel): Page {
       ' exports, read from its source and JSDoc. ',
       ...(vendored > 0
         ? [
-            `${vendored} of them come from react-three-fiber's core, which runs unchanged, so `,
+            `${vendored} of them come from react-three-fiber's core, which runs here as its own code, so `,
             link(R3F_DOCS, "react-three-fiber's docs"),
             ' describe them too. ',
           ]

@@ -1,6 +1,6 @@
 # Differences from react-three-fiber
 
-react-pixi-fiber runs react-three-fiber v10's core unchanged, so the React side of r3f works as r3f documents it. The differences are in what that core drives: pixi-3d objects in place of three.js ones. This page lists them, item by item, from the findings of the port.
+react-pixi-fiber runs react-three-fiber v10's core, with a few hooks where core reaches into the renderer's objects, so the React side of r3f works as r3f documents it. The differences are in what that core drives: pixi-3d objects in place of three.js ones. This page lists them, item by item, from the findings of the port.
 
 ## What is the same
 
@@ -21,7 +21,7 @@ The objects behind the elements are pixi-3d's. Declarative props work as in r3f,
 
 ### Events
 
-- **Picking.** r3f's event system runs unchanged on this package's `Raycaster`, which ports three's `Mesh.raycast`: every triangle the ray crosses is a hit, with the material's `side`, `face`, `barycoord`, `uv` and the blended vertex `normal`. Points, lines and sprites pick within `raycaster.params` thresholds, with `index` and `distanceToRay`, and an `instancedMesh` picks each instance with its `instanceId`. The raycaster has no `layers`, and picks a skinned or morphed mesh in its rest pose.
+- **Picking.** r3f's event system runs on this package's `Raycaster`, which ports three's `Mesh.raycast`: every triangle the ray crosses is a hit, with the material's `side`, `face`, `barycoord`, `uv` and the blended vertex `normal`. Points, lines and sprites pick within `raycaster.params` thresholds, with `index` and `distanceToRay`, and an `instancedMesh` picks each instance with its `instanceId`. The raycaster has no `layers`, and picks a skinned or morphed mesh in its rest pose.
 - **`onDoubleClick` fires.** r3f v10 matches a click to its pointerdown by `pointerId`, and Chrome's `dblclick` has none, so r3f's own build never fires `onDoubleClick`; this package's event layer gives it the pointerdown's. As in r3f, an object's `onPointerCancel` and `onLostPointerCapture` are typed but never called.
 
 ### Objects and materials

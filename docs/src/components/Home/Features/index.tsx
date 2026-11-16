@@ -12,7 +12,7 @@ interface GuideLink {
 /** What react-pixi-fiber promises, each with an icon of 24 by 24 drawn in strokes and the guides about it */
 const FEATURES: readonly { title: string; icon: ReactNode; body: ReactNode; guides: readonly GuideLink[] }[] = [
   {
-    title: "r3f's core, unchanged",
+    title: "r3f's own core",
     icon: (
       <>
         <rect x="4" y="4" width="16" height="16" rx="3" />
@@ -22,7 +22,8 @@ const FEATURES: readonly { title: string; icon: ReactNode; body: ReactNode; guid
     body: (
       <>
         The reconciler, the store, the frame loop, the events and <code>&lt;Canvas&gt;</code> are react-three-fiber
-        v10&apos;s own code, copied byte for byte and checked against r3f on every sync.
+        v10&apos;s own code, forked with a small, checked diff that adds renderer hooks; r3f&apos;s own tests pass on
+        it.
       </>
     ),
     guides: [{ label: 'How it works', to: '/docs/#how-does-it-work' }],

@@ -50,12 +50,12 @@ createRoot(document.getElementById('root')).render(
 
 ## How does it work?
 
-react-three-fiber v10 splits its core from the renderer it drives. react-pixi-fiber keeps that core as it is: the reconciler, the store, the frame loop, the event system, `<Canvas>` and the Suspense loaders are r3f's own code, copied byte for byte and never edited. A script checks the copy against r3f's repository, so a fix in r3f reaches react-pixi-fiber by copying it again.
+react-three-fiber v10 splits its core from the renderer it drives. react-pixi-fiber keeps that core: the reconciler, the store, the frame loop, the event system, `<Canvas>` and the Suspense loaders are r3f's own code. It runs as a fork with one kind of change: where core reached into three.js objects (adding a child, casting a ray, ordering hits, freeing an object), it asks the renderer through a few hooks, which three's renderers answer as before. A script checks the fork's diff against r3f's repository, and r3f's own tests pass on it.
 
 What changes is underneath:
 
 - **A renderer support for pixi-3d.** r3f hands its renderer seam a support module; react-pixi-fiber's creates a PixiJS renderer and a pixi-3d `View3D` behind three's `render(scene, camera)` surface.
-- **A three-compat layer.** r3f's core reads objects through duck-typed flags such as `isObject3D` and methods such as `traverse`, never `instanceof`. pixi-3d's containers, geometries and materials get that surface, so r3f can attach, update and dispose them.
+- **A three-compat layer.** r3f apps read objects through three's members, such as `traverse`, `getWorldPosition` and `userData`. pixi-3d's containers, geometries and materials get that surface, and the renderer hooks tell r3f's core how to add, hit test and free them.
 - **An alias catalog under three's names.** `<mesh>`, `<boxGeometry>` and `<meshStandardMaterial>` are pixi-3d classes with three's constructor arguments and prop names, so `color`, `metalness` and `args` mean what they mean in three.js.
 
 ## Is it the same as three.js?

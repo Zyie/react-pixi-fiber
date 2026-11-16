@@ -72,7 +72,7 @@ npm start            # the playground: every scene on pixi WebGL, pixi WebGPU an
 npm run docs:dev     # the docs site on http://127.0.0.1:3000
 ```
 
-- `src/` is the library. `src/r3f` is r3f's fiber package, vendored and never edited; `docs/architecture.md` explains the rest.
+- `src/` is the library. `src/r3f` is r3f's fiber package, forked so its core calls the renderer hooks (`src/r3f/README.md`); `docs/architecture.md` explains the rest.
 - `tests/scenes/` and `examples/` are the visual tests and the docs' examples; `tests/README.md` explains the harness.
 - `docs/` is the Docusaurus site, generated from the guides in `src/**/__docs__`, the examples, their pictures and the JSDoc; `docs/README.md` explains it.
 - `AGENTS.md` has the ground rules and the checks to run.

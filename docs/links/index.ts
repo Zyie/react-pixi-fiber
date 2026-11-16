@@ -12,7 +12,7 @@ export const DISCORD = 'https://discord.gg/QrnxmQUPGV';
 /** react-three-fiber's own docs, which the reference points to for the API it keeps */
 export const R3F_DOCS = 'https://r3f.docs.pmnd.rs';
 
-/** react-three-fiber on GitHub, at the branch the core is vendored from */
+/** react-three-fiber on GitHub, at the branch the core is forked from */
 export const R3F_REPO = 'https://github.com/pmndrs/react-three-fiber/tree/v10';
 
 /** pixi-3d on GitHub, the renderer */

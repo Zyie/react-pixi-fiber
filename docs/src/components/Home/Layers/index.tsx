@@ -24,8 +24,8 @@ const LAYERS: readonly {
   {
     name: 'react-three-fiber v10 core',
     owner: 'r3f',
-    ownerLabel: 'r3f, unchanged',
-    body: <>Reconciler, store, frame loop, events, Canvas and loaders, vendored byte for byte.</>,
+    ownerLabel: 'r3f, forked',
+    body: <>Reconciler, store, frame loop, events, Canvas and loaders, with renderer hooks in a checked diff.</>,
   },
   {
     name: 'Support, three-compat and aliases',
