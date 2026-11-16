@@ -54,6 +54,31 @@ export interface PixiSupport extends PixiHooks {
   occlusion: undefined;
 }
 
+/** The suffixes of element names a package registers, and the package */
+const SUFFIXES: Readonly<Record<string, string>> = { '2D': '@react-fiber/2d', '3D': '@react-fiber/3d' };
+
+/**
+ * The catalog r3f resolves element names in. A name with a package's suffix that nothing registered,
+ * `<mesh3D>` without `@react-fiber/3d`, fails naming the package to import, rather than with r3f's
+ * error about three's namespace.
+ */
+const hintedCatalog = new Proxy(catalog, {
+  get(target, key) {
+    if (typeof key === 'string' && !(key in target)) {
+      const suffix = key.slice(-2);
+      const source = SUFFIXES[suffix];
+      if (source) {
+        throw new Error(
+          `react-fiber: <${key.charAt(0).toLowerCase()}${key.slice(1)}> is not an element of any package ` +
+            `installed. Elements ending in ${suffix} come from ${source}: import '${source}' once in the app, ` +
+            `or extend({ ${key}: YourClass }) for a class of your own.`,
+        );
+      }
+    }
+    return Reflect.get(target, key);
+  },
+});
+
 /**
  * Gives each root's scene its screen layer, as `state.screen`, and frees it when the root unmounts
  */
@@ -72,7 +97,7 @@ function createSupport(): PixiSupport {
     ...pixiHooks,
     kind: 'pixi',
     three: classes as Registered<'Classes'>,
-    catalog: catalog as Registered<'Catalog'>,
+    catalog: hintedCatalog as Registered<'Catalog'>,
     Renderer: (supportPart('Renderer') ?? PixiRenderer) as unknown as Registered<'Renderer'>,
     RenderTarget: supportPart('RenderTarget'),
     CubeRenderTarget: supportPart('CubeRenderTarget'),
