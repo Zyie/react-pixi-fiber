@@ -40,6 +40,17 @@ async function mount(element: ReactNode, settle = 0): Promise<RootStore> {
   });
 }
 
+/**
+ * Lets a root take what loads, a short act at a time, until `done` holds: a download takes as long as
+ * the machine's load makes it, and React renders what it pinged at the end of each act
+ * @param done - Whether the root has what the test waits for
+ */
+async function until(done: () => boolean): Promise<void> {
+  const end = performance.now() + 10_000;
+
+  while (!done() && performance.now() < end) await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
+}
+
 describe('useLoader', () => {
   it('adds the nodes of a loaded scene, as r3f does for a glTF', async () => {
     const mesh = new Mesh();
@@ -224,8 +235,8 @@ describe('useLoader', () => {
       <Suspense fallback={null}>
         <Component />
       </Suspense>,
-      300,
     );
+    await until(() => progress.mock.calls.length > 0);
 
     expect(progress).toHaveBeenCalled();
     expect(progress.mock.calls[0][0]).toBeInstanceOf(ProgressEvent);
@@ -297,8 +308,8 @@ describe('useTextures', () => {
       <Suspense fallback={null}>
         <Consumer />
       </Suspense>,
-      200,
     );
+    await until(() => store.getState()._textureRefs.has(url));
 
     expect(store.getState()._textureRefs.get(url)).toBe(1);
 
