@@ -66,4 +66,4 @@ Both have `stopPropagation()`, `pointer`, `ray`, `camera`, `delta` (how far the 
 
 ## The cursor
 
-`cursor` on a 2D element sets the canvas's cursor while the pointer is over it, the frontmost element's winning. A 3D object sets one through a handler, as in react-three-fiber: `onPointerOver={() => (document.body.style.cursor = 'pointer')}`.
+`cursor` sets the canvas's cursor while the pointer is over an element that takes events, as in pixi: a 2D element, or a 3D node with a handler (`<mesh3D cursor="pointer" onClick={...}>`) or inside one. The frontmost element under the pointer decides, its own `cursor` or the nearest one above it, and 2D drawn over the 3D comes before it. The cursor clears when the pointer leaves or the element unmounts. A three.js object under threejs-compat takes `cursor` the same way, or sets one through a handler, as in react-three-fiber: `onPointerOver={() => (document.body.style.cursor = 'pointer')}`.

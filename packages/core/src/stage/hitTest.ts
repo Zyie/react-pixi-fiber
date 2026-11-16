@@ -236,6 +236,20 @@ export function cursorSourceAt(screen: Container, x: number, y: number): Contain
 }
 
 /**
+ * Whether the frontmost 2D object under a point of a screen layer that takes events draws over the
+ * layer's 3D, so it, and not the 3D, decides the cursor there
+ * @param screen - The screen layer
+ * @param x - The point's x, in CSS pixels
+ * @param y - The point's y, in CSS pixels
+ * @internal
+ */
+export function frontIsOver3D(screen: Container, x: number, y: number): boolean {
+  const hits = screenHits(screen, x, y);
+  for (const place of hits.order.values()) return place < hits.behindFrom;
+  return false;
+}
+
+/**
  * Points a `<View3D>`'s portal at the pointer, as r3f's `events.compute`: the pointer in the layer the
  * view is drawn in is found in the view's own space, and its portal's raycaster is set from its camera
  * there and given the view's draw order in that layer, so its hits sort where it is drawn.

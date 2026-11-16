@@ -2,6 +2,7 @@ import { Container3D } from '@pixi/3d';
 import { Container } from 'pixi.js';
 
 import { IN_3D, drawOrder, layerOrderOf, setHitOrder } from '../events/hitOrder';
+import { clearCursorsUnder } from '../stage/cursor';
 import { THREE_IN_2D, warnOnce } from '../stage/screen';
 import type { ObjectHooks } from './registry';
 
@@ -35,6 +36,7 @@ export const nodes3D: ObjectHooks = {
     parent.addChildAt(node, current !== -1 && current < index ? index - 1 : index);
   },
   remove(parent, child) {
+    clearCursorsUnder(child as Container3D);
     if (parent instanceof Container3D) parent.removeChild(child as Container3D);
   },
   isInteractive: () => true,
