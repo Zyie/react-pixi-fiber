@@ -9,12 +9,17 @@
  * as a dependency or peer dependency. It also fails when a file of those imports `@react-fiber/r3f`,
  * which core bundles so every package shares one copy of r3f's core through core's entries.
  *
- * It then type-checks an app against the built declarations (`consumer/app.tsx`), found through
- * `node_modules` and each package's `exports`, strict and with TypeScript's default
- * `skipLibCheck: false`, and fails on any error, in the app or in `dist`.
+ * It then type-checks two apps against the built declarations, found through `node_modules` and each
+ * package's `exports`, strict and with TypeScript's default `skipLibCheck: false`, and fails on any
+ * error, in the app or in `dist`: `consumer/app.tsx`, an r3f app on threejs-compat, and
+ * `native/app.tsx`, an app on core, 2d and 3d alone. Last, it bundles the native app and fails when the
+ * bundle holds a module of threejs-compat or three: without the compat package, nothing three-shaped is
+ * bundled.
  */
 import fs from 'node:fs';
 import path from 'node:path';
+
+import { rolldown } from 'rolldown';
 
 import { typeCheck } from './declarations.mts';
 
@@ -67,13 +72,37 @@ if (problems.length) {
 }
 console.log(`dist of ${PACKAGES.join(', ')} is free of three.js and r3f's fork (${checked} files)`);
 
-const errors = typeCheck('scripts/build/consumer/tsconfig.json');
+for (const app of ['consumer', 'native']) {
+  const errors = typeCheck(`scripts/build/${app}/tsconfig.json`);
 
-if (errors.length) {
-  const list = errors.map(
-    ({ file, line, code, message }) => `${path.relative(REPO_ROOT, file)}:${line} ${code} ${message}`,
-  );
-  console.error(`An app doesn't type-check against the built declarations:\n  ${list.join('\n  ')}`);
+  if (errors.length) {
+    const list = errors.map(
+      ({ file, line, code, message }) => `${path.relative(REPO_ROOT, file)}:${line} ${code} ${message}`,
+    );
+    console.error(
+      `scripts/build/${app}/app.tsx doesn't type-check against the built declarations:\n  ${list.join('\n  ')}`,
+    );
+    process.exit(1);
+  }
+}
+console.log('An app on threejs-compat and one on 2d and 3d alone type-check against the built declarations');
+
+const bundle = await rolldown({
+  input: path.join(REPO_ROOT, 'scripts/build/native/app.tsx'),
+  cwd: REPO_ROOT,
+  platform: 'browser',
+  external: [/^react(?:-dom)?(?:\/|$)/, /^pixi\.js(?:\/|$)/, /^@pixi\/3d(?:\/|$)/],
+  transform: { jsx: 'react-jsx' },
+  logLevel: 'silent',
+});
+const { output } = await bundle.generate({ format: 'esm' });
+await bundle.close();
+const modules = output.flatMap((chunk) => (chunk.type === 'chunk' ? chunk.moduleIds : []));
+const threeShaped = modules.filter((id) => /[\\/](?:threejs-compat|three)[\\/]/.test(id));
+
+if (threeShaped.length) {
+  console.error(`The app on 2d and 3d alone bundles threejs-compat or three:\n  ${threeShaped.join('\n  ')}`);
   process.exit(1);
 }
-console.log('An app type-checks against the built declarations with skipLibCheck off');
+const ours = modules.filter((id) => id.includes(`${path.sep}packages${path.sep}`)).length;
+console.log(`The app on 2d and 3d alone bundles ${ours} modules of the packages, none of threejs-compat or three`);

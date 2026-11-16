@@ -1,0 +1,17 @@
+{
+  // An app built on @react-fiber/core, 2d and 3d alone, without threejs-compat: its declarations found
+  // through node_modules as an app finds them, type-checked with skipLibCheck off. `npm run test:bundle`
+  // also bundles it and fails if threejs-compat or three is in the bundle.
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["ES2022"],
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "types": ["@types/web"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": false
+  },
+  "files": ["app.tsx"]
+}

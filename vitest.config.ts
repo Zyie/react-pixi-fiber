@@ -27,8 +27,11 @@ const PIXI_ONLY_WRAPPERS = wrappersIn(PIXI_ONLY_FOLDERS);
 /** The wrappers of the scenes and examples that run without threejs-compat, in the `native` project only */
 const NATIVE_WRAPPERS = wrappersIn(NATIVE_FOLDERS);
 
-/** The playground's synthetic input, held to the references of the native scenes on a native page */
-const NATIVE_SYNTHETIC = 'tests/harness/__tests__/synthetic-input-native.test.tsx';
+/** The tests of the native project beside its scenes: the unit tests and the synthetic input of its scenes */
+const NATIVE_TESTS = [
+  'tests/unit/native/**/*.test.{ts,tsx}',
+  'tests/harness/__tests__/synthetic-input-native.test.tsx',
+];
 
 /** Installs threejs-compat, which every scene outside the native folders uses */
 const COMPAT_SETUP = ['tests/harness/setup/threejs-compat.ts'];
@@ -141,7 +144,7 @@ export default defineConfig({
         resolve: { alias: [NO_COMPAT, ...fiberAliases('pixi')] },
         test: {
           name: 'native',
-          include: [...NATIVE_WRAPPERS.map((folder) => `${folder}/*.test.ts`), NATIVE_SYNTHETIC],
+          include: [...NATIVE_WRAPPERS.map((folder) => `${folder}/*.test.ts`), ...NATIVE_TESTS],
           exclude: EXCLUDE,
           setupFiles: ['tests/harness/setup/native.ts'],
           provide: { fiber: 'pixi' },
@@ -156,7 +159,7 @@ export default defineConfig({
         test: {
           name: 'unit',
           include: ['tests/unit/**/*.test.{ts,tsx}', 'tests/harness/__tests__/**/*.test.{ts,tsx}'],
-          exclude: [...EXCLUDE, NATIVE_SYNTHETIC],
+          exclude: [...EXCLUDE, ...NATIVE_TESTS],
           setupFiles: COMPAT_SETUP,
           provide: { fiber: 'pixi' },
           sequence: { groupOrder: 3 },
