@@ -98,9 +98,10 @@ function PortalInner({ state = {}, children, container }: PortalInnerProps): JSX
   // The reconciler owns child disposal on removal; a layout cleanup must not free them.
   useIsomorphicLayoutEffect(() => {
     if (portalScene === container || !injectScene) return
-    container.add(portalScene)
+    const { support } = previousRoot.getState().internal
+    support.add(container, portalScene)
     return () => {
-      container.remove(portalScene)
+      support.remove(container, portalScene)
     }
   }, [portalScene, container, injectScene])
 

@@ -231,20 +231,8 @@ export function createEvents(store: RootStore) {
 
       if (!state.raycaster.camera) return []
 
-      // Bring world matrices up to date before intersecting. three's raycaster reads `matrixWorld`
-      // and never refreshes it -- it assumes the render loop already has. That assumption breaks for
-      // any event arriving between a React commit and the next rendered frame: the object has its
-      // new `position`, its `matrixWorld` still says otherwise, and the hit is computed against
-      // where it used to be. Two objects that have not been rendered yet both report the origin, so
-      // their distances tie and "nearest first" silently degrades into scene order.
-      //
-      // `updateWorldMatrix(true, true)` walks ancestors first, then descendants, so a nested object
-      // is correct even when its parent is what moved. Cheap in the common case -- three skips the
-      // maths for anything not flagged dirty.
-      obj.updateWorldMatrix(true, true)
-
-      // Intersect object by object
-      return state.raycaster.intersectObject(obj, true)
+      // Intersect object by object, as the renderer casts the ray
+      return state.internal.support.hitTest(obj, event, state) as THREE.Intersection<THREE.Object3D>[]
     }
 
     // Collect events
@@ -274,8 +262,8 @@ export function createEvents(store: RootStore) {
         // Default priority is 1 (from createPointerEvents), but may be undefined for some objects
         const aPriority = aState?.events?.priority ?? 1
         const bPriority = bState?.events?.priority ?? 1
-        // Sort by priority descending (higher first), then by distance ascending (closer first)
-        return bPriority - aPriority || a.distance - b.distance
+        // Sort by priority descending (higher first), then as the renderer orders hits (closer first)
+        return bPriority - aPriority || state.internal.support.compareHits(a, b)
       })
       // Filter out duplicates
       .filter((item) => {

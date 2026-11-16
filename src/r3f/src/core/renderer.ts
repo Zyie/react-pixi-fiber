@@ -1,13 +1,14 @@
 /** Renderer resources: creation, shared canvas lookup, and ownership through final release. */
 import type { WebGLRenderer } from 'three'
 import type { WebGPURenderer } from 'three/webgpu'
-import type { RootStore, RendererProvider, RenderProps, WebGPUSupport, Dpr } from '#types'
+import type { RootStore, RendererProvider, RenderProps, R3FRendererSupport, WebGPUSupport, Dpr } from '#types'
 import { getThree, registerThree } from './three'
 import { calculateDpr, is } from './utils'
 import { getScheduler } from '@pmndrs/scheduler'
 import { resolveThen } from './utils/promise'
 import { isDevelopment } from './utils/notices'
 import { computeInitialSize } from './utils/three'
+import { threeHooks } from '../support/threeHooks'
 
 export const isRenderer = (def: any) => !!def?.render
 
@@ -296,7 +297,10 @@ export function initializeRenderer<TCanvas extends HTMLCanvasElement | Offscreen
   let renderer = state.internal.actualRenderer as WebGPURenderer | WebGLRenderer
 
   if (!state.internal.actualRenderer) {
-    return resolveThen(wantsGL ? webgl!() : webgpu!(), (support) => {
+    return resolveThen(wantsGL ? webgl!() : webgpu!(), (loaded) => {
+      // Any support takes three's path for its slot: `webgpu` awaits the renderer's init(). One written
+      // before supports had a catalog and hooks gets three's, which is what core did before
+      const support = { ...threeHooks, ...loaded, catalog: loaded.catalog ?? loaded.three } as R3FRendererSupport
       registerThree(support.three)
       state.internal.support = support
       ensureStoreThreeObjects(store)

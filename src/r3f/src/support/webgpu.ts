@@ -12,10 +12,13 @@
 import * as THREE from 'three/webgpu'
 import { uniform, nodeObject } from 'three/tsl'
 import type { WebGPUSupport } from '#types'
+import { threeHooks } from './threeHooks'
 
 export const webgpuSupport: WebGPUSupport = {
+  ...threeHooks,
   kind: 'webgpu',
   three: THREE,
+  catalog: THREE,
   Renderer: THREE.WebGPURenderer,
   RenderTarget: THREE.RenderTarget,
   CubeRenderTarget: THREE.CubeRenderTarget,

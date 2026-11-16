@@ -11,10 +11,13 @@
 
 import * as THREE from 'three'
 import type { WebGLSupport } from '#types'
+import { threeHooks } from './threeHooks'
 
 export const webglSupport: WebGLSupport = {
+  ...threeHooks,
   kind: 'webgl',
   three: THREE,
+  catalog: THREE,
   Renderer: THREE.WebGLRenderer,
   RenderTarget: THREE.WebGLRenderTarget,
   CubeRenderTarget: THREE.WebGLCubeRenderTarget,

@@ -25,7 +25,6 @@ import {
   attach,
   detach,
   prepare,
-  isObject3D,
   findInitialRoot,
   getInstanceProps,
   isFromRef,
@@ -35,7 +34,7 @@ import { assertNodeMaterialSupported, warnGLSLMaterialUnsupported } from './util
 import { removeInteractivity, swapInteractivity } from './events'
 
 //* Type Imports ==============================
-import type { RootStore, Instance, HostConfig } from '#types'
+import type { RootStore, Instance, HostConfig, RendererSupport } from '#types'
 import { extend, toPascalCase, resolveConstructor } from './extend'
 
 export { extend }
@@ -126,11 +125,16 @@ function createInstance(type: string, props: HostConfig['props'], root: RootStor
   return prepare(props.object, root, type, props)
 }
 
+/** The renderer support of an instance's root, which core asks about the objects it draws */
+function supportOf(instance: Instance): RendererSupport {
+  return instance.root.getState().internal.support
+}
+
 function hideInstance(instance: HostConfig['instance']): void {
   if (!instance.isHidden) {
     if (instance.props.attach && instance.parent?.object) {
       detach(instance.parent, instance)
-    } else if (isObject3D(instance.object)) {
+    } else if (supportOf(instance).isInteractive(instance.object)) {
       instance.previousVisible = instance.object.visible
       instance.object.visible = false
     }
@@ -144,7 +148,7 @@ function unhideInstance(instance: HostConfig['instance']): void {
   if (instance.isHidden) {
     if (instance.props.attach && instance.parent?.object) {
       attach(instance.parent, instance)
-    } else if (isObject3D(instance.object)) {
+    } else if (supportOf(instance).isInteractive(instance.object)) {
       instance.object.visible = instance.previousVisible ?? true
     }
 
@@ -179,27 +183,11 @@ function handleContainerEffects(parent: Instance, child: Instance, beforeChild?:
   applyProps(child.object, child.props)
 
   // Append instance
+  const support = state.internal.support
   if (child.props.attach) {
     attach(parent, child)
-  } else if (isObject3D(child.object) && isObject3D(parent.object)) {
-    const childIndex = parent.object.children.indexOf(beforeChild?.object)
-    if (beforeChild && childIndex !== -1) {
-      // If the child is already in the parent's children array, move it to the new position
-      // Otherwise, just insert it at the target position
-      const existingIndex = parent.object.children.indexOf(child.object)
-      if (existingIndex !== -1) {
-        parent.object.children.splice(existingIndex, 1)
-        const adjustedIndex = existingIndex < childIndex ? childIndex - 1 : childIndex
-        parent.object.children.splice(adjustedIndex, 0, child.object)
-      } else {
-        child.object.parent = parent.object
-        parent.object.children.splice(childIndex, 0, child.object)
-        child.object.dispatchEvent({ type: 'added' })
-        parent.object.dispatchEvent({ type: 'childadded', child: child.object })
-      }
-    } else {
-      parent.object.add(child.object)
-    }
+  } else if (support.isInteractive(child.object) && support.isInteractive(parent.object)) {
+    support.add(parent.object, child.object, beforeChild?.object)
   }
 
   // Link subtree
@@ -255,21 +243,19 @@ function insertBefore(
   handleContainerEffects(parent, child, beforeChild)
 }
 
-function disposeOnIdle(object: any) {
-  if (typeof object.dispose === 'function') {
-    const handleDispose = () => {
-      try {
-        object.dispose()
-      } catch {
-        // no-op
-      }
+function disposeOnIdle(object: any, support: RendererSupport) {
+  const handleDispose = () => {
+    try {
+      support.dispose(object)
+    } catch {
+      // no-op
     }
-
-    // In a testing environment, cleanup immediately
-    if (typeof IS_REACT_ACT_ENVIRONMENT !== 'undefined') handleDispose()
-    // Otherwise, using a real GPU so schedule cleanup to prevent stalls
-    else scheduleCallback(idlePriority, handleDispose)
   }
+
+  // In a testing environment, cleanup immediately
+  if (typeof IS_REACT_ACT_ENVIRONMENT !== 'undefined') handleDispose()
+  // Otherwise, using a real GPU so schedule cleanup to prevent stalls
+  else scheduleCallback(idlePriority, handleDispose)
 }
 
 function removeChild(
@@ -288,10 +274,11 @@ function removeChild(
   if (childIndex !== -1) parent.children.splice(childIndex, 1)
 
   // Eagerly tear down tree
+  const support = supportOf(child)
   if (child.props.attach) {
     detach(parent, child)
-  } else if (isObject3D(child.object) && isObject3D(parent.object)) {
-    parent.object.remove(child.object)
+  } else if (support.isInteractive(child.object) && support.isInteractive(parent.object)) {
+    support.remove(parent.object, child.object)
     removeInteractivity(findInitialRoot(child), child.object)
   }
 
@@ -308,14 +295,10 @@ function removeChild(
   // Unlink instance object
   delete child.object.__r3f
 
-  // Dispose object whenever the reconciler feels like it.
+  // Dispose object whenever the reconciler feels like it, through the renderer's support.
   // Never dispose of primitives because their state may be kept outside of React!
-  // In order for an object to be able to dispose it
-  //   - has a dispose method
-  //   - cannot be a <primitive object={...} />
-  //   - cannot be a THREE.Scene, because three has broken its own API
-  if (shouldDispose && child.type !== 'primitive' && child.object.type !== 'Scene') {
-    disposeOnIdle(child.object)
+  if (shouldDispose && child.type !== 'primitive') {
+    disposeOnIdle(child.object, support)
   }
 
   // Tree was updated, request a frame for top-level instance (invalidateInstance would skip it, since
@@ -356,19 +339,20 @@ function flushReconstructedInstances(): void {
 function swapReconstructedInstances(): void {
   // Detach instance
   for (const [instance] of reconstructed) {
+    const support = supportOf(instance)
     const parent = instance.parent
     if (parent) {
       if (instance.props.attach) {
         detach(parent, instance)
-      } else if (isObject3D(instance.object) && isObject3D(parent.object)) {
-        parent.object.remove(instance.object)
+      } else if (support.isInteractive(instance.object) && support.isInteractive(parent.object)) {
+        support.remove(parent.object, instance.object)
       }
 
       for (const child of instance.children) {
         if (child.props.attach) {
           detach(instance, child)
-        } else if (isObject3D(child.object) && isObject3D(instance.object)) {
-          instance.object.remove(child.object)
+        } else if (support.isInteractive(child.object) && support.isInteractive(instance.object)) {
+          support.remove(instance.object, child.object)
         }
       }
     }
@@ -384,18 +368,19 @@ function swapReconstructedInstances(): void {
     // the new object via swapInteractivity, and scrubbing it here would destroy exactly what that
     // transfer needs. Only orphans — instances with no parent, which the second loop skips — are
     // removed outright.
-    if (isObject3D(instance.object) && !instance.parent) {
+    if (support.isInteractive(instance.object) && !instance.parent) {
       removeInteractivity(findInitialRoot(instance), instance.object)
     }
     // Dispose of old object if able
     if (instance.object.__r3f) delete instance.object.__r3f
-    if (instance.type !== 'primitive') disposeOnIdle(instance.object)
+    if (instance.type !== 'primitive') disposeOnIdle(instance.object, support)
   }
 
   // Update instance
   for (const [instance, props, fiber] of reconstructed) {
     instance.props = props
 
+    const support = supportOf(instance)
     const parent = instance.parent
     if (parent) {
       // Validated by createInstance, so the constructor is known to resolve
@@ -411,7 +396,7 @@ function swapReconstructedInstances(): void {
       // so a hover or an in-flight pointer capture survives the swap rather than being torn down
       // and rebuilt (#3744). This also retires the old object as a raycast target, which is the
       // job the first loop skipped for exactly this reason.
-      if (isObject3D(prevObject) && isObject3D(instance.object)) {
+      if (support.isInteractive(prevObject) && support.isInteractive(instance.object)) {
         swapInteractivity(findInitialRoot(instance), prevObject, instance.object)
       }
 
@@ -431,15 +416,15 @@ function swapReconstructedInstances(): void {
 
       if (instance.props.attach) {
         attach(parent, instance)
-      } else if (isObject3D(instance.object) && isObject3D(parent.object)) {
-        parent.object.add(instance.object)
+      } else if (support.isInteractive(instance.object) && support.isInteractive(parent.object)) {
+        support.add(parent.object, instance.object)
       }
 
       for (const child of instance.children) {
         if (child.props.attach) {
           attach(instance, child)
-        } else if (isObject3D(child.object) && isObject3D(instance.object)) {
-          instance.object.add(child.object)
+        } else if (support.isInteractive(child.object) && support.isInteractive(instance.object)) {
+          support.add(instance.object, child.object)
         }
       }
 

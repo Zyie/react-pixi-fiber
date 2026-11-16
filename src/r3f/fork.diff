@@ -1,0 +1,638 @@
+# src/r3f against react-three-fiber packages/fiber at 58acabc0fc996bac5a25320ca3a8670bdd209db7
+# Written by npm run diff:r3f; apply in packages/fiber with git apply.
+diff --git a/src/core/events.ts b/src/core/events.ts
+index 787fd83..44e7ed1 100644
+--- a/src/core/events.ts
++++ b/src/core/events.ts
+@@ -231,20 +231,8 @@ export function createEvents(store: RootStore) {
+ 
+       if (!state.raycaster.camera) return []
+ 
+-      // Bring world matrices up to date before intersecting. three's raycaster reads `matrixWorld`
+-      // and never refreshes it -- it assumes the render loop already has. That assumption breaks for
+-      // any event arriving between a React commit and the next rendered frame: the object has its
+-      // new `position`, its `matrixWorld` still says otherwise, and the hit is computed against
+-      // where it used to be. Two objects that have not been rendered yet both report the origin, so
+-      // their distances tie and "nearest first" silently degrades into scene order.
+-      //
+-      // `updateWorldMatrix(true, true)` walks ancestors first, then descendants, so a nested object
+-      // is correct even when its parent is what moved. Cheap in the common case -- three skips the
+-      // maths for anything not flagged dirty.
+-      obj.updateWorldMatrix(true, true)
+-
+-      // Intersect object by object
+-      return state.raycaster.intersectObject(obj, true)
++      // Intersect object by object, as the renderer casts the ray
++      return state.internal.support.hitTest(obj, event, state) as THREE.Intersection<THREE.Object3D>[]
+     }
+ 
+     // Collect events
+@@ -274,8 +262,8 @@ export function createEvents(store: RootStore) {
+         // Default priority is 1 (from createPointerEvents), but may be undefined for some objects
+         const aPriority = aState?.events?.priority ?? 1
+         const bPriority = bState?.events?.priority ?? 1
+-        // Sort by priority descending (higher first), then by distance ascending (closer first)
+-        return bPriority - aPriority || a.distance - b.distance
++        // Sort by priority descending (higher first), then as the renderer orders hits (closer first)
++        return bPriority - aPriority || state.internal.support.compareHits(a, b)
+       })
+       // Filter out duplicates
+       .filter((item) => {
+diff --git a/src/core/extend.ts b/src/core/extend.ts
+index a5f831f..4ca6102 100644
+--- a/src/core/extend.ts
++++ b/src/core/extend.ts
+@@ -75,9 +75,10 @@ export function extend(
+ //
+ // 1. Explicit `extend()` registrations, shared across every copy of fiber. These win whenever they
+ //    were made, so `extend({ Mesh: MyMesh })` overrides three's Mesh on every root.
+-// 2. The three namespace of the renderer *this root* loaded (`state.internal.support.three`). A
+-//    WebGPU root sees node materials; a WebGL root does not, and gets the same "not part of the THREE
+-//    namespace" error it always did instead of a class that would fail at render.
++// 2. The catalog of the renderer *this root* loaded (`state.internal.support.catalog`, three's
++//    namespace on three's renderers). A WebGPU root sees node materials; a WebGL root does not, and
++//    gets the same "not part of the THREE namespace" error it always did instead of a class that
++//    would fail at render.
+ //
+ // There is no `extend(THREE)` at import time any more. That call is what forced every entry to carry
+ // a whole three namespace in its eager graph, renderer included.
+@@ -85,8 +86,8 @@ export function extend(
+ /** Resolve an element name to the constructor this root would instantiate for it, if any. */
+ export function resolveConstructor(name: string, root: RootStore): ConstructorRepresentation | undefined {
+   if (Object.prototype.hasOwnProperty.call(catalogue, name)) return catalogue[name]
+-  const object = root.getState().internal.support?.three[name as keyof RendererNamespace]
++  const object = root.getState().internal.support?.catalog[name as keyof RendererNamespace]
+   return isConstructor(object) ? object : undefined
+ }
+ 
+-type RendererNamespace = NonNullable<ReturnType<RootStore['getState']>['internal']['support']>['three']
++type RendererNamespace = NonNullable<ReturnType<RootStore['getState']>['internal']['support']>['catalog']
+diff --git a/src/core/portal.tsx b/src/core/portal.tsx
+index 819a4d3..3806fac 100644
+--- a/src/core/portal.tsx
++++ b/src/core/portal.tsx
+@@ -98,9 +98,10 @@ function PortalInner({ state = {}, children, container }: PortalInnerProps): JSX
+   // The reconciler owns child disposal on removal; a layout cleanup must not free them.
+   useIsomorphicLayoutEffect(() => {
+     if (portalScene === container || !injectScene) return
+-    container.add(portalScene)
++    const { support } = previousRoot.getState().internal
++    support.add(container, portalScene)
+     return () => {
+-      container.remove(portalScene)
++      support.remove(container, portalScene)
+     }
+   }, [portalScene, container, injectScene])
+ 
+diff --git a/src/core/reconciler.tsx b/src/core/reconciler.tsx
+index 4163218..8a84566 100644
+--- a/src/core/reconciler.tsx
++++ b/src/core/reconciler.tsx
+@@ -25,7 +25,6 @@ import {
+   attach,
+   detach,
+   prepare,
+-  isObject3D,
+   findInitialRoot,
+   getInstanceProps,
+   isFromRef,
+@@ -35,7 +34,7 @@ import { assertNodeMaterialSupported, warnGLSLMaterialUnsupported } from './util
+ import { removeInteractivity, swapInteractivity } from './events'
+ 
+ //* Type Imports ==============================
+-import type { RootStore, Instance, HostConfig } from '#types'
++import type { RootStore, Instance, HostConfig, RendererSupport } from '#types'
+ import { extend, toPascalCase, resolveConstructor } from './extend'
+ 
+ export { extend }
+@@ -126,11 +125,16 @@ function createInstance(type: string, props: HostConfig['props'], root: RootStor
+   return prepare(props.object, root, type, props)
+ }
+ 
++/** The renderer support of an instance's root, which core asks about the objects it draws */
++function supportOf(instance: Instance): RendererSupport {
++  return instance.root.getState().internal.support
++}
++
+ function hideInstance(instance: HostConfig['instance']): void {
+   if (!instance.isHidden) {
+     if (instance.props.attach && instance.parent?.object) {
+       detach(instance.parent, instance)
+-    } else if (isObject3D(instance.object)) {
++    } else if (supportOf(instance).isInteractive(instance.object)) {
+       instance.previousVisible = instance.object.visible
+       instance.object.visible = false
+     }
+@@ -144,7 +148,7 @@ function unhideInstance(instance: HostConfig['instance']): void {
+   if (instance.isHidden) {
+     if (instance.props.attach && instance.parent?.object) {
+       attach(instance.parent, instance)
+-    } else if (isObject3D(instance.object)) {
++    } else if (supportOf(instance).isInteractive(instance.object)) {
+       instance.object.visible = instance.previousVisible ?? true
+     }
+ 
+@@ -179,27 +183,11 @@ function handleContainerEffects(parent: Instance, child: Instance, beforeChild?:
+   applyProps(child.object, child.props)
+ 
+   // Append instance
++  const support = state.internal.support
+   if (child.props.attach) {
+     attach(parent, child)
+-  } else if (isObject3D(child.object) && isObject3D(parent.object)) {
+-    const childIndex = parent.object.children.indexOf(beforeChild?.object)
+-    if (beforeChild && childIndex !== -1) {
+-      // If the child is already in the parent's children array, move it to the new position
+-      // Otherwise, just insert it at the target position
+-      const existingIndex = parent.object.children.indexOf(child.object)
+-      if (existingIndex !== -1) {
+-        parent.object.children.splice(existingIndex, 1)
+-        const adjustedIndex = existingIndex < childIndex ? childIndex - 1 : childIndex
+-        parent.object.children.splice(adjustedIndex, 0, child.object)
+-      } else {
+-        child.object.parent = parent.object
+-        parent.object.children.splice(childIndex, 0, child.object)
+-        child.object.dispatchEvent({ type: 'added' })
+-        parent.object.dispatchEvent({ type: 'childadded', child: child.object })
+-      }
+-    } else {
+-      parent.object.add(child.object)
+-    }
++  } else if (support.isInteractive(child.object) && support.isInteractive(parent.object)) {
++    support.add(parent.object, child.object, beforeChild?.object)
+   }
+ 
+   // Link subtree
+@@ -255,21 +243,19 @@ function insertBefore(
+   handleContainerEffects(parent, child, beforeChild)
+ }
+ 
+-function disposeOnIdle(object: any) {
+-  if (typeof object.dispose === 'function') {
+-    const handleDispose = () => {
+-      try {
+-        object.dispose()
+-      } catch {
+-        // no-op
+-      }
++function disposeOnIdle(object: any, support: RendererSupport) {
++  const handleDispose = () => {
++    try {
++      support.dispose(object)
++    } catch {
++      // no-op
+     }
+-
+-    // In a testing environment, cleanup immediately
+-    if (typeof IS_REACT_ACT_ENVIRONMENT !== 'undefined') handleDispose()
+-    // Otherwise, using a real GPU so schedule cleanup to prevent stalls
+-    else scheduleCallback(idlePriority, handleDispose)
+   }
++
++  // In a testing environment, cleanup immediately
++  if (typeof IS_REACT_ACT_ENVIRONMENT !== 'undefined') handleDispose()
++  // Otherwise, using a real GPU so schedule cleanup to prevent stalls
++  else scheduleCallback(idlePriority, handleDispose)
+ }
+ 
+ function removeChild(
+@@ -288,10 +274,11 @@ function removeChild(
+   if (childIndex !== -1) parent.children.splice(childIndex, 1)
+ 
+   // Eagerly tear down tree
++  const support = supportOf(child)
+   if (child.props.attach) {
+     detach(parent, child)
+-  } else if (isObject3D(child.object) && isObject3D(parent.object)) {
+-    parent.object.remove(child.object)
++  } else if (support.isInteractive(child.object) && support.isInteractive(parent.object)) {
++    support.remove(parent.object, child.object)
+     removeInteractivity(findInitialRoot(child), child.object)
+   }
+ 
+@@ -308,14 +295,10 @@ function removeChild(
+   // Unlink instance object
+   delete child.object.__r3f
+ 
+-  // Dispose object whenever the reconciler feels like it.
++  // Dispose object whenever the reconciler feels like it, through the renderer's support.
+   // Never dispose of primitives because their state may be kept outside of React!
+-  // In order for an object to be able to dispose it
+-  //   - has a dispose method
+-  //   - cannot be a <primitive object={...} />
+-  //   - cannot be a THREE.Scene, because three has broken its own API
+-  if (shouldDispose && child.type !== 'primitive' && child.object.type !== 'Scene') {
+-    disposeOnIdle(child.object)
++  if (shouldDispose && child.type !== 'primitive') {
++    disposeOnIdle(child.object, support)
+   }
+ 
+   // Tree was updated, request a frame for top-level instance (invalidateInstance would skip it, since
+@@ -356,19 +339,20 @@ function flushReconstructedInstances(): void {
+ function swapReconstructedInstances(): void {
+   // Detach instance
+   for (const [instance] of reconstructed) {
++    const support = supportOf(instance)
+     const parent = instance.parent
+     if (parent) {
+       if (instance.props.attach) {
+         detach(parent, instance)
+-      } else if (isObject3D(instance.object) && isObject3D(parent.object)) {
+-        parent.object.remove(instance.object)
++      } else if (support.isInteractive(instance.object) && support.isInteractive(parent.object)) {
++        support.remove(parent.object, instance.object)
+       }
+ 
+       for (const child of instance.children) {
+         if (child.props.attach) {
+           detach(instance, child)
+-        } else if (isObject3D(child.object) && isObject3D(instance.object)) {
+-          instance.object.remove(child.object)
++        } else if (support.isInteractive(child.object) && support.isInteractive(instance.object)) {
++          support.remove(instance.object, child.object)
+         }
+       }
+     }
+@@ -384,18 +368,19 @@ function swapReconstructedInstances(): void {
+     // the new object via swapInteractivity, and scrubbing it here would destroy exactly what that
+     // transfer needs. Only orphans — instances with no parent, which the second loop skips — are
+     // removed outright.
+-    if (isObject3D(instance.object) && !instance.parent) {
++    if (support.isInteractive(instance.object) && !instance.parent) {
+       removeInteractivity(findInitialRoot(instance), instance.object)
+     }
+     // Dispose of old object if able
+     if (instance.object.__r3f) delete instance.object.__r3f
+-    if (instance.type !== 'primitive') disposeOnIdle(instance.object)
++    if (instance.type !== 'primitive') disposeOnIdle(instance.object, support)
+   }
+ 
+   // Update instance
+   for (const [instance, props, fiber] of reconstructed) {
+     instance.props = props
+ 
++    const support = supportOf(instance)
+     const parent = instance.parent
+     if (parent) {
+       // Validated by createInstance, so the constructor is known to resolve
+@@ -411,7 +396,7 @@ function swapReconstructedInstances(): void {
+       // so a hover or an in-flight pointer capture survives the swap rather than being torn down
+       // and rebuilt (#3744). This also retires the old object as a raycast target, which is the
+       // job the first loop skipped for exactly this reason.
+-      if (isObject3D(prevObject) && isObject3D(instance.object)) {
++      if (support.isInteractive(prevObject) && support.isInteractive(instance.object)) {
+         swapInteractivity(findInitialRoot(instance), prevObject, instance.object)
+       }
+ 
+@@ -431,15 +416,15 @@ function swapReconstructedInstances(): void {
+ 
+       if (instance.props.attach) {
+         attach(parent, instance)
+-      } else if (isObject3D(instance.object) && isObject3D(parent.object)) {
+-        parent.object.add(instance.object)
++      } else if (support.isInteractive(instance.object) && support.isInteractive(parent.object)) {
++        support.add(parent.object, instance.object)
+       }
+ 
+       for (const child of instance.children) {
+         if (child.props.attach) {
+           attach(instance, child)
+-        } else if (isObject3D(child.object) && isObject3D(instance.object)) {
+-          instance.object.add(child.object)
++        } else if (support.isInteractive(child.object) && support.isInteractive(instance.object)) {
++          support.add(instance.object, child.object)
+         }
+       }
+ 
+diff --git a/src/core/renderer.ts b/src/core/renderer.ts
+index 498a00a..96f7216 100644
+--- a/src/core/renderer.ts
++++ b/src/core/renderer.ts
+@@ -1,13 +1,14 @@
+ /** Renderer resources: creation, shared canvas lookup, and ownership through final release. */
+ import type { WebGLRenderer } from 'three'
+ import type { WebGPURenderer } from 'three/webgpu'
+-import type { RootStore, RendererProvider, RenderProps, WebGPUSupport, Dpr } from '#types'
++import type { RootStore, RendererProvider, RenderProps, R3FRendererSupport, WebGPUSupport, Dpr } from '#types'
+ import { getThree, registerThree } from './three'
+ import { calculateDpr, is } from './utils'
+ import { getScheduler } from '@pmndrs/scheduler'
+ import { resolveThen } from './utils/promise'
+ import { isDevelopment } from './utils/notices'
+ import { computeInitialSize } from './utils/three'
++import { threeHooks } from '../support/threeHooks'
+ 
+ export const isRenderer = (def: any) => !!def?.render
+ 
+@@ -296,7 +297,10 @@ export function initializeRenderer<TCanvas extends HTMLCanvasElement | Offscreen
+   let renderer = state.internal.actualRenderer as WebGPURenderer | WebGLRenderer
+ 
+   if (!state.internal.actualRenderer) {
+-    return resolveThen(wantsGL ? webgl!() : webgpu!(), (support) => {
++    return resolveThen(wantsGL ? webgl!() : webgpu!(), (loaded) => {
++      // Any support takes three's path for its slot: `webgpu` awaits the renderer's init(). One written
++      // before supports had a catalog and hooks gets three's, which is what core did before
++      const support = { ...threeHooks, ...loaded, catalog: loaded.catalog ?? loaded.three } as R3FRendererSupport
+       registerThree(support.three)
+       state.internal.support = support
+       ensureStoreThreeObjects(store)
+diff --git a/src/core/store.ts b/src/core/store.ts
+index 043815b..5a0623d 100644
+--- a/src/core/store.ts
++++ b/src/core/store.ts
+@@ -22,7 +22,7 @@ import type {
+   ThreeCamera,
+   VisibilityEntry,
+   PointerState,
+-  RendererSupport,
++  R3FRendererSupport,
+ } from '#types'
+ 
+ import { calculateDpr, is, isOrthographicCamera, updateCamera, updateFrustum } from './utils'
+@@ -308,7 +308,7 @@ export const createStore = (
+         // Renderer Storage (single source of truth)
+         actualRenderer: null as unknown as WebGLRenderer | WebGPURenderer,
+         // The renderer support configure() loads for this root
+-        support: null as unknown as RendererSupport,
++        support: null as unknown as R3FRendererSupport,
+ 
+         // Scheduler for useFrameNext (initialized in loop.ts)
+         scheduler: null,
+diff --git a/src/core/utils/props.ts b/src/core/utils/props.ts
+index 3566163..cff0fa5 100644
+--- a/src/core/utils/props.ts
++++ b/src/core/utils/props.ts
+@@ -476,7 +476,7 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
+   if (
+     instance?.parent &&
+     rootState?.internal &&
+-    (instance.object as unknown as THREE.Object3D | undefined)?.isObject3D &&
++    rootState.internal.support.isInteractive(instance.object) &&
+     prevHandlers !== instance.eventCount
+   ) {
+     const object = instance.object as unknown as THREE.Object3D
+@@ -496,11 +496,7 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
+   // count unchanged and the block never runs — and the registry keeps a snapshot of the OLD
+   // closure. Inline handlers (`onFramed={() => …}`) produce a new function every render, which
+   // is the common case, so the user's updated callback would simply never fire.
+-  if (
+-    instance?.parent &&
+-    rootState?.internal &&
+-    (instance.object as unknown as THREE.Object3D | undefined)?.isObject3D
+-  ) {
++  if (instance?.parent && rootState?.internal && rootState.internal.support.isInteractive(instance.object)) {
+     const object = instance.object as unknown as THREE.Object3D
+     const root = findInitialRoot(instance)
+     const visibilityHandlers = {
+@@ -522,10 +518,10 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
+     }
+   }
+ 
+-  // Auto-attach geometries and materials
++  // Auto-attach geometries and materials, or whatever the renderer attaches by default
+   if (instance && instance.props.attach === undefined) {
+-    if ((instance.object as unknown as THREE.BufferGeometry).isBufferGeometry) instance.props.attach = 'geometry'
+-    else if ((instance.object as unknown as THREE.Material).isMaterial) instance.props.attach = 'material'
++    const attach = rootState?.internal.support.defaultAttach(instance.object)
++    if (attach) instance.props.attach = attach
+   }
+ 
+   // Instance was updated, request a frame
+diff --git a/src/support/threeHooks.ts b/src/support/threeHooks.ts
+new file mode 100644
+index 0000000..37b4818
+--- /dev/null
++++ b/src/support/threeHooks.ts
+@@ -0,0 +1,68 @@
++/**
++ * @fileoverview The renderer hooks of three's supports (webgl.ts, webgpu.ts)
++ *
++ * What core did with three's objects before it asked a support, moved here as it was. It reads
++ * three's members by duck typing and imports nothing from three, so both supports share it.
++ */
++
++import type { Intersection, RendererHooks, RootState } from '#types'
++import { isObject3D } from '../core/utils/is'
++
++export const threeHooks: RendererHooks = {
++  add(parent: any, child: any, before?: any) {
++    const childIndex = parent.children.indexOf(before)
++    if (before && childIndex !== -1) {
++      // If the child is already in the parent's children array, move it to the new position
++      // Otherwise, just insert it at the target position
++      const existingIndex = parent.children.indexOf(child)
++      if (existingIndex !== -1) {
++        parent.children.splice(existingIndex, 1)
++        const adjustedIndex = existingIndex < childIndex ? childIndex - 1 : childIndex
++        parent.children.splice(adjustedIndex, 0, child)
++      } else {
++        child.parent = parent
++        parent.children.splice(childIndex, 0, child)
++        child.dispatchEvent({ type: 'added' })
++        parent.dispatchEvent({ type: 'childadded', child })
++      }
++    } else {
++      parent.add(child)
++    }
++  },
++
++  remove(parent: any, child: any) {
++    parent.remove(child)
++  },
++
++  isInteractive: isObject3D,
++
++  defaultAttach(object: any) {
++    if (object.isBufferGeometry) return 'geometry'
++    if (object.isMaterial) return 'material'
++    return undefined
++  },
++
++  hitTest(object: any, _event, state: RootState) {
++    // Bring world matrices up to date before intersecting. three's raycaster reads `matrixWorld`
++    // and never refreshes it -- it assumes the render loop already has. That assumption breaks for
++    // any event arriving between a React commit and the next rendered frame: the object has its
++    // new `position`, its `matrixWorld` still says otherwise, and the hit is computed against
++    // where it used to be. Two objects that have not been rendered yet both report the origin, so
++    // their distances tie and "nearest first" silently degrades into scene order.
++    //
++    // `updateWorldMatrix(true, true)` walks ancestors first, then descendants, so a nested object
++    // is correct even when its parent is what moved. Cheap in the common case -- three skips the
++    // maths for anything not flagged dirty.
++    object.updateWorldMatrix(true, true)
++    return state.raycaster.intersectObject(object, true)
++  },
++
++  compareHits(a: Intersection, b: Intersection) {
++    return a.distance - b.distance
++  },
++
++  dispose(object: any) {
++    // A THREE.Scene is never disposed, because three has broken its own API
++    if (object.type !== 'Scene' && typeof object.dispose === 'function') object.dispose()
++  },
++}
+diff --git a/src/support/webgl.ts b/src/support/webgl.ts
+index 5f505ff..901ac89 100644
+--- a/src/support/webgl.ts
++++ b/src/support/webgl.ts
+@@ -11,10 +11,13 @@
+ 
+ import * as THREE from 'three'
+ import type { WebGLSupport } from '#types'
++import { threeHooks } from './threeHooks'
+ 
+ export const webglSupport: WebGLSupport = {
++  ...threeHooks,
+   kind: 'webgl',
+   three: THREE,
++  catalog: THREE,
+   Renderer: THREE.WebGLRenderer,
+   RenderTarget: THREE.WebGLRenderTarget,
+   CubeRenderTarget: THREE.WebGLCubeRenderTarget,
+diff --git a/src/support/webgpu.ts b/src/support/webgpu.ts
+index 130ce89..3d8328d 100644
+--- a/src/support/webgpu.ts
++++ b/src/support/webgpu.ts
+@@ -12,10 +12,13 @@
+ import * as THREE from 'three/webgpu'
+ import { uniform, nodeObject } from 'three/tsl'
+ import type { WebGPUSupport } from '#types'
++import { threeHooks } from './threeHooks'
+ 
+ export const webgpuSupport: WebGPUSupport = {
++  ...threeHooks,
+   kind: 'webgpu',
+   three: THREE,
++  catalog: THREE,
+   Renderer: THREE.WebGPURenderer,
+   RenderTarget: THREE.RenderTarget,
+   CubeRenderTarget: THREE.CubeRenderTarget,
+diff --git a/types/provider.d.ts b/types/provider.d.ts
+index 2b15b2a..ae7131f 100644
+--- a/types/provider.d.ts
++++ b/types/provider.d.ts
+@@ -1,6 +1,7 @@
+ import type * as ThreeLegacy from 'three'
+ import type * as ThreeWebGPU from 'three/webgpu'
+ import type { uniform, nodeObject } from 'three/tsl'
++import type { DomEvent } from './events'
+ 
+ //* Renderer Support ==============================
+ // Core has no static imports from `three` or `three/webgpu`. Both are separate bundles built on one
+@@ -28,11 +29,61 @@ export interface OcclusionSupport {
+   nodeObject: typeof nodeObject
+ }
+ 
++//* Renderer Hooks ==============================
++// Core keeps React's tree, props, events and the frame loop. Where it used to reach into three's
++// objects -- joining a child to its parent, picking which objects take events, casting a ray,
++// ordering two hits, freeing an object -- it asks the root's support instead. three's supports
++// answer with what core did before (src/support/threeHooks.ts); another renderer answers for its
++// own objects.
++
++/** A hit as core dedupes and bubbles it. three's `Intersection` is one. */
++export interface Hit {
++  object: object
++  index?: number
++  instanceId?: number
++}
++
++/** What core asks a renderer about the objects it draws. Each hook is called with the root's support. */
++export interface RendererHooks {
++  /** Adds `child` to `parent`, or moves it there, before `before` when given (an insert or a keyed move). */
++  add(parent: object, child: object, before?: object): void
++  /** Takes `child` out of `parent`. */
++  remove(parent: object, child: object): void
++  /** Whether an object is a node of the scene graph: core adds it to its parent, hides it and gives it events. */
++  isInteractive(object: object): boolean
++  /** Where an element without `attach` attaches to its parent's object, or `undefined` to be added as a child. */
++  defaultAttach(object: object): string | undefined
++  /**
++   * The hits of a pointer event on an object and its descendants, cast with `state.raycaster`. `state`
++   * is the root state of the object, which each renderer types as its own (three's: `RootState`).
++   */
++  hitTest(object: object, event: DomEvent, state: object): Hit[]
++  /** Orders two hits, nearest first, after `interactivePriority` and the roots' event priority. */
++  compareHits(a: Hit, b: Hit): number
++  /** Frees an object core removed, unless it is a primitive or under `dispose={null}`. */
++  dispose(object: object): void
++}
++
++/**
++ * What a renderer gives core: the classes core builds its own objects from, the JSX catalog, the
++ * renderer class and the hooks. `kind` is open: three's supports below are `'webgl'` and `'webgpu'`,
++ * and a support for another renderer names its own.
++ */
++export interface RendererSupport extends RendererHooks {
++  kind: string
++  /** The classes and constants core builds its own objects from: raycaster, default scene and camera, pointer, frustum. */
++  three: object
++  /** The constructors JSX element names resolve to, after `extend()` registrations. */
++  catalog: object
++  Renderer: new (parameters: any) => object
++}
++
+ /** WebGL renderer support: the `three` namespace and the classes only it exports. */
+-export interface WebGLSupport {
++export interface WebGLSupport extends RendererSupport {
+   kind: 'webgl'
+   /** `import * as THREE from 'three'`: JSX constructors for roots on this renderer, and core's classes. */
+   three: typeof ThreeLegacy
++  catalog: typeof ThreeLegacy
+   Renderer: typeof ThreeLegacy.WebGLRenderer
+   /** Render target for `useRenderTarget`. */
+   RenderTarget: typeof ThreeLegacy.WebGLRenderTarget
+@@ -41,10 +92,11 @@ export interface WebGLSupport {
+ }
+ 
+ /** WebGPU renderer support: the `three/webgpu` namespace and the classes only it exports. */
+-export interface WebGPUSupport {
++export interface WebGPUSupport extends RendererSupport {
+   kind: 'webgpu'
+   /** `import * as THREE from 'three/webgpu'`: JSX constructors (node materials included) and core's classes. */
+   three: typeof ThreeWebGPU
++  catalog: typeof ThreeWebGPU
+   Renderer: typeof ThreeWebGPU.WebGPURenderer
+   /** Render target for `useRenderTarget`. */
+   RenderTarget: typeof ThreeWebGPU.RenderTarget
+@@ -55,17 +107,15 @@ export interface WebGPUSupport {
+   occlusion: OcclusionSupport
+ }
+ 
+-/** Support for the renderer a root ended up with. Selected by `configure()`, kept on `state.internal.support`. */
+-export type RendererSupport = WebGLSupport | WebGPUSupport
+-
+ /**
+  * What an entry point hands to `createRoot`/`Canvas`: a loader per renderer it can construct.
+  *
+  * The root entry provides both as dynamic imports, so an app downloads only the renderer its
+  * Canvas asks for. `/legacy` and `/webgpu` provide one each, statically, for apps that would rather
+- * have no extra request than the choice.
++ * have no extra request than the choice. Another renderer's support goes in `webgpu`, the path that
++ * awaits the renderer's `init()`.
+  */
+ export interface RendererProvider {
+-  webgl?: () => WebGLSupport | Promise<WebGLSupport>
+-  webgpu?: () => WebGPUSupport | Promise<WebGPUSupport>
++  webgl?: () => RendererSupport | Promise<RendererSupport>
++  webgpu?: () => RendererSupport | Promise<RendererSupport>
+ }
+diff --git a/types/register.d.ts b/types/register.d.ts
+index f52dc53..60800f2 100644
+--- a/types/register.d.ts
++++ b/types/register.d.ts
+@@ -1,6 +1,6 @@
+ import type { WebGLRenderer, WebGLRenderTarget } from 'three'
+ import type { WebGPURenderer, RenderTarget } from 'three/webgpu'
+-import type { RendererSupport, WebGLSupport, WebGPUSupport } from './provider'
++import type { WebGLSupport, WebGPUSupport } from './provider'
+ 
+ //* Register ==============================
+ // The base RootState is typed for both renderers, so by default `state.renderer` is the union and a
+@@ -44,4 +44,4 @@ export type R3FRenderer = ForRegisteredRenderer<WebGPURenderer, WebGLRenderer>
+ export type R3FRenderTarget = ForRegisteredRenderer<RenderTarget, WebGLRenderTarget>
+ 
+ /** The renderer support on `state.internal.support`, narrowed to the registered renderer. */
+-export type R3FRendererSupport = ForRegisteredRenderer<WebGPUSupport, WebGLSupport, RendererSupport>
++export type R3FRendererSupport = ForRegisteredRenderer<WebGPUSupport, WebGLSupport>

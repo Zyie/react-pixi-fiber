@@ -476,7 +476,7 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
   if (
     instance?.parent &&
     rootState?.internal &&
-    (instance.object as unknown as THREE.Object3D | undefined)?.isObject3D &&
+    rootState.internal.support.isInteractive(instance.object) &&
     prevHandlers !== instance.eventCount
   ) {
     const object = instance.object as unknown as THREE.Object3D
@@ -496,11 +496,7 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
   // count unchanged and the block never runs — and the registry keeps a snapshot of the OLD
   // closure. Inline handlers (`onFramed={() => …}`) produce a new function every render, which
   // is the common case, so the user's updated callback would simply never fire.
-  if (
-    instance?.parent &&
-    rootState?.internal &&
-    (instance.object as unknown as THREE.Object3D | undefined)?.isObject3D
-  ) {
+  if (instance?.parent && rootState?.internal && rootState.internal.support.isInteractive(instance.object)) {
     const object = instance.object as unknown as THREE.Object3D
     const root = findInitialRoot(instance)
     const visibilityHandlers = {
@@ -522,10 +518,10 @@ export function applyProps<T = any>(object: Instance<T>['object'], props: Instan
     }
   }
 
-  // Auto-attach geometries and materials
+  // Auto-attach geometries and materials, or whatever the renderer attaches by default
   if (instance && instance.props.attach === undefined) {
-    if ((instance.object as unknown as THREE.BufferGeometry).isBufferGeometry) instance.props.attach = 'geometry'
-    else if ((instance.object as unknown as THREE.Material).isMaterial) instance.props.attach = 'material'
+    const attach = rootState?.internal.support.defaultAttach(instance.object)
+    if (attach) instance.props.attach = attach
   }
 
   // Instance was updated, request a frame

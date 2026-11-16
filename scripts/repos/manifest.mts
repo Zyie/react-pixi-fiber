@@ -13,7 +13,12 @@ export interface ReferenceRepo {
 
 /** Every repository in `.repos/`; `npm run sync:repos` deletes folders that aren't listed here */
 export const referenceRepos: ReferenceRepo[] = [
-  { name: 'react-three-fiber', repository: 'https://github.com/pmndrs/react-three-fiber.git', ref: 'v10' },
+  // The commit src/r3f forks; `scripts/r3f/fork.mts` diffs the fork against it
+  {
+    name: 'react-three-fiber',
+    repository: 'https://github.com/pmndrs/react-three-fiber.git',
+    ref: '58acabc0fc996bac5a25320ca3a8670bdd209db7',
+  },
   { name: 'pixi-3d', repository: 'https://github.com/pixijs/3d.git', ref: { npm: '@pixi/3d' } },
   { name: 'pixijs', repository: 'https://github.com/pixijs/pixijs.git', ref: { npm: 'pixi.js' } },
 ];
