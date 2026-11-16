@@ -17,8 +17,7 @@ import { frameExtension } from './frame';
 import { objects2D } from './objects2D';
 import { install2DSurface } from './surface';
 
-export { AssetsLoader } from './AssetsLoader';
-export { useAsset } from './useAsset';
+export { AssetsLoader, useAsset } from '@react-fiber/core';
 
 extensions.add(
   { type: FiberExtensionType.Catalog, name: '2d', ref: catalog2D },

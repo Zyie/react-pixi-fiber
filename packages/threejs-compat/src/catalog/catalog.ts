@@ -1,5 +1,3 @@
-import * as PIXI3D from '@pixi/3d';
-
 import * as animation from '../animation';
 import * as environment from '../environment';
 import * as events from '../events';
@@ -37,19 +35,18 @@ export type AliasCatalog = typeof math &
   typeof environment;
 
 /**
- * Everything a root on this renderer resolves JSX names and core classes from: pixi-3d's exports
- * (`<mesh3D>`, `<cubeGeometry>`, `<material3D>`), with the three-named classes and constants on top
+ * What this package registers with core, as the classes JSX names resolve to and as the classes core
+ * builds a root's default scene, camera and raycaster from: the three-named classes and three's
+ * constants. @pixi/3d's own elements (`<mesh3D>`, `<cubeGeometry3D>`) are `@react-fiber/3d`'s, which
+ * this package installs too.
  * @category catalog
  * @advanced
  */
-export type PixiCatalog = Omit<typeof PIXI3D, keyof AliasCatalog | keyof typeof constants> &
-  AliasCatalog &
-  typeof constants;
+export type PixiCatalog = AliasCatalog & typeof constants;
 
 /**
- * The three-named classes; they win over pixi-3d's own classes of the same name (`SphereGeometry`,
- * `AmbientLight`, `Vector3`, ...), whose options-object constructors would ignore three's positional
- * `args`
+ * The three-named classes, with three's constructors and defaults over the @pixi/3d classes they
+ * extend
  * @category catalog
  * @advanced
  */
@@ -70,8 +67,8 @@ export const aliases: AliasCatalog = {
 };
 
 /**
- * The namespace r3f's core reads as `getThree()` and resolves JSX element names in
+ * The namespace r3f's core reads as `getThree()` and resolves three's JSX element names in
  * @category catalog
  * @advanced
  */
-export const catalog: PixiCatalog = { ...PIXI3D, ...aliases, ...constants };
+export const catalog: PixiCatalog = { ...aliases, ...constants };

@@ -1,4 +1,5 @@
 import { Container3D } from '@pixi/3d';
+import type { BaseMaterial3D } from '@pixi/3d';
 import { useFrame as coreUseFrame } from '@react-fiber/r3f/src/core/hooks/useFrame';
 import { useThree as coreUseThree } from '@react-fiber/r3f/src/core/hooks/useStore';
 import { createPortal as coreCreatePortal } from '@react-fiber/r3f/src/core/portal';
@@ -10,7 +11,7 @@ import { IN_3D, drawOrder, layerOrderOf, setLayerOrder } from '../events/hitOrde
 import { useRenderTarget } from '../hooks/useRenderTarget';
 import { ensureScreen } from '../stage/screen';
 import { classesOf } from '../support/classes';
-import type { Instance } from '../types/elements';
+import type { AttachFnType, AttachType, Instance } from '../types/elements';
 import type { R3FRenderTarget } from '../types/environment';
 import type { DomEvent } from '../types/events';
 import type { Registered } from '../types/register';
@@ -53,8 +54,11 @@ export interface RenderTexture2DProps {
   width: number;
   /** The texture's height in pixels */
   height: number;
-  /** Where the texture attaches on the element it is inside, as r3f's `attach` @default 'map' */
-  attach?: string;
+  /**
+   * Where the texture attaches on the element it is inside, as r3f's `attach`; by default a three
+   * material's `map` with `@react-fiber/threejs-compat`, else a @pixi/3d material's `baseColor` texture
+   */
+  attach?: AttachType<RenderTexture>;
   /**
    * How many frames to draw the 2D on after each render of this component; `Infinity` draws it every
    * frame. With a number, call the handle's `invalidate` when what the 2D shows changes. @default Infinity
@@ -74,6 +78,35 @@ export interface RenderTexture2DProps {
 }
 
 /**
+ * Puts the texture where the material it is inside shows it: a three material's `map`, else a @pixi/3d
+ * material's `baseColor` texture
+ * @param parent - The material
+ * @param texture - The texture
+ * @returns What puts the material's last texture back
+ */
+const attachToMaterial: AttachFnType<RenderTexture> = (parent, texture) => {
+  if (typeof parent === 'object' && parent !== null && 'map' in parent) {
+    const material = parent as { map: unknown };
+    const previous = material.map;
+    material.map = texture;
+    return () => void (material.map = previous);
+  }
+  const { textures } = parent as BaseMaterial3D;
+  const previous = textures.baseColor;
+  textures.baseColor = texture;
+  return () => void (textures.baseColor = previous);
+};
+
+/**
+ * The height on the texture, -1 to 1 and up, of a hit's texture coordinates: a @pixi/3d hit
+ * (`RaycastHit3D`, with its `localPoint`) has them in the texture's own space, v down, and three's
+ * intersection has v up
+ * @param hit - The hit on the 3D object
+ * @param uv - Its texture coordinates
+ */
+const pointerY = (hit: object, uv: { y: number }): number => ('localPoint' in hit ? 1 - uv.y * 2 : uv.y * 2 - 1);
+
+/**
  * The 3D object a texture attaches to, through the element tree: the mesh whose material holds it
  * @param texture - The texture
  */
@@ -85,7 +118,8 @@ function objectOf(texture: RenderTexture): Container3D | null {
 
 /**
  * 2D drawn into a texture for 3D: a 2D UI on a 3D screen, a label texture that changes. Put it inside
- * a material and its texture becomes the material's `map`, or what `attach` names.
+ * a material and its texture becomes the material's `map` (three's, with `@react-fiber/threejs-compat`)
+ * or its `baseColor` texture (@pixi/3d's), or what `attach` names.
  *
  * Its children are a 2D scene of their own, rendered through r3f's `createPortal` with `size` set to the
  * texture's, so `useThree((state) => state.size)` gives the texture's size and 2D lays out in its
@@ -94,8 +128,9 @@ function objectOf(texture: RenderTexture): Container3D | null {
  *
  * Pointer events on the 3D object reach the 2D at the texture coordinates of the hit, as drei's
  * `<RenderTexture>` forwards them, and sort where the 3D object is hit: 3D in front of it, or a HUD
- * over it, is hit first. `global` on a 2D event is in the texture's pixels. The texture is freed when
- * it unmounts.
+ * over it, is hit first. `global` on a 2D event is in the texture's pixels. A @pixi/3d mesh needs
+ * `hitVolume="geometry"` for its hits to carry texture coordinates. The texture is freed when it
+ * unmounts.
  * @example
  * ```tsx
  * <mesh>
@@ -114,7 +149,7 @@ function objectOf(texture: RenderTexture): Container3D | null {
 export function RenderTexture2D({
   width,
   height,
-  attach = 'map',
+  attach = attachToMaterial,
   frames = Infinity,
   options,
   compute,
@@ -172,7 +207,7 @@ export function RenderTexture2D({
       }
       const [hit] = previous.raycaster.intersectObject(object, true);
       if (!hit?.uv) return;
-      state.pointer.set(hit.uv.x * 2 - 1, hit.uv.y * 2 - 1);
+      state.pointer.set(hit.uv.x * 2 - 1, pointerY(hit, hit.uv));
       state.raycaster.setFromCamera(state.pointer, state.camera);
       setLayerOrder(state.raycaster, drawOrder(layerOrderOf(previous.raycaster), IN_3D, hit.distance));
     },

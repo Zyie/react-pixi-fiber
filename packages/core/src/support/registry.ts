@@ -14,6 +14,10 @@ import type { SceneHit } from './hooks';
  * - `Objects`: {@link ObjectHooks}, the renderer hooks for the objects a package owns.
  * - `Catalog`: classes by the PascalCase name of their JSX element (`Sprite2D` is `<sprite2D>`), which
  *   `extensions.add` takes as `{ type, name, priority, ref }` with the classes as `ref`.
+ * - `Classes`: the classes core builds its own objects from, by the names r3f's core reads (`Scene`,
+ *   `PerspectiveCamera`, `OrthographicCamera`, `Raycaster`, `Vector2`, `Vector3`, `Frustum`): a
+ *   root's default scene, camera and raycaster, a portal's, a `<View3D>`'s. They are not elements.
+ *   Core registers its own, pixi-3d's with r3f's members, which a package can replace.
  * - `Support`: {@link SupportParts}, the renderer and render targets a package gives roots, and what it
  *   installs when the first root loads the support.
  *
@@ -32,6 +36,7 @@ import type { SceneHit } from './hooks';
 export const FiberExtensionType = {
   Objects: 'react-fiber-objects' as string as ExtensionType,
   Catalog: 'react-fiber-catalog' as string as ExtensionType,
+  Classes: 'react-fiber-classes' as string as ExtensionType,
   Support: 'react-fiber-support' as string as ExtensionType,
 } as const;
 
@@ -143,6 +148,7 @@ export const objectHooks: ObjectHooks[] = [];
 
 const hooks: Entry<ObjectHooks>[] = [];
 const catalogs: Entry<Record<string, unknown>>[] = [];
+const classLists: Entry<Record<string, unknown>>[] = [];
 const parts: Entry<SupportParts>[] = [];
 const installed = new WeakSet<SupportParts>();
 
@@ -157,10 +163,25 @@ handleSorted(FiberExtensionType.Objects, hooks, () => {
   objectHooks.length = 0;
   for (const { ref } of hooks) objectHooks.push(ref);
 });
-handleSorted(FiberExtensionType.Catalog, catalogs, () => {
-  for (const key of Object.keys(catalog)) delete catalog[key];
-  for (let i = catalogs.length - 1; i >= 0; i--) Object.assign(catalog, catalogs[i].ref);
-});
+/**
+ * The classes core builds its own objects from, r3f's `support.three`: every package's, a higher
+ * priority package's replacing a lower one's of the same name, in one object that stays the same
+ * @internal
+ */
+export const classes: Record<string, unknown> = {};
+
+/**
+ * Keeps an object the merge of a list of class records, the lowest priority first
+ * @param target - The object
+ * @param list - The records, highest priority first
+ */
+function merge(target: Record<string, unknown>, list: readonly Entry<Record<string, unknown>>[]): void {
+  for (const key of Object.keys(target)) delete target[key];
+  for (let i = list.length - 1; i >= 0; i--) Object.assign(target, list[i].ref);
+}
+
+handleSorted(FiberExtensionType.Catalog, catalogs, () => merge(catalog, catalogs));
+handleSorted(FiberExtensionType.Classes, classLists, () => merge(classes, classLists));
 handleSorted(FiberExtensionType.Support, parts);
 
 /**

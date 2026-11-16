@@ -1,4 +1,4 @@
-import { objects3D } from '@react-fiber/3d';
+import '@react-fiber/3d';
 import { FiberExtensionType } from '@react-fiber/core/extension';
 import { extensions } from 'pixi.js';
 
@@ -11,7 +11,7 @@ import { ThreeRenderer } from './renderer/ThreeRenderer';
 
 extensions.add(
   { type: FiberExtensionType.Catalog, name: 'threejs-compat', ref: catalog },
-  { type: FiberExtensionType.Objects, name: 'threejs-compat', ref: objects3D },
+  { type: FiberExtensionType.Classes, name: 'threejs-compat', ref: catalog },
   {
     type: FiberExtensionType.Support,
     name: 'threejs-compat',

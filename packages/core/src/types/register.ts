@@ -1,8 +1,8 @@
-import type { Camera3D, Container3D, Frustum, ObservableVector3, Ray, Vector2, Vector3 } from '@pixi/3d';
+import type { Camera3D, Container3D, Frustum, ObservableVector3, Ray, RaycastHit3D, Vector2, Vector3 } from '@pixi/3d';
 import type { ColorSource, PointData, Texture } from 'pixi.js';
 
+import type { RootRenderTarget, RootRenderTargetOptions } from '../defaults/RootRenderTarget';
 import type { PixiRenderer } from '../renderer/PixiRenderer';
-import type { DrawableTarget } from '../renderer/renderTargets';
 
 /**
  * What core calls on a raycaster: the root's, which pointer events set from the camera, and an
@@ -41,23 +41,20 @@ export interface RaycasterLike {
 }
 
 /**
- * A hit on a 3D object, as core's event pipeline reads one
+ * A hit on a 3D object, as core's event pipeline reads one: pixi-3d's `RaycastHit3D` (where in the
+ * world and in the node's own space the ray hit, the surface normal, uv and triangle when the node is
+ * picked per triangle), with the node hit as r3f's `object` rather than pixi's `target`, which an r3f
+ * event uses for the pointer capture target
  * @category types
  * @advanced
  */
-export interface Hit3D {
-  /** How far along the ray the hit is */
-  distance: number;
-  /** Where the ray hit, in world space */
-  point: Vector3;
+export interface Hit3D extends Omit<RaycastHit3D, 'target'> {
   /** The object hit */
   object: Container3D;
   /** The instance hit, on an instanced mesh */
   instanceId?: number;
   /** The point or segment hit, on points and lines */
   index?: number;
-  /** The texture coordinates where the ray hit */
-  uv?: PointData;
   /** The triangle hit, on a mesh */
   face?: object | null;
 }
@@ -92,9 +89,9 @@ export interface RegisterDefaults {
   /** The class of the root's renderer */
   Renderer: typeof PixiRenderer;
   /** The class of what `useRenderTarget` makes */
-  RenderTarget: new (width: number, height: number, options?: object) => DrawableTarget;
+  RenderTarget: typeof RootRenderTarget;
   /** The options `useRenderTarget` takes */
-  RenderTargetOptions: object;
+  RenderTargetOptions: RootRenderTargetOptions;
   /** What a colour prop takes besides a pixi `ColorSource` */
   ColorRepresentation: ColorSource;
   /** The class of a colour a colour prop holds */
@@ -103,8 +100,10 @@ export interface RegisterDefaults {
   Euler: typeof ObservableVector3;
   /** The axis orders of a `rotation` */
   EulerOrder: string;
-  /** The namespace `getThree()` returns */
+  /** The classes JSX names resolve to */
   Catalog: Record<string, unknown>;
+  /** The classes core builds its own objects from, which `getThree()` returns */
+  Classes: Record<string, unknown>;
 }
 
 /**

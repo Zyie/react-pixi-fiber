@@ -7,17 +7,40 @@ import { fiberAliases, sharedAliases } from './scripts/test/aliases.mts';
 import BrowserCommands from './scripts/test/browser-commands.mts';
 import generateTestWrappers from './scripts/test/generate-test-wrappers.mts';
 import { ParityReporter } from './scripts/test/parity.mts';
-import { PIXI_ONLY_FOLDERS } from './tests/harness/scene-constants';
+import { NATIVE_FOLDERS, PIXI_ONLY_FOLDERS } from './tests/harness/scene-constants';
 
 const EXCLUDE = [...configDefaults.exclude, '.claude/**', '.repos/**'];
 
 /** The wrappers of every scene and example, which the `three` and `scenes` projects both run */
 const SCENE_WRAPPERS = ['tests/scenes/**/*.scene.test.ts', 'tests/docs/**/*.example.test.ts'];
 
+/**
+ * The wrappers of the scenes and examples in some folders of keys
+ * @param folders - The folders, such as `2d` or `docs/2d`
+ */
+const wrappersIn = (folders: readonly string[]): string[] =>
+  folders.map((folder) => (folder.startsWith('docs/') ? `tests/${folder}/**` : `tests/scenes/${folder}/**`));
+
 /** The wrappers of the 2D scenes and examples, which the `three` project leaves out: three.js has no 2D */
-const PIXI_ONLY_WRAPPERS = PIXI_ONLY_FOLDERS.map((folder) =>
-  folder.startsWith('docs/') ? `tests/${folder}/**` : `tests/scenes/${folder}/**`,
-);
+const PIXI_ONLY_WRAPPERS = wrappersIn(PIXI_ONLY_FOLDERS);
+
+/** The wrappers of the scenes and examples that run without threejs-compat, in the `native` project only */
+const NATIVE_WRAPPERS = wrappersIn(NATIVE_FOLDERS);
+
+/** The tests of the native project beside its scenes: the unit tests and the synthetic input of its scenes */
+const NATIVE_TESTS = [
+  'tests/unit/native/**/*.test.{ts,tsx}',
+  'tests/harness/__tests__/synthetic-input-native.test.tsx',
+];
+
+/** Installs threejs-compat, which every scene outside the native folders uses */
+const COMPAT_SETUP = ['tests/harness/setup/threejs-compat.ts'];
+
+/** `@react-fiber/threejs-compat` and its entries as an error, so a native page can't load it */
+const NO_COMPAT = {
+  find: /^@react-fiber\/threejs-compat(\/.*)?$/,
+  replacement: path.resolve(import.meta.dirname, 'tests/harness/no-threejs-compat.ts'),
+};
 
 export default defineConfig({
   server: {
@@ -97,6 +120,7 @@ export default defineConfig({
           name: 'three',
           include: SCENE_WRAPPERS,
           exclude: [...EXCLUDE, ...PIXI_ONLY_WRAPPERS],
+          setupFiles: COMPAT_SETUP,
           provide: { fiber: 'three' },
           sequence: { groupOrder: 0 },
         },
@@ -107,9 +131,24 @@ export default defineConfig({
         test: {
           name: 'scenes',
           include: SCENE_WRAPPERS,
-          exclude: EXCLUDE,
+          exclude: [...EXCLUDE, ...NATIVE_WRAPPERS],
+          setupFiles: COMPAT_SETUP,
           provide: { fiber: 'pixi' },
           sequence: { groupOrder: 1 },
+        },
+      },
+      // The scenes of @react-fiber/3d and 2d without threejs-compat, on pages of their own where it can't load,
+      // held to their own references.
+      {
+        extends: true,
+        resolve: { alias: [NO_COMPAT, ...fiberAliases('pixi')] },
+        test: {
+          name: 'native',
+          include: [...NATIVE_WRAPPERS.map((folder) => `${folder}/*.test.ts`), ...NATIVE_TESTS],
+          exclude: EXCLUDE,
+          setupFiles: ['tests/harness/setup/native.ts'],
+          provide: { fiber: 'pixi' },
+          sequence: { groupOrder: 2 },
         },
       },
       // Behaviour with no picture to compare, and the harness's own tests, on pixi-3d. After the scenes: one
@@ -120,9 +159,10 @@ export default defineConfig({
         test: {
           name: 'unit',
           include: ['tests/unit/**/*.test.{ts,tsx}', 'tests/harness/__tests__/**/*.test.{ts,tsx}'],
-          exclude: EXCLUDE,
+          exclude: [...EXCLUDE, ...NATIVE_TESTS],
+          setupFiles: COMPAT_SETUP,
           provide: { fiber: 'pixi' },
-          sequence: { groupOrder: 2 },
+          sequence: { groupOrder: 3 },
         },
       },
     ],

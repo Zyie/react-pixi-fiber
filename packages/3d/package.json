@@ -1,14 +1,13 @@
 {
   "name": "@react-fiber/3d",
   "version": "0.0.0",
-  "description": "@pixi/3d elements for @react-fiber/core",
+  "description": "@pixi/3d elements for @react-fiber/core: <mesh3D>, <container3D>, <sphereGeometry3D>, <phongMaterial3D>, <pointLight3D> and the rest of @pixi/3d",
   "license": "MIT",
   "author": "PixiJS",
   "files": [
     "dist"
   ],
   "type": "module",
-  "sideEffects": false,
   "exports": {
     ".": "./dist/index.js",
     "./package.json": "./package.json"

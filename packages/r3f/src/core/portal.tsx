@@ -7,6 +7,7 @@ import { context } from './store'
 import { reconciler } from './reconciler'
 import { getThree } from './three'
 import { updateCamera, useIsomorphicLayoutEffect, useMutableCallback } from './utils'
+import { objectKey } from './utils/objectKey'
 import { cloneState, isAccessor, keepAccessors } from './utils/stateAccessors'
 import type { RootState, EventManager, InjectState } from '#types'
 
@@ -61,9 +62,8 @@ export function Portal({ children, container, state }: PortalProps): JSX.Element
   if (!resolvedContainer) return <></>
 
   // Render the actual portal with resolved container
-  // Use container.uuid as key to force remount when container changes
-  // Fallback to container reference if uuid doesn't exist (defensive)
-  const portalKey = resolvedContainer.uuid ?? `portal-${resolvedContainer.id ?? 'unknown'}`
+  // Key by the container to force remount when container changes
+  const portalKey = objectKey(resolvedContainer)
   return <PortalInner key={portalKey} children={children} container={resolvedContainer} state={state} />
 }
 

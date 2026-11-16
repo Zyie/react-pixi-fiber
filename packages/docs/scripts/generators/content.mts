@@ -314,6 +314,7 @@ function sectionIndex(section: Exclude<GuideSection, 'getting-started'>, sources
   const leads: Record<typeof section, string> = {
     tutorials:
       "Step by step through react-three-fiber's tutorials, each running on pixi-3d with the same code. Every one assumes you know some React.",
+    '3d': "@pixi/3d's own classes as elements, under pixi's conventions: options objects, @pixi/3d's vectors and rotations and pixi colours, with react-three-fiber's hooks, events and loading, and no three.js names.",
     '2d': "pixi.js 2D in the same canvas, tree, hooks and events as the 3D: sprites, graphics, text, filters and masks as elements, drawn over or under the 3D, with react-three-fiber's API, and bridges that put 2D on 3D objects, 3D inside 2D and 2D filters on the 3D.",
     reference:
       'What differs from react-three-fiber, item by item, and every name react-pixi-fiber exports, read from its source and JSDoc.',
@@ -372,6 +373,7 @@ export function docsPages(shared: Shared): readonly Page[] {
   return [
     ...GUIDES.map((guide) => guidePageOf(guide, sources, parity)),
     sectionIndex('tutorials', sources),
+    sectionIndex('3d', sources),
     sectionIndex('2d', sources),
     sectionIndex('reference', sources),
     sectionIndex('advanced', sources),

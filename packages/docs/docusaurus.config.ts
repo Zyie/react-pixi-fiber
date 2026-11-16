@@ -123,6 +123,7 @@ const config: Config = {
       hideOnScroll: false,
       items: [
         { type: 'docSidebar', sidebarId: 'docs', label: 'Docs', position: 'left' },
+        { to: '/docs/3d/', label: '3D', position: 'left', activeBaseRegex: '^/docs/3d/' },
         { to: '/docs/2d/', label: '2D', position: 'left', activeBaseRegex: '^/docs/2d/' },
         { type: 'docSidebar', sidebarId: 'examples', label: 'Examples', position: 'left' },
         { type: 'docSidebar', sidebarId: 'api', label: 'API', position: 'left' },
@@ -139,6 +140,7 @@ const config: Config = {
           title: 'Learn',
           items: [
             { label: 'Docs', to: '/docs/' },
+            { label: '3D', to: '/docs/3d/' },
             { label: '2D', to: '/docs/2d/' },
             { label: 'Mixing 2D and 3D', to: '/docs/2d/mixing-2d-and-3d/' },
             { label: 'Examples', to: '/examples/' },

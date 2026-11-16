@@ -2,21 +2,28 @@ import { registerRootExtension } from '@react-fiber/r3f/src/core/extensions';
 import { extensions } from 'pixi.js';
 
 import { Anchor2D } from '../bridges/Anchor2D';
+import { rootClasses } from '../defaults';
+import { RootRenderTarget } from '../defaults/RootRenderTarget';
 import { PixiRenderer } from '../renderer/PixiRenderer';
 import { ensureScreen, releaseScreen } from '../stage/screen';
 import type { Registered } from '../types/register';
 import type { RootState, RootStore } from '../types/state';
 import { pixiHooks } from './hooks';
 import type { PixiHooks } from './hooks';
-import { FiberExtensionType, catalog, installParts, supportPart } from './registry';
+import { FiberExtensionType, catalog, classes, installParts, supportPart } from './registry';
 
-extensions.add({ type: FiberExtensionType.Catalog, name: 'core', priority: -1, ref: { Anchor2D } });
+extensions.add(
+  { type: FiberExtensionType.Catalog, name: 'core', priority: -1, ref: { Anchor2D } },
+  { type: FiberExtensionType.Classes, name: 'core', priority: -1, ref: rootClasses },
+  { type: FiberExtensionType.Support, name: 'core', priority: -1, ref: { RenderTarget: RootRenderTarget } },
+);
 
 /**
  * pixi.js as an r3f renderer support: what r3f's core loads when a root is configured
  *
- * The same contract as r3f's `support/webgpu.ts`: the classes core builds its own objects from, the
- * namespace JSX names resolve in, the renderer class, the render target classes `useRenderTarget` and
+ * The same contract as r3f's `support/webgpu.ts`: the classes core builds its own objects from
+ * (`three`, core's pixi-3d classes unless a package registers its own), the namespace JSX names
+ * resolve in (`catalog`), the renderer class, the render target classes `useRenderTarget` and
  * `<Environment>` make, and the hooks core calls where it reaches into the objects it draws (adding a
  * child, hit testing, ordering hits, freeing). The packages on core fill it through pixi.js's
  * `extensions` (`FiberExtensionType`): their classes, their object hooks, and the renderer and targets
@@ -29,8 +36,8 @@ extensions.add({ type: FiberExtensionType.Catalog, name: 'core', priority: -1, r
 export interface PixiSupport extends PixiHooks {
   /** Always `'pixi'` */
   kind: 'pixi';
-  /** The classes core builds the default raycaster, scene and camera from: the catalog */
-  three: Registered<'Catalog'>;
+  /** The classes core builds the default raycaster, scene and camera from, which are not elements */
+  three: Registered<'Classes'>;
   /** The namespace JSX names resolve in: every registered package's classes */
   catalog: Registered<'Catalog'>;
   /** The renderer r3f constructs */
@@ -62,7 +69,7 @@ function createSupport(): PixiSupport {
   return {
     ...pixiHooks,
     kind: 'pixi',
-    three: catalog as Registered<'Catalog'>,
+    three: classes as Registered<'Classes'>,
     catalog: catalog as Registered<'Catalog'>,
     Renderer: (supportPart('Renderer') ?? PixiRenderer) as unknown as Registered<'Renderer'>,
     RenderTarget: supportPart('RenderTarget'),

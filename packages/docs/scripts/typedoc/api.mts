@@ -451,6 +451,8 @@ function exportsOf(collector: Collector, file: SourceFile): Exports {
       exports.set('default', []);
       collector.unresolvedFrom.set('default', file.path);
     } else if (exported && statement.source) {
+      // Another entry's names, which its own pages document
+      if (ENTRY_NAMES.has(statement.source.value)) continue;
       const target = resolveImport(collector, file, statement.source.value);
 
       for (const specifier of statement.specifiers) {

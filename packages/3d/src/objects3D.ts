@@ -3,14 +3,16 @@ import { IN_3D, THREE_IN_2D, drawOrder, layerOrderOf, setHitOrder, warnOnce } fr
 import type { ObjectHooks } from '@react-fiber/core/extension';
 import { Container } from 'pixi.js';
 
+/** What the dispose hook frees: a node, geometry or material, through its own `dispose` when it has one */
+type Freeable = (Container3D | Geometry3D | BaseMaterial3D) & { dispose?(): void };
+
 /**
- * The renderer hooks of @pixi/3d's objects: a node joins a node's children, before a sibling through
- * `addChildAt`, and is left out of 2D with a warning; a geometry attaches as its mesh's `geometry` and a
- * material as its `material`; a node's hits are its root's raycaster's, cast at the node and its
- * descendants, ordered in the 3D of their screen layer by distance. The package that gives roots their
- * raycaster registers them as core's `ObjectHooks`, with a `dispose` of its own if its objects need one.
- * @category renderer
- * @advanced
+ * The renderer hooks of @pixi/3d's objects, which this package registers with core: a node joins a
+ * node's children, before a sibling through `addChildAt`, and is left out of 2D with a warning; a
+ * geometry attaches as its mesh's `geometry` and a material as its `material`; a node's hits are its
+ * root's raycaster's, cast at the node and its descendants, ordered in the 3D of their screen layer
+ * by distance; an object r3f removes is destroyed, through its `dispose` where a package gives it one.
+ * @internal
  */
 export const objects3D: ObjectHooks = {
   test: (object) => object instanceof Container3D || object instanceof Geometry3D || object instanceof BaseMaterial3D,
@@ -44,5 +46,10 @@ export const objects3D: ObjectHooks = {
     const layer = layerOrderOf(state.raycaster);
     for (const hit of hits) setHitOrder(hit, drawOrder(layer, IN_3D, hit.distance));
     return hits;
+  },
+  dispose(object) {
+    const freeable = object as Freeable;
+    if (freeable.dispose) freeable.dispose();
+    else freeable.destroy();
   },
 };

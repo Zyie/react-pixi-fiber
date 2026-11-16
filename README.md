@@ -1,6 +1,6 @@
 # react-pixi-fiber
 
-React renderers for [pixi.js](https://pixijs.com) 2D and [`@pixi/3d`](https://github.com/pixijs/3d) with [react-three-fiber](https://github.com/pmndrs/react-three-fiber) v10's API for both. r3f's own core runs as a fork that asks its renderer through hooks; pixi.js and pixi-3d plug in behind it as a renderer support, which packages fill: `@react-fiber/threejs-compat` maps three's element names (`<mesh>`, `<boxGeometry>`, `<meshStandardMaterial>`, ...) and API onto pixi-3d classes, and `@react-fiber/2d` adds pixi.js's 2D classes. An r3f scene should only have to swap its imports:
+React renderers for [pixi.js](https://pixijs.com) 2D and [`@pixi/3d`](https://github.com/pixijs/3d) with [react-three-fiber](https://github.com/pmndrs/react-three-fiber) v10's API for both. r3f's own core runs as a fork that asks its renderer through hooks; pixi.js and pixi-3d plug in behind it as a renderer support, which packages fill: `@react-fiber/3d` adds @pixi/3d's classes under pixi's conventions (`<mesh3D>`, `<sphereGeometry3D>`, `<phongMaterial3D>`), `@react-fiber/2d` adds pixi.js's 2D classes, and the optional `@react-fiber/threejs-compat` maps three's element names (`<mesh>`, `<boxGeometry>`, `<meshStandardMaterial>`, ...) and API onto pixi-3d classes. With it, an r3f scene should only have to swap its imports:
 
 ```diff
 - import { Canvas, useFrame } from '@react-three/fiber';
@@ -21,6 +21,26 @@ export function App() {
         <boxGeometry args={[2, 2, 2]} />
         <meshStandardMaterial />
       </mesh>
+    </Canvas>
+  );
+}
+```
+
+Without it, @pixi/3d's own classes are the elements, with @pixi/3d's options objects as `args`, its fields as props, and nothing of three's installed or bundled:
+
+```tsx
+import { Canvas } from '@react-fiber/core';
+import '@react-fiber/3d';
+
+export function App() {
+  return (
+    <Canvas>
+      <ambientLight3D intensity={0.3} />
+      <directionalLight3D angle={[-35, 30, 0]} intensity={2.5} />
+      <mesh3D angle={[30, 40, 0]} onClick={() => alert('3D')}>
+        <sphereGeometry3D args={[{ radius: 1.2 }]} />
+        <phongMaterial3D baseColor="tomato" />
+      </mesh3D>
     </Canvas>
   );
 }
@@ -61,17 +81,17 @@ Parity is measured, not assumed: every scene and example is a visual test that r
 
 ## Packages
 
-| Package                       | What it is                                                                                                                                |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `@react-fiber/core`           | r3f's API on pixi.js: `<Canvas>`, `createRoot`, the hooks, events, the renderer, and the 2D/3D bridges; what the other packages plug into |
-| `@react-fiber/threejs-compat` | three's names and API over @pixi/3d, for 1-1 swaps of r3f scenes; `/three` and `/addons` stand in for `three` and `three/addons`          |
-| `@react-fiber/2d`             | pixi.js's 2D classes as elements                                                                                                          |
-| `@react-fiber/3d`             | @pixi/3d's classes as elements under pixi's conventions; a skeleton for now                                                               |
-| `@react-fiber/r3f`            | react-three-fiber's `packages/fiber`, forked so its core calls renderer hooks                                                             |
+| Package                       | What it is                                                                                                                                                                    |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@react-fiber/core`           | r3f's API on pixi.js: `<Canvas>`, `createRoot`, the hooks, events, the renderer, a root's @pixi/3d scene and camera, and the 2D/3D bridges; what the other packages plug into |
+| `@react-fiber/3d`             | @pixi/3d's classes as elements under pixi's conventions: `<mesh3D>`, `<sphereGeometry3D>`, `<phongMaterial3D>`, `<pointLight3D>`, ...                                         |
+| `@react-fiber/2d`             | pixi.js's 2D classes as elements                                                                                                                                              |
+| `@react-fiber/threejs-compat` | optional: three's names and API over @pixi/3d, for 1-1 swaps of r3f scenes; `/three` and `/addons` stand in for `three` and `three/addons`                                    |
+| `@react-fiber/r3f`            | react-three-fiber's `packages/fiber`, forked so its core calls renderer hooks                                                                                                 |
 
 ## Status
 
-Unreleased and local, built on pixi.js 8.23 and `@pixi/3d` 0.1. The catalog has three's geometries (but tube, extrude and shape), its standard, physical, basic, Phong, Lambert, toon, normal and matcap materials with their maps, lines, points, sprites, `instancedMesh`, every light but area lights and probes, shadows, fog, cameras, render targets and cube cameras. `@react-fiber/threejs-compat/three` has three's math, `Color` with its colour management, the catalog's classes, its loaders, `AnimationMixer` and three's constants, and `/addons` has `GLTFLoader`, `OrbitControls`, `MapControls`, `HDRLoader` and `RGBELoader`. `<Environment>`, `useTexture` and `useRenderTarget` are r3f's API on pixi-3d. Every node has three's `Object3D` surface and three's picking. Events, `useFrame`, `useThree`, portals and Suspense are r3f's own. Every pixi.js display class, the filters, graphics contexts and particles are 2D elements, on a screen layer over and under the 3D, in r3f's event system, with animated sprites on the root's clock, pixi's culling and pixi-filters through `extend`; `useTexture` and `useAsset` load their textures, spritesheets, bitmap fonts and video. `<anchor2D>`, `<View3D>`, `<Layer3D>` and `<RenderTexture2D>` bridge 2D and 3D. 2D has no three.js counterpart, so its scenes are held to their own WebGL and WebGPU pictures.
+Unreleased and local, built on pixi.js 8.23 and `@pixi/3d` 0.1. The catalog has three's geometries (but tube, extrude and shape), its standard, physical, basic, Phong, Lambert, toon, normal and matcap materials with their maps, lines, points, sprites, `instancedMesh`, every light but area lights and probes, shadows, fog, cameras, render targets and cube cameras. `@react-fiber/threejs-compat/three` has three's math, `Color` with its colour management, the catalog's classes, its loaders, `AnimationMixer` and three's constants, and `/addons` has `GLTFLoader`, `OrbitControls`, `MapControls`, `HDRLoader` and `RGBELoader`. `<Environment>`, `useTexture` and `useRenderTarget` are r3f's API on pixi-3d. With threejs-compat, every node has three's `Object3D` surface and three's picking; without it, @pixi/3d's classes are elements as they are, picked by @pixi/3d's hit volumes, and an app on core, 2d and 3d bundles nothing of three's. Events, `useFrame`, `useThree`, portals and Suspense are r3f's own. Every pixi.js display class, the filters, graphics contexts and particles are 2D elements, on a screen layer over and under the 3D, in r3f's event system, with animated sprites on the root's clock, pixi's culling and pixi-filters through `extend`; `useTexture` and `useAsset` load their textures, spritesheets, bitmap fonts and video. `<anchor2D>`, `<View3D>`, `<Layer3D>` and `<RenderTexture2D>` bridge 2D and 3D. 2D has no three.js counterpart, so its scenes are held to their own WebGL and WebGPU pictures.
 
 ## Develop
 

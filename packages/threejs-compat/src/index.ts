@@ -76,6 +76,7 @@ declare module '@react-fiber/core' {
     Euler: typeof ThreeEuler;
     EulerOrder: ThreeEulerOrder;
     Catalog: CompatCatalog;
+    Classes: CompatCatalog;
   }
 
   interface ThreeElements extends ThreeElementsOf<CompatCatalog> {}

@@ -257,7 +257,7 @@ export function createRootConfiguration<TCanvas extends HTMLCanvasElement | Offs
       // This ensures camera children (HUDs, etc.) render properly
       // https://github.com/pmndrs/react-three-fiber/issues/3632
       const camera = tempCamera
-      if (camera && !camera.parent) scene.add(camera)
+      if (camera && !camera.parent) state.internal.support.add(scene, camera)
     }
 
     // Store events internally
