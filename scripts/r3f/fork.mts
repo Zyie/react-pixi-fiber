@@ -6,12 +6,16 @@
  *
  * - `node scripts/r3f/fork.mts --write` (`npm run diff:r3f`) writes the diff, and the size line of
  *   `packages/r3f/README.md` between its `diff-size` markers.
- * - `node scripts/r3f/fork.mts --check` fails when either is stale or one of our own files is missing.
- *   `npm run test:lint` runs it.
+ * - `node scripts/r3f/fork.mts --check` fails when either is stale, when one of our own files is
+ *   missing, or when `git apply` of the diff in a fresh git checkout of upstream's files doesn't give the
+ *   fork's files exactly. `npm run test:lint` runs it.
  *
  * The diff covers what the fork copies from `packages/fiber` (`src`, `types`): changed, added and
- * deleted files, with paths relative to `packages/fiber`, so `git apply` takes it in an upstream
- * checkout of that folder. Our own files in the tree are listed in `EXTRAS` and left out: the
+ * deleted files, with paths from the root of react-three-fiber's repository (`packages/fiber/src/...`),
+ * so `git apply fork.diff` takes it at the root of a clone. git reads a patch's paths from the
+ * repository's root and skips, without an error, those outside the folder it runs in, so a diff
+ * relative to `packages/fiber` applied there would change nothing. Our own files in the tree are listed
+ * in `EXTRAS` and left out: the
  * react-reconciler shims sit at the relative path r3f's core imports (upstream generates that folder at
  * install time), the README is written for r3f's maintainers, the diff is this script's, and the
  * package is ours to name and build: its package.json is upstream's under the name `@react-fiber/r3f`
@@ -21,6 +25,7 @@
  */
 import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 import { referenceRepos } from '../repos/manifest.mts';
@@ -28,6 +33,8 @@ import { referenceRepos } from '../repos/manifest.mts';
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..');
 const UPSTREAM = '.repos/react-three-fiber';
 const UPSTREAM_PACKAGE = `${UPSTREAM}/packages/fiber`;
+/** Where the fork's files are in react-three-fiber's repository, which the diff's paths start from */
+const PACKAGE_PATH = 'packages/fiber';
 const FORK = 'packages/r3f';
 const DIFF = `${FORK}/fork.diff`;
 const README = `${FORK}/README.md`;
@@ -51,11 +58,11 @@ const EXTRAS = new Set([
 
 /**
  * Every file under `dir`, as paths relative to `base` with forward slashes
- * @param base - Folder the paths are relative to, from the repository root
+ * @param base - Folder the paths are relative to, from the repository root or absolute
  * @param dir - Folder or file to list, relative to `base`
  */
 function listFiles(base: string, dir: string): string[] {
-  const full = path.join(REPO_ROOT, base, dir);
+  const full = path.resolve(REPO_ROOT, base, dir);
   if (!fs.existsSync(full)) return [];
   if (fs.statSync(full).isFile()) return [dir];
   return fs
@@ -66,13 +73,13 @@ function listFiles(base: string, dir: string): string[] {
 
 /**
  * The bytes of a file, or `null` when it doesn't exist
- * @param file - Path from the repository root
+ * @param file - Path from the repository root, or absolute
  */
 const read = (file: string): Buffer | null =>
-  fs.existsSync(path.join(REPO_ROOT, file)) ? fs.readFileSync(path.join(REPO_ROOT, file)) : null;
+  fs.existsSync(path.resolve(REPO_ROOT, file)) ? fs.readFileSync(path.resolve(REPO_ROOT, file)) : null;
 
 /**
- * git's diff of one file of the fork against upstream, with paths relative to `packages/fiber`
+ * git's diff of one file of the fork against upstream, with paths from the root of upstream's repository
  * @param file - Path relative to `packages/fiber`
  * @param inUpstream - Whether upstream has the file
  * @param inFork - Whether the fork has it
@@ -87,7 +94,7 @@ function diffFile(file: string, inUpstream: boolean, inFork: boolean): string {
   );
   if (status !== 0 && status !== 1) throw new Error(`git diff failed on ${file}`);
   return [UPSTREAM_PACKAGE, FORK].reduce(
-    (text, root) => text.replaceAll(`a/${root}/`, 'a/').replaceAll(`b/${root}/`, 'b/'),
+    (text, root) => text.replaceAll(`a/${root}/`, `a/${PACKAGE_PATH}/`).replaceAll(`b/${root}/`, `b/${PACKAGE_PATH}/`),
     stdout,
   );
 }
@@ -117,7 +124,8 @@ function forkDiff(commit: string): string {
   const changed = [...new Set([...upstream, ...fork])].sort().filter((file) => !same(file));
   const header = [
     `# packages/r3f against react-three-fiber packages/fiber at ${commit}`,
-    '# Written by npm run diff:r3f; apply in packages/fiber with git apply.',
+    '# Written by npm run diff:r3f. Apply it at the root of a clone of react-three-fiber at that commit:',
+    '# git apply fork.diff',
     '',
   ].join('\n');
   return header + changed.map((file) => diffFile(file, upstream.has(file), fork.has(file))).join('');
@@ -148,6 +156,32 @@ function withSize(readme: string, size: string): string {
   return `${readme.slice(0, start + open.length)}${size}${readme.slice(end)}`;
 }
 
+/**
+ * What differs between the fork's files and what `git apply` of the diff makes of upstream's, in a git
+ * checkout of upstream's files of its own, as a maintainer's clone has them
+ * @param diff - The diff
+ */
+function applyProblems(diff: string): string[] {
+  const clone = fs.mkdtempSync(path.join(os.tmpdir(), 'r3f-fork-'));
+  try {
+    const target = path.join(clone, PACKAGE_PATH);
+    for (const entry of COPIED) {
+      const from = path.join(REPO_ROOT, UPSTREAM_PACKAGE, entry);
+      if (fs.existsSync(from)) fs.cpSync(from, path.join(target, entry), { recursive: true });
+    }
+    execFileSync('git', ['init', '--quiet'], { cwd: clone });
+    const applied = spawnSync('git', ['apply', '-'], { cwd: clone, input: diff, encoding: 'utf8' });
+    if (applied.status !== 0) return [`git apply of ${DIFF} fails: ${applied.stderr.trim()}`];
+    const ours = COPIED.flatMap((entry) => listFiles(FORK, entry));
+    const theirs = COPIED.flatMap((entry) => listFiles(target, entry));
+    return [...new Set([...ours, ...theirs])]
+      .filter((file) => read(path.join(target, file))?.equals(read(`${FORK}/${file}`) ?? Buffer.alloc(0)) !== true)
+      .map((file) => `git apply of ${DIFF} doesn't give the fork's ${file}`);
+  } finally {
+    fs.rmSync(clone, { recursive: true, force: true });
+  }
+}
+
 const mode = process.argv[2];
 if (mode !== '--check' && mode !== '--write') {
   console.error('Usage: node scripts/r3f/fork.mts --check | --write');
@@ -169,6 +203,7 @@ const problems = [
   ...(read(DIFF)?.toString('utf8') === diff ? [] : [`${DIFF} is not the fork's diff against upstream`]),
   ...(readme === readmeWithSize ? [] : [`${README} gives another diff size`]),
   ...[...EXTRAS].filter((file) => file !== 'fork.diff' && !read(`${FORK}/${file}`)).map((file) => `missing: ${file}`),
+  ...applyProblems(diff),
 ];
 if (problems.length) {
   console.error(`packages/r3f:\n  ${problems.join('\n  ')}`);

@@ -365,7 +365,7 @@ function forkDiffPage(readme: string): Page {
     .split(/^(?=diff --git )/m)
     .filter((part) => part.startsWith('diff --git '))
     .map((part) => {
-      const name = /^diff --git a\/(\S+)/.exec(part)![1]!;
+      const name = /^diff --git a\/packages\/fiber\/(\S+)/.exec(part)![1]!;
       const lines = part.split('\n');
       const added = lines.filter((line) => line.startsWith('+') && !line.startsWith('+++')).length;
       const removed = lines.filter((line) => line.startsWith('-') && !line.startsWith('---')).length;
@@ -374,7 +374,7 @@ function forkDiffPage(readme: string): Page {
     });
   const commit = /commit `([0-9a-f]{40})`/.exec(readme)?.[1] ?? '';
   const size = /<!-- diff-size -->(.*?)<!-- \/diff-size -->/.exec(readme)?.[1] ?? '';
-  const lead = `The whole of the fork's change to react-three-fiber's packages/fiber at ${commit.slice(0, 7)}: ${size}. npm run diff:r3f writes it, npm run test:lint fails when it is stale, and git apply takes it in packages/fiber of a clone of r3f at that commit.`;
+  const lead = `The whole of the fork's change to react-three-fiber's packages/fiber at ${commit.slice(0, 7)}: ${size}. npm run diff:r3f writes it, npm run test:lint fails when it is stale, and git apply fork.diff takes it at the root of a clone of r3f at that commit.`;
 
   return page(FORK_DIFF.id, { title: FORK_DIFF.title, description: describe(lead), custom_edit_url: null }, [
     heading(1, FORK_DIFF.title),
@@ -392,16 +392,16 @@ function forkDiffPage(readme: string): Page {
         ' writes it, ',
         inlineCode('npm run test:lint'),
         ' fails when it is stale, and ',
-        inlineCode('git apply'),
-        ' takes it in ',
+        inlineCode('git apply fork.diff'),
+        ' takes it at the root of a clone of r3f at that commit, not in ',
         inlineCode('packages/fiber'),
-        ' of a clone of r3f at that commit. ',
+        ', where git would skip every path. ',
         link(pageUrl(guidePage('renderer-hooks')), 'Renderer hooks'),
         ' says what each change is for.',
       ),
     ]),
     table(
-      ['File', 'Added', 'Removed'],
+      ['File in packages/fiber', 'Added', 'Removed'],
       files.map(({ name, added, removed }) => [[inlineCode(name)], [text(`${added}`)], [text(`${removed}`)]]),
     ),
     ...files.flatMap(({ name, body }) => [heading(2, name), code(body, 'diff')]),

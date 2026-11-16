@@ -179,9 +179,13 @@ warning in `src/webgpu/index.tsx`.
 ```sh
 git clone https://github.com/pmndrs/react-three-fiber && cd react-three-fiber
 git checkout 58acabc0fc996bac5a25320ca3a8670bdd209db7
-(cd packages/fiber && git apply /path/to/fork.diff)
+git apply /path/to/fork.diff
 pnpm install && pnpm typecheck && pnpm vitest run packages/fiber
 ```
+
+The diff's paths start at the repository's root (`packages/fiber/src/...`), so apply it there: git skips,
+without an error, every path outside the folder it runs in. `npm run test:lint` applies it in a fresh git
+checkout of upstream's files and fails unless that gives the fork's files exactly.
 
 ## Our files
 
@@ -194,8 +198,8 @@ pnpm install && pnpm typecheck && pnpm vitest run packages/fiber
   build there at install time; ours names each constant, because `export *` from its CommonJS `constants`
   module loses exports under Vite.
 
-To move to a newer upstream commit: in a full clone of r3f at that commit, apply `fork.diff` in
-`packages/fiber` with `git apply -3` (the clone has this commit's files for the 3-way merge) and resolve
-what conflicts. Copy its `src` and `types` over these, and its `package.json` with our name, pin the commit in
+To move to a newer upstream commit: in a full clone of r3f at that commit, apply `fork.diff` at the
+clone's root with `git apply -3 /path/to/fork.diff` (the clone has this commit's files for the 3-way
+merge) and resolve what conflicts. Copy its `src` and `types` over these, and its `package.json` with our name, pin the commit in
 `scripts/repos/manifest.mts`, run `npm run sync:repos react-three-fiber`, then `npm run diff:r3f` and the
 full test suite.

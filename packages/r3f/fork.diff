@@ -1,9 +1,10 @@
 # packages/r3f against react-three-fiber packages/fiber at 58acabc0fc996bac5a25320ca3a8670bdd209db7
-# Written by npm run diff:r3f; apply in packages/fiber with git apply.
-diff --git a/src/core/configuration.ts b/src/core/configuration.ts
+# Written by npm run diff:r3f. Apply it at the root of a clone of react-three-fiber at that commit:
+# git apply fork.diff
+diff --git a/packages/fiber/src/core/configuration.ts b/packages/fiber/src/core/configuration.ts
 index 0041e16..65273c4 100644
---- a/src/core/configuration.ts
-+++ b/src/core/configuration.ts
+--- a/packages/fiber/src/core/configuration.ts
++++ b/packages/fiber/src/core/configuration.ts
 @@ -257,7 +257,7 @@ export function createRootConfiguration<TCanvas extends HTMLCanvasElement | Offs
        // This ensures camera children (HUDs, etc.) render properly
        // https://github.com/pmndrs/react-three-fiber/issues/3632
@@ -13,10 +14,10 @@ index 0041e16..65273c4 100644
      }
  
      // Store events internally
-diff --git a/src/core/events.ts b/src/core/events.ts
+diff --git a/packages/fiber/src/core/events.ts b/packages/fiber/src/core/events.ts
 index 787fd83..d1f09ac 100644
---- a/src/core/events.ts
-+++ b/src/core/events.ts
+--- a/packages/fiber/src/core/events.ts
++++ b/packages/fiber/src/core/events.ts
 @@ -1,6 +1,7 @@
  import type * as THREE from 'three'
  import { getThree } from './three'
@@ -86,10 +87,10 @@ index 787fd83..d1f09ac 100644
        })
        // Filter out duplicates
        .filter((item) => {
-diff --git a/src/core/extend.ts b/src/core/extend.ts
+diff --git a/packages/fiber/src/core/extend.ts b/packages/fiber/src/core/extend.ts
 index a5f831f..4ca6102 100644
---- a/src/core/extend.ts
-+++ b/src/core/extend.ts
+--- a/packages/fiber/src/core/extend.ts
++++ b/packages/fiber/src/core/extend.ts
 @@ -75,9 +75,10 @@ export function extend(
  //
  // 1. Explicit `extend()` registrations, shared across every copy of fiber. These win whenever they
@@ -115,10 +116,10 @@ index a5f831f..4ca6102 100644
  
 -type RendererNamespace = NonNullable<ReturnType<RootStore['getState']>['internal']['support']>['three']
 +type RendererNamespace = NonNullable<ReturnType<RootStore['getState']>['internal']['support']>['catalog']
-diff --git a/src/core/portal.tsx b/src/core/portal.tsx
+diff --git a/packages/fiber/src/core/portal.tsx b/packages/fiber/src/core/portal.tsx
 index 819a4d3..f433f4b 100644
---- a/src/core/portal.tsx
-+++ b/src/core/portal.tsx
+--- a/packages/fiber/src/core/portal.tsx
++++ b/packages/fiber/src/core/portal.tsx
 @@ -7,6 +7,7 @@ import { context } from './store'
  import { reconciler } from './reconciler'
  import { getThree } from './three'
@@ -152,10 +153,10 @@ index 819a4d3..f433f4b 100644
      }
    }, [portalScene, container, injectScene])
  
-diff --git a/src/core/reconciler.tsx b/src/core/reconciler.tsx
+diff --git a/packages/fiber/src/core/reconciler.tsx b/packages/fiber/src/core/reconciler.tsx
 index 4163218..8a84566 100644
---- a/src/core/reconciler.tsx
-+++ b/src/core/reconciler.tsx
+--- a/packages/fiber/src/core/reconciler.tsx
++++ b/packages/fiber/src/core/reconciler.tsx
 @@ -25,7 +25,6 @@ import {
    attach,
    detach,
@@ -372,10 +373,10 @@ index 4163218..8a84566 100644
          }
        }
  
-diff --git a/src/core/renderer.ts b/src/core/renderer.ts
+diff --git a/packages/fiber/src/core/renderer.ts b/packages/fiber/src/core/renderer.ts
 index 498a00a..96f7216 100644
---- a/src/core/renderer.ts
-+++ b/src/core/renderer.ts
+--- a/packages/fiber/src/core/renderer.ts
++++ b/packages/fiber/src/core/renderer.ts
 @@ -1,13 +1,14 @@
  /** Renderer resources: creation, shared canvas lookup, and ownership through final release. */
  import type { WebGLRenderer } from 'three'
@@ -404,10 +405,10 @@ index 498a00a..96f7216 100644
        registerThree(support.three)
        state.internal.support = support
        ensureStoreThreeObjects(store)
-diff --git a/src/core/store.ts b/src/core/store.ts
+diff --git a/packages/fiber/src/core/store.ts b/packages/fiber/src/core/store.ts
 index 043815b..1628b50 100644
---- a/src/core/store.ts
-+++ b/src/core/store.ts
+--- a/packages/fiber/src/core/store.ts
++++ b/packages/fiber/src/core/store.ts
 @@ -22,7 +22,7 @@ import type {
    ThreeCamera,
    VisibilityEntry,
@@ -438,10 +439,10 @@ index 043815b..1628b50 100644
        }
  
        // Update viewport
-diff --git a/src/core/utils/instance.ts b/src/core/utils/instance.ts
+diff --git a/packages/fiber/src/core/utils/instance.ts b/packages/fiber/src/core/utils/instance.ts
 index c3daa69..3eb5d3d 100644
---- a/src/core/utils/instance.ts
-+++ b/src/core/utils/instance.ts
+--- a/packages/fiber/src/core/utils/instance.ts
++++ b/packages/fiber/src/core/utils/instance.ts
 @@ -34,13 +34,11 @@ export function findInitialRoot<T>(instance: Instance<T>): RootStore {
  export function getRootState<T extends THREE.Object3D = THREE.Object3D>(obj: T) {
    let state = (obj as Instance<T>['object']).__r3f?.root.getState()
@@ -461,11 +462,11 @@ index c3daa69..3eb5d3d 100644
    }
    return state
  }
-diff --git a/src/core/utils/objectId.ts b/src/core/utils/objectId.ts
+diff --git a/packages/fiber/src/core/utils/objectId.ts b/packages/fiber/src/core/utils/objectId.ts
 new file mode 100644
 index 0000000..990ad39
 --- /dev/null
-+++ b/src/core/utils/objectId.ts
++++ b/packages/fiber/src/core/utils/objectId.ts
 @@ -0,0 +1,18 @@
 +//* Object Ids ==============================
 +// Core keys hits, hovers, visibility entries and portals by an id it keeps, so an object needs no `uuid`
@@ -485,10 +486,10 @@ index 0000000..990ad39
 +  if (id === undefined) objectIds.set(object, (id = String(++lastObjectId)))
 +  return id
 +}
-diff --git a/src/core/utils/props.ts b/src/core/utils/props.ts
+diff --git a/packages/fiber/src/core/utils/props.ts b/packages/fiber/src/core/utils/props.ts
 index 3566163..2561d5f 100644
---- a/src/core/utils/props.ts
-+++ b/src/core/utils/props.ts
+--- a/packages/fiber/src/core/utils/props.ts
++++ b/packages/fiber/src/core/utils/props.ts
 @@ -172,6 +172,9 @@ export function resolve(root: any, key: string): { root: any; key: string; targe
   */
  export function attach(parent: Instance, child: Instance): void {
@@ -568,10 +569,10 @@ index 3566163..2561d5f 100644
    }
  
    // Instance was updated, request a frame
-diff --git a/src/core/visibility.ts b/src/core/visibility.ts
+diff --git a/packages/fiber/src/core/visibility.ts b/packages/fiber/src/core/visibility.ts
 index c89c2fb..9572bc1 100644
---- a/src/core/visibility.ts
-+++ b/src/core/visibility.ts
+--- a/packages/fiber/src/core/visibility.ts
++++ b/packages/fiber/src/core/visibility.ts
 @@ -6,6 +6,7 @@
  import type { Frustum, Material, Mesh, Object3D } from 'three'
  import type { Node } from 'three/webgpu'
@@ -607,11 +608,11 @@ index c89c2fb..9572bc1 100644
    if (!entry) return false
  
    entry.handlers = handlers
-diff --git a/src/support/threeHooks.ts b/src/support/threeHooks.ts
+diff --git a/packages/fiber/src/support/threeHooks.ts b/packages/fiber/src/support/threeHooks.ts
 new file mode 100644
 index 0000000..643c7f3
 --- /dev/null
-+++ b/src/support/threeHooks.ts
++++ b/packages/fiber/src/support/threeHooks.ts
 @@ -0,0 +1,71 @@
 +/**
 + * @fileoverview The renderer hooks of three's supports (webgl.ts, webgpu.ts)
@@ -684,10 +685,10 @@ index 0000000..643c7f3
 +    if (object.type !== 'Scene' && typeof object.dispose === 'function') object.dispose()
 +  },
 +}
-diff --git a/src/support/webgl.ts b/src/support/webgl.ts
+diff --git a/packages/fiber/src/support/webgl.ts b/packages/fiber/src/support/webgl.ts
 index 5f505ff..901ac89 100644
---- a/src/support/webgl.ts
-+++ b/src/support/webgl.ts
+--- a/packages/fiber/src/support/webgl.ts
++++ b/packages/fiber/src/support/webgl.ts
 @@ -11,10 +11,13 @@
  
  import * as THREE from 'three'
@@ -702,10 +703,10 @@ index 5f505ff..901ac89 100644
    Renderer: THREE.WebGLRenderer,
    RenderTarget: THREE.WebGLRenderTarget,
    CubeRenderTarget: THREE.WebGLCubeRenderTarget,
-diff --git a/src/support/webgpu.ts b/src/support/webgpu.ts
+diff --git a/packages/fiber/src/support/webgpu.ts b/packages/fiber/src/support/webgpu.ts
 index 130ce89..3d8328d 100644
---- a/src/support/webgpu.ts
-+++ b/src/support/webgpu.ts
+--- a/packages/fiber/src/support/webgpu.ts
++++ b/packages/fiber/src/support/webgpu.ts
 @@ -12,10 +12,13 @@
  import * as THREE from 'three/webgpu'
  import { uniform, nodeObject } from 'three/tsl'
@@ -720,10 +721,10 @@ index 130ce89..3d8328d 100644
    Renderer: THREE.WebGPURenderer,
    RenderTarget: THREE.RenderTarget,
    CubeRenderTarget: THREE.CubeRenderTarget,
-diff --git a/types/provider.d.ts b/types/provider.d.ts
+diff --git a/packages/fiber/types/provider.d.ts b/packages/fiber/types/provider.d.ts
 index 2b15b2a..83edd82 100644
---- a/types/provider.d.ts
-+++ b/types/provider.d.ts
+--- a/packages/fiber/types/provider.d.ts
++++ b/packages/fiber/types/provider.d.ts
 @@ -1,6 +1,7 @@
  import type * as ThreeLegacy from 'three'
  import type * as ThreeWebGPU from 'three/webgpu'
@@ -837,10 +838,10 @@ index 2b15b2a..83edd82 100644
 +  webgl?: () => RendererSupport | Promise<RendererSupport>
 +  webgpu?: () => RendererSupport | Promise<RendererSupport>
  }
-diff --git a/types/register.d.ts b/types/register.d.ts
+diff --git a/packages/fiber/types/register.d.ts b/packages/fiber/types/register.d.ts
 index f52dc53..60800f2 100644
---- a/types/register.d.ts
-+++ b/types/register.d.ts
+--- a/packages/fiber/types/register.d.ts
++++ b/packages/fiber/types/register.d.ts
 @@ -1,6 +1,6 @@
  import type { WebGLRenderer, WebGLRenderTarget } from 'three'
  import type { WebGPURenderer, RenderTarget } from 'three/webgpu'
