@@ -2,7 +2,7 @@
 import { Canvas, Layer3D, useFrame, useThree } from '@react-fiber/core';
 import '@react-fiber/2d';
 import '@react-fiber/3d';
-import type { ThreeEvent2D } from '@react-fiber/core';
+import type { FiberEvent2D } from '@react-fiber/core';
 import { Texture } from 'pixi.js';
 import type { BlurFilter, Container, DisplacementFilter, Sprite } from 'pixi.js';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -78,7 +78,7 @@ function Impact() {
         x={width / 2 - 50}
         y={height - 60}
         cursor="pointer"
-        onClick={(event: ThreeEvent2D<MouseEvent>) => {
+        onClick={(event: FiberEvent2D<MouseEvent>) => {
           event.stopPropagation();
           hit.current.pending = true;
         }}

@@ -1,5 +1,5 @@
 import { Plane, Vector3 } from '@pixi/3d';
-import type { ThreeEvent } from '@react-fiber/core';
+import type { FiberEvent } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import { useRef, useState } from 'react';
 
@@ -12,18 +12,18 @@ function Draggable({ x, capture, color }: { x: number; capture: boolean; color: 
   const dragging = useRef(false);
   const target = useRef(new Vector3());
 
-  const onPointerDown = (event: ThreeEvent<PointerEvent>) => {
+  const onPointerDown = (event: FiberEvent<PointerEvent>) => {
     dragging.current = true;
     if (capture) {
       event.target.setPointerCapture(event.pointerId);
       setHeld(event.target.hasPointerCapture(event.pointerId));
     }
   };
-  const onPointerMove = (event: ThreeEvent<PointerEvent>) => {
+  const onPointerMove = (event: FiberEvent<PointerEvent>) => {
     if (!dragging.current || !event.ray.intersectPlane(floor, target.current)) return;
     setPosition([target.current.x, target.current.y, 0]);
   };
-  const onPointerUp = (event: ThreeEvent<PointerEvent>) => {
+  const onPointerUp = (event: FiberEvent<PointerEvent>) => {
     dragging.current = false;
     if (capture) {
       event.target.releasePointerCapture(event.pointerId);

@@ -3,7 +3,7 @@ import type { Container3D } from '@pixi/3d';
 import { Canvas, useFrame } from '@react-fiber/core';
 import '@react-fiber/2d';
 import '@react-fiber/3d';
-import type { ThreeEvent } from '@react-fiber/core';
+import type { FiberEvent } from '@react-fiber/core';
 import { useRef, useState } from 'react';
 // #endregion result
 
@@ -36,7 +36,7 @@ function Enemy({ name, angle, color }: { name: string; angle: number; color: str
   return (
     <mesh3D
       position={[Math.cos(angle) * 2, 0, Math.sin(angle) * 2]}
-      onClick={(event: ThreeEvent<MouseEvent>) => {
+      onClick={(event: FiberEvent<MouseEvent>) => {
         event.stopPropagation();
         setHealth((value) => Math.max(0, value - 0.25));
       }}

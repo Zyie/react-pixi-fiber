@@ -153,7 +153,7 @@ function Impact() {
         x={width / 2 - 50}
         y={height - 60}
         cursor="pointer"
-        onClick={(event: ThreeEvent2D<MouseEvent>) => {
+        onClick={(event: FiberEvent2D<MouseEvent>) => {
           event.stopPropagation();
           hit.current.pending = true;
         }}
@@ -219,7 +219,7 @@ function Counter() {
         x={width / 2 - 80}
         y={190}
         cursor="pointer"
-        onClick={(event: ThreeEvent2D<MouseEvent>) => {
+        onClick={(event: FiberEvent2D<MouseEvent>) => {
           event.stopPropagation();
           setCount((value) => value + 1);
         }}

@@ -71,6 +71,17 @@ export type ThreeEvent2D<TEvent> = Omit<IntersectionEvent<TEvent>, 'object' | 'e
   };
 
 /**
+ * What a 2D element's pointer handler receives, {@link ThreeEvent2D} under a name that doesn't say three
+ * @example
+ * ```tsx
+ * <sprite2D texture={texture} onClick={(event: FiberEvent2D<MouseEvent>) => console.log(event.local)} />
+ * ```
+ * @category events
+ * @standard
+ */
+export type FiberEvent2D<TEvent> = ThreeEvent2D<TEvent>;
+
+/**
  * r3f's pointer event props on a 2D element, with r3f's semantics in the same event system as the 3D:
  * a 2D element over the 3D is hit first, and its `stopPropagation` stops the 3D beneath it
  * @category events

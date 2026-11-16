@@ -107,6 +107,18 @@ export interface IntersectionEvent<TSourceEvent> extends Intersection {
 export type ThreeEvent<TEvent> = IntersectionEvent<TEvent> & Properties<TEvent>;
 
 /**
+ * What a 3D element's pointer handler receives, {@link ThreeEvent} under a name that doesn't say three:
+ * r3f's event, with @pixi/3d's hit on it
+ * @example
+ * ```tsx
+ * <mesh3D onClick={(event: FiberEvent<MouseEvent>) => console.log(event.point, event.object)} />
+ * ```
+ * @category events
+ * @standard
+ */
+export type FiberEvent<TEvent> = ThreeEvent<TEvent>;
+
+/**
  * The DOM events r3f turns into pointer events
  * @category events
  * @standard

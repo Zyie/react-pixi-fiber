@@ -1,5 +1,5 @@
 import { Canvas, useAsset, useFrame } from '@react-fiber/core';
-import type { ThreeEvent2D } from '@react-fiber/core';
+import type { FiberEvent2D } from '@react-fiber/core';
 import '@react-fiber/2d';
 import { Texture } from 'pixi.js';
 import type { Sprite } from 'pixi.js';
@@ -26,7 +26,7 @@ function App() {
         tint="orange"
         width={40}
         height={40}
-        onClick={(event: ThreeEvent2D<MouseEvent>) => event.object.position.set(event.point.x, event.point.y)}
+        onClick={(event: FiberEvent2D<MouseEvent>) => event.object.position.set(event.point.x, event.point.y)}
       >
         <blurFilter2D attach="filters-0" args={[{ strength: 2 }]} />
       </sprite2D>

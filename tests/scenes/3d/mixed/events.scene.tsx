@@ -1,4 +1,4 @@
-import type { ThreeEvent2D } from '@react-fiber/core';
+import type { FiberEvent2D } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import { useState } from 'react';
 
@@ -31,7 +31,7 @@ function Layers() {
         x={210}
         y={160}
         draw={(graphics) => graphics.roundRect(0, 0, 100, 60, 8).fill(card ? '#3cb44b' : '#a0a0a0')}
-        onClick={(event: ThreeEvent2D<MouseEvent>) => {
+        onClick={(event: FiberEvent2D<MouseEvent>) => {
           event.stopPropagation();
           setCard(true);
         }}

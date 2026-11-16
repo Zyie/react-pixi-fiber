@@ -1,5 +1,5 @@
 import { View3D } from '@react-fiber/core';
-import type { ThreeEvent } from '@react-fiber/core';
+import type { FiberEvent } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import { Color } from 'pixi.js';
 import { useState } from 'react';
@@ -14,7 +14,7 @@ function Counter({ position, size }: { position: [number, number, number]; size:
     <mesh3D
       position={position}
       angle={[20, 30, 0]}
-      onClick={(event: ThreeEvent<MouseEvent>) => {
+      onClick={(event: FiberEvent<MouseEvent>) => {
         event.stopPropagation();
         setClicks((count) => count + 1);
       }}

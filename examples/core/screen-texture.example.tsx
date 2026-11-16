@@ -2,7 +2,7 @@
 import { Canvas, RenderTexture2D, useThree } from '@react-fiber/core';
 import '@react-fiber/2d';
 import '@react-fiber/3d';
-import type { ThreeEvent2D } from '@react-fiber/core';
+import type { FiberEvent2D } from '@react-fiber/core';
 import { useState } from 'react';
 // #endregion result
 
@@ -22,7 +22,7 @@ function Counter() {
         x={width / 2 - 80}
         y={190}
         cursor="pointer"
-        onClick={(event: ThreeEvent2D<MouseEvent>) => {
+        onClick={(event: FiberEvent2D<MouseEvent>) => {
           event.stopPropagation();
           setCount((value) => value + 1);
         }}

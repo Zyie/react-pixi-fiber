@@ -21,7 +21,7 @@ Hits are ordered by where they are drawn, as the stage draws them: 2D over the 3
 <container2D
   x={width / 2 + 20}
   y={height / 2 - 20}
-  onClick={(event: ThreeEvent2D<MouseEvent>) => add(`panel, over the 3D, at ${Math.round(event.local.x)}`)}
+  onClick={(event: FiberEvent2D<MouseEvent>) => add(`panel, over the 3D, at ${Math.round(event.local.x)}`)}
 >
   <graphics2D draw={(graphics) => graphics.roundRect(0, 0, 120, 70, 10).fill({ color: '#e63946', alpha: 0.9 })} />
 </container2D>
@@ -35,7 +35,7 @@ Hits are ordered by where they are drawn, as the stage draws them: 2D over the 3
 <container2D x={16} y={height - 56}>
   <graphics2D
     draw={(graphics) => graphics.roundRect(0, 0, 110, 40, 8).fill('#2a9d8f')}
-    onClick={(event: ThreeEvent2D<MouseEvent>) => {
+    onClick={(event: FiberEvent2D<MouseEvent>) => {
       event.stopPropagation();
       add('button, stopped');
     }}
@@ -59,8 +59,8 @@ After the hits are sorted, each one bubbles from the object up its parents, as i
 
 A handler gets react-three-fiber's event, with the hit's fields on it:
 
-- 3D: `object`, `eventObject`, `point`, `distance` and, with @pixi/3d's hits, `localPoint`, `normal`, `uv` and `triangleIndex`.
-- 2D (`ThreeEvent2D`): `object`, `eventObject`, `global` (the pointer in the canvas's CSS pixels), `local` (the pointer in the element's own space), `getLocalPosition(container)` and a `distance` of 0.
+- 3D (`FiberEvent`, react-three-fiber's `ThreeEvent` under a name that doesn't say three): `object`, `eventObject`, `point`, `distance` and, with @pixi/3d's hits, `localPoint`, `normal`, `uv` and `triangleIndex`.
+- 2D (`FiberEvent2D`, also exported as `ThreeEvent2D`): `object`, `eventObject`, `global` (the pointer in the canvas's CSS pixels), `local` (the pointer in the element's own space), `getLocalPosition(container)` and a `distance` of 0.
 
 Both have `stopPropagation()`, `pointer`, `ray`, `camera`, `delta` (how far the pointer moved since the press), the DOM event as `nativeEvent`, and pointer capture through `target.setPointerCapture(pointerId)`.
 

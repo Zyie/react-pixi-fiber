@@ -1,6 +1,6 @@
 // #region result
 import { Canvas, useThree } from '@react-fiber/core';
-import type { ThreeEvent2D } from '@react-fiber/core';
+import type { FiberEvent2D } from '@react-fiber/core';
 import '@react-fiber/2d';
 import '@react-fiber/3d';
 import { useState } from 'react';
@@ -38,7 +38,7 @@ function Scene() {
       <container2D
         x={width / 2 + 20}
         y={height / 2 - 20}
-        onClick={(event: ThreeEvent2D<MouseEvent>) => add(`panel, over the 3D, at ${Math.round(event.local.x)}`)}
+        onClick={(event: FiberEvent2D<MouseEvent>) => add(`panel, over the 3D, at ${Math.round(event.local.x)}`)}
       >
         <graphics2D draw={(graphics) => graphics.roundRect(0, 0, 120, 70, 10).fill({ color: '#e63946', alpha: 0.9 })} />
       </container2D>
@@ -47,7 +47,7 @@ function Scene() {
       <container2D x={16} y={height - 56}>
         <graphics2D
           draw={(graphics) => graphics.roundRect(0, 0, 110, 40, 8).fill('#2a9d8f')}
-          onClick={(event: ThreeEvent2D<MouseEvent>) => {
+          onClick={(event: FiberEvent2D<MouseEvent>) => {
             event.stopPropagation();
             add('button, stopped');
           }}

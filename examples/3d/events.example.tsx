@@ -1,5 +1,5 @@
 // #region result
-import type { ThreeEvent } from '@react-fiber/core';
+import type { FiberEvent } from '@react-fiber/core';
 import { Canvas } from '@react-fiber/core';
 import '@react-fiber/3d';
 import { useState } from 'react';
@@ -20,7 +20,7 @@ function Ball({ x }: { x: number }) {
       hitVolume="geometry"
       onPointerOver={() => setHovered(true)}
       onPointerOut={() => setHovered(false)}
-      onClick={(event: ThreeEvent<MouseEvent>) => {
+      onClick={(event: FiberEvent<MouseEvent>) => {
         event.stopPropagation();
         setClicks((count) => count + 1);
       }}

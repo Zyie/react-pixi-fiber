@@ -16,7 +16,7 @@ function Ball({ x }: { x: number }) {
       hitVolume="geometry"
       onPointerOver={() => setHovered(true)}
       onPointerOut={() => setHovered(false)}
-      onClick={(event: ThreeEvent<MouseEvent>) => {
+      onClick={(event: FiberEvent<MouseEvent>) => {
         event.stopPropagation();
         setClicks((count) => count + 1);
       }}

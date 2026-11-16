@@ -1,6 +1,6 @@
 import type { Mesh3D, Scene3DSource } from '@pixi/3d';
 import { Canvas, View3D, useAsset, useFrame, useThree } from '@react-fiber/core';
-import type { ThreeEvent } from '@react-fiber/core';
+import type { FiberEvent } from '@react-fiber/core';
 import '@react-fiber/2d';
 import '@react-fiber/3d';
 import { Texture } from 'pixi.js';
@@ -26,7 +26,7 @@ function Spinner() {
       ref={mesh}
       position={[-1, 0, 0]}
       scale={0.8}
-      onClick={(event: ThreeEvent<MouseEvent>) => event.object.position.set(0, event.point.y, 0)}
+      onClick={(event: FiberEvent<MouseEvent>) => event.object.position.set(0, event.point.y, 0)}
     >
       <sphereGeometry3D args={[{ radius: 1, widthSegments: 24 }]} />
       <phongMaterial3D baseColor="tomato" shininess={40} />

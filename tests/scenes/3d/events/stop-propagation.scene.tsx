@@ -1,4 +1,4 @@
-import type { ThreeEvent } from '@react-fiber/core';
+import type { FiberEvent } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import { useState } from 'react';
 
@@ -17,7 +17,7 @@ function Plate({
   return (
     <mesh3D
       position={position}
-      onPointerOver={(event: ThreeEvent<PointerEvent>) => {
+      onPointerOver={(event: FiberEvent<PointerEvent>) => {
         if (stop) event.stopPropagation();
         setHovered(true);
       }}
