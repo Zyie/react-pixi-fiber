@@ -63,7 +63,6 @@ Demo yardstick, from r3f's 45 registered demos: 0 run with L1 alone. About 15 (3
 ### How to run
 
 ```sh
-cd /Users/seanburns/Documents/pixijs/react-pixi-fiber
 npx vitest run spike --browser.headless        # 9/9
 npx vitest run --browser.headless              # full suite, 10/10
 npx tsc --noEmit -p spike/tsconfig.json        # 50 type-only errors, see below
