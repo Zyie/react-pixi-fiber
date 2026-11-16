@@ -20,6 +20,7 @@ packages/core/src/            @react-fiber/core
   hooks/                      useRenderTarget, useAsset
   loaders/                    AssetsLoader: pixi's Assets as an r3f loader
   types/                      RootState, ThreeElements, events, props, Register: our types
+  __docs__/                   the guides of Getting started and Core (each package's src/__docs__ holds its own)
 packages/2d/src/              @react-fiber/2d: pixi.js's 2D classes under 2D names, their hooks and props, the
                               2D frame jobs
 packages/3d/src/              @react-fiber/3d: @pixi/3d's classes under 3D names (catalog.ts), their element types
@@ -41,7 +42,7 @@ packages/threejs-compat/src/  @react-fiber/threejs-compat
   environment/                render targets, CubeCamera, Controls, <Environment> and its hooks, EnvironmentMaps
   addons/                     loaders/ controls/ environment/: GLTFLoader, OrbitControls, HDRLoader, ...
   compat/                     three's members on pixi-3d's prototypes: Object3D, materials, raycasting
-packages/docs/                @react-fiber/docs: the docs site
+packages/docs/                @react-fiber/docs: the docs site, a section per package
 ```
 
 ## The packages
@@ -51,6 +52,7 @@ Each package is an npm workspace with its own `package.json`, `tsconfig.json` (e
 - **`@react-fiber/r3f`** is the fork. Its own build is upstream's four entries, which import three; nothing of ours imports them but the parity harness.
 - **`@react-fiber/core`** imports r3f's core modules by path (`@react-fiber/r3f/src/core/...`) and bundles them, so the packages above it share its one copy through its two entries: `.` for apps and `./extension` for packages.
 - **`@react-fiber/3d`**, **`@react-fiber/2d`**, **`@react-fiber/threejs-compat`**: importing one registers it with core (below). threejs-compat's three entries all import `install.ts`, so `import { Vector3 } from '@react-fiber/threejs-compat/three'` installs it too, and it imports `@react-fiber/3d`, whose hooks its objects use.
+- **`@react-fiber/docs`** is the site. Its Docs section has a section per package, from the guides each package keeps in `src/__docs__` (`packages/docs/README.md`); the r3f fork's section is the fork's README and a page of its diff.
 - **threejs-compat is optional.** A root needs no package: core registers @pixi/3d's own scene, cameras and raycaster for it (`packages/core/src/defaults`). An app on core, 2d and 3d installs and bundles nothing of three's; `npm run test:bundle` bundles one (`scripts/build/native/app.tsx`) and fails if threejs-compat or three is in it. Importing threejs-compat is the opt-in, and it replaces core's classes with three's.
 
 ## The forked core
@@ -144,6 +146,7 @@ r3f's core builds a root's scene, camera, raycaster, pointer and frustum itself,
 | `Vector2`            | @pixi/3d's `Vector2`     | `state.pointer`                                                                                                                                                                                                                                                                                                                                    |
 | `Vector3`            | `RootVector3`            | @pixi/3d's `Vector3` with `isVector3`, `copy` and `unproject(camera)`                                                                                                                                                                                                                                                                              |
 | `Frustum`            | `RootFrustum`            | @pixi/3d's `Frustum` with `intersectsObject`: a mesh's geometry bounds in world space, else a node's origin                                                                                                                                                                                                                                        |
+| `TextureLoader`      | `AssetsLoader`           | pixi's `Assets` in a loader's shape, which `useTexture` loads with, so it returns pixi textures                                                                                                                                                                                                                                                    |
 
 `RootRaycaster.intersectObject` picks as @pixi/3d's `EventBoundary3D` does, but returns every hit along the ray rather than the nearest: a node's `hitVolume` (`resolveHitVolume`), else a mesh's geometry bounds, else nothing, cast with `intersectRayHitVolume` in the node's space from its fresh global transform. `hitVolume="geometry"` picks per triangle, and only then does a hit carry a `normal`, `uv` and `triangleIndex`. Hidden nodes, a node whose `eventMode` is `'none'`, and the children of one whose `interactiveChildren` is off are left out, as are nodes outside `near` and `far`. A hit is @pixi/3d's `RaycastHit3D` with `object` for its `target`, which an r3f event uses for the pointer capture target. An anchor's occlusion test casts the same way.
 
@@ -268,7 +271,7 @@ The swaps reach two more pixi-3d internals, `View3D._toneMappingBit` and `View3D
 
 ## pixi.js 2D
 
-pixi.js's 2D classes are elements of the same r3f tree as the 3D, under r3f's rules. `packages/2d/src/catalog.ts` exports each display class, filter, `GraphicsContext` and `Particle` under its class name with a `2D` suffix (`Sprite2D`, `HtmlText2D` for `HTMLText`), and `packages/2d/src/index.ts`, the package's entry, registers them as a catalog and adds them to `ThreeElements`, so `<sprite2D>` resolves and is typed like `<mesh>`. The classes are pixi.js's own, not subclasses: a ref gets the pixi object, and an app imports the classes from `pixi.js`, so no entry re-exports them. The entry exports `useAsset` and `AssetsLoader`; the 2D types (`ThreeEvent2D`, `Intersection2D`, ...) are core's, since its element and event types read them. An app's own 2D class is registered with r3f's plain `extend({ Button2D: Button })`.
+pixi.js's 2D classes are elements of the same r3f tree as the 3D, under r3f's rules. `packages/2d/src/catalog.ts` exports each display class, filter, `GraphicsContext` and `Particle` under its class name with a `2D` suffix (`Sprite2D`, `HtmlText2D` for `HTMLText`), and `packages/2d/src/index.ts`, the package's entry, registers them as a catalog and adds them to `ThreeElements`, so `<sprite2D>` resolves and is typed like `<mesh>`. The classes are pixi.js's own, not subclasses: a ref gets the pixi object, and an app imports the classes from `pixi.js`, so no entry re-exports them. The entry re-exports core's `useAsset` and `AssetsLoader`; the 2D types (`ThreeEvent2D`, `Intersection2D`, ...) are core's, since its element and event types read them. An app's own 2D class is registered with r3f's plain `extend({ Button2D: Button })`.
 
 **The element surface.** pixi.js's classes stay as pixi.js made them: 2d patches no prototype, and `tests/unit/pixi-prototypes.test.tsx` holds it to that. What r3f's core reads of an element's object is in core's fork (ids it keeps, `parent`) or in 2d's hooks, `objects2D` (`packages/2d/src/objects2D.ts`):
 
@@ -298,7 +301,7 @@ A colour prop takes what pixi's `Color` takes. A three `Color` isn't one: pixi r
 
 Their events sort where they are drawn. A `<View3D>`'s screen layer is one entry in the parent screen layer's hit order (its `hitArea` is the view's rect). Its portal's `events.compute` (`computeEmbedded` in `packages/core/src/stage/hitTest.ts`) finds the pointer in the view, sets the portal's raycaster from its camera, and gives the raycaster the draw order of that entry (`setLayerOrder` in `packages/core/src/events/hitOrder.ts`), which every hit in the portal starts with. Its 2D and 3D hits sort among themselves as on a root, and before the nested screen layer's own hit, as the container holding it, so the view's handlers and the 2D around it get an event after what is inside, as r3f bubbles from child to parent. A view's backdrops take no events. `<RenderTexture2D>`'s compute is drei's: the parent's raycaster hits the object, the hit's `uv` is the portal's pointer, and the portal's hits start with the draw order of that 3D hit, so they sort just before it. A @pixi/3d hit's `uv` is in the texture's space, v down, and three's has v up; a @pixi/3d mesh needs `hitVolume="geometry"` for its hits to carry one. A nested screen layer is hit tested in global coordinates: `hitTestScreen` turns the portal's pointer through the screen layer's world transform.
 
-**Loading.** `useTexture` returns three's `Texture`, which extends pixi's, so a sprite takes it as is. `AssetsLoader` (`packages/core/src/loaders/AssetsLoader.ts`) is pixi's `Assets.load` in three's loader shape, for `useLoader`; `useAsset` is `useLoader(AssetsLoader, url)` typed. Both are core's, since 3D loads through them too, and 2d re-exports them.
+**Loading.** `useTexture` loads with the root's `TextureLoader`: core registers its `AssetsLoader` under that name, so it returns a pixi `Texture`, and with threejs-compat it is three's `TextureLoader`, whose `Texture` extends pixi's, so a sprite takes either as is. `AssetsLoader` (`packages/core/src/loaders/AssetsLoader.ts`) is pixi's `Assets.load` in three's loader shape, for `useLoader`; `useAsset` is `useLoader(AssetsLoader, url)` typed. Both are core's, since 3D loads through them too, and 2d re-exports them.
 
 ## The entries and their types
 

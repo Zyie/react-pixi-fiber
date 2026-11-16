@@ -1,6 +1,6 @@
-import { Canvas } from '@react-fiber/threejs-compat';
-import { createRoot } from 'react-dom/client';
+import { Canvas } from '@react-fiber/core';
 import '@react-fiber/2d';
+import { createRoot } from 'react-dom/client';
 
 import { canvasProps } from '../tests/harness/scene-runner';
 import type { RendererType, TestScene } from '../tests/harness/scene-runner';
@@ -25,7 +25,7 @@ export type Example = Pick<
 /**
  * Runs an example live, as an app would: a `<Canvas>` that fills its host, on r3f's default frameloop
  * @param example - The example to run
- * @param renderer - The renderer to run it on; `three` needs `react-pixi-fiber` resolved to r3f's own entry
+ * @param renderer - The renderer to run it on; `three` needs the packages resolved to r3f's own entry
  * @param host - The element the Canvas fills; the page's body when omitted
  * @returns A function that unmounts it
  */

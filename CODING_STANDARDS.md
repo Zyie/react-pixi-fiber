@@ -78,7 +78,8 @@ How code in `react-pixi-fiber` is written. Authors read it before writing code; 
 - Test with pictures first: a visual scene is the default test, drawn through pixi-3d and compared with a reference image (`tests/README.md`). Write a unit test only where there's no picture to compare.
 - Look at what you rendered. Open every image you produce and check it shows what you meant; a passing comparison only says it didn't change.
 - Parity is measured by rendering the same scene through three: a parity scene imports only `@react-fiber/threejs-compat`, its `/three` and `/addons`, and uses r3f's and three's API, so the harness can point those names at r3f's legacy entry, `three` and three's addons.
-- A scene of `@react-fiber/3d`'s elements goes in `tests/scenes/3d`, which the `native` project runs without threejs-compat: it imports `@react-fiber/core`, `@pixi/3d`, `pixi.js` and, for 2D, `@react-fiber/2d`, and never `@react-fiber/threejs-compat`.
+- A scene of `@react-fiber/3d`'s elements goes in `tests/scenes/3d`, and an example of a 3d or core guide in `examples/3d` or `examples/core`, which the `native` project runs without threejs-compat: it imports `@react-fiber/core`, `@pixi/3d`, `pixi.js` and, for 2D, `@react-fiber/2d`, and never `@react-fiber/threejs-compat`.
+- Every code block of a guide that shows a scene is a snippet of an example (`<!-- snippet: examples/<topic>/<name>.example.tsx#region -->`), so it runs as a scene and `npm run test:docs` holds the block to the file.
 - A unit test that renders 2D imports `@react-fiber/2d`, as an app does; the scene harness installs it for every scene.
 
 ## Commits

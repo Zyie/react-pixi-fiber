@@ -72,16 +72,16 @@ spread. It imports nothing from three.
 
 ## The hooks
 
-| Hook                            | What core did before                                                                                                                                                                                                 | Where core calls it                                                                                                |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Hook                            | What core did before                                                                                                                                                                                                 | Where core calls it                                                                                                                                         |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `add(parent, child, before?)`   | `parent.add(child)`; to insert before a sibling, it spliced `parent.children`, set `child.parent` and dispatched `added` and `childadded`                                                                            | `handleContainerEffects` (append, insert, keyed move), `swapReconstructedInstances`, a portal's injected scene, the default camera joining the root's scene |
-| `remove(parent, child)`         | `parent.remove(child)`                                                                                                                                                                                               | `removeChild`, `swapReconstructedInstances`, a portal's injected scene                                             |
-| `isInteractive(object)`         | `isObject3D(object)`                                                                                                                                                                                                 | the add and remove gates, `hideInstance` and `unhideInstance`, handler and visibility registration in `applyProps` |
-| `defaultAttach(object)`         | `isBufferGeometry` attached to `geometry`, `isMaterial` to `material`                                                                                                                                                | `applyProps`, for an element with no `attach`                                                                      |
-| `applyProp(object, key, value)` | assigned a prop that no value rule (`set`, `copy`, `fromArray`, ...) took; attached a child with `parent[key] = child`, into an array for `foo-0`, and on detach wrote back the value it replaced or deleted the key | `applyProps`, for each prop before it is resolved; `attach` and `detach`, for a string `attach`                    |
-| `hitTest(object, event, state)` | `object.updateWorldMatrix(true, true)`, then `state.raycaster.intersectObject(object, true)`                                                                                                                         | `intersect` in `core/events.ts`, for each object in `internal.interaction`                                         |
-| `compareHits(a, b)`             | `a.distance - b.distance`                                                                                                                                                                                            | the hit sort in `intersect`, after `interactivePriority` and the roots' event priority                             |
-| `dispose(object)`               | `object.dispose()` when it has one and isn't a `Scene`                                                                                                                                                               | `removeChild`, `swapReconstructedInstances`                                                                        |
+| `remove(parent, child)`         | `parent.remove(child)`                                                                                                                                                                                               | `removeChild`, `swapReconstructedInstances`, a portal's injected scene                                                                                      |
+| `isInteractive(object)`         | `isObject3D(object)`                                                                                                                                                                                                 | the add and remove gates, `hideInstance` and `unhideInstance`, handler and visibility registration in `applyProps`                                          |
+| `defaultAttach(object)`         | `isBufferGeometry` attached to `geometry`, `isMaterial` to `material`                                                                                                                                                | `applyProps`, for an element with no `attach`                                                                                                               |
+| `applyProp(object, key, value)` | assigned a prop that no value rule (`set`, `copy`, `fromArray`, ...) took; attached a child with `parent[key] = child`, into an array for `foo-0`, and on detach wrote back the value it replaced or deleted the key | `applyProps`, for each prop before it is resolved; `attach` and `detach`, for a string `attach`                                                             |
+| `hitTest(object, event, state)` | `object.updateWorldMatrix(true, true)`, then `state.raycaster.intersectObject(object, true)`                                                                                                                         | `intersect` in `core/events.ts`, for each object in `internal.interaction`                                                                                  |
+| `compareHits(a, b)`             | `a.distance - b.distance`                                                                                                                                                                                            | the hit sort in `intersect`, after `interactivePriority` and the roots' event priority                                                                      |
+| `dispose(object)`               | `object.dispose()` when it has one and isn't a `Scene`                                                                                                                                                               | `removeChild`, `swapReconstructedInstances`                                                                                                                 |
 
 Why each one is needed:
 
@@ -148,14 +148,15 @@ classes answer it:
 - **Core's own objects** (`configuration.ts`, `store.ts`, `portal.tsx`, `renderer.ts`, `events.ts`): the
   default raycaster, camera and scene, `pointer` and `frustum`, built from `Raycaster`,
   `PerspectiveCamera`, `OrthographicCamera`, `Scene`, `Vector2`, `Vector3` and `Frustum` in
-  `support.three`. Core calls `raycaster.camera`, `setFromCamera` and `ray`; a camera's `isCamera`,
-  `position`, `lookAt(x, y, z)`, `aspect` or bounds, `zoom`, `fov`, `manual`, `updateProjectionMatrix`,
-  `getWorldPosition`, `projectionMatrix` and `matrixWorldInverse`; a scene's `isScene`; a vector's
-  `isVector3`, `copy` and `unproject`; and the frustum's `setFromProjectionMatrix`, `clone` and
-  `intersectsObject`. The support already hands over these classes, and a renderer giving classes with
-  these members is a smaller contract than a hook per object. react-pixi-fiber's `@react-fiber/core`
-  gives @pixi/3d's camera, scene, vector and frustum classes with these members, and a raycaster that
-  picks with @pixi/3d's hit volumes, so a root needs nothing three-shaped.
+  `support.three`, and `useTexture`'s loader, `TextureLoader`. Core calls `raycaster.camera`,
+  `setFromCamera` and `ray`; a camera's `isCamera`, `position`, `lookAt(x, y, z)`, `aspect` or bounds,
+  `zoom`, `fov`, `manual`, `updateProjectionMatrix`, `getWorldPosition`, `projectionMatrix` and
+  `matrixWorldInverse`; a scene's `isScene`; a vector's `isVector3`, `copy` and `unproject`; and the
+  frustum's `setFromProjectionMatrix`, `clone` and `intersectsObject`. The support already hands over
+  these classes, and a renderer giving classes with these members is a smaller contract than a hook per
+  object. react-pixi-fiber's `@react-fiber/core` gives @pixi/3d's camera, scene, vector and frustum
+  classes with these members, and a raycaster that picks with @pixi/3d's hit volumes, so a root needs
+  nothing three-shaped.
 - **`applyProps` value writes**: `set`, `copy`, `fromArray`, `setScalar`, `isColor`, a layers `mask` and
   `ShaderMaterial` uniforms, else plain assignment. They are duck typed: a value no rule matches is
   assigned, and the renderer's own setters take it, unless its `applyProp` took the key first.
