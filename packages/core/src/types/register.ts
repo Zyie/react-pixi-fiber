@@ -1,7 +1,14 @@
 import type { Camera3D, Container3D, Frustum, ObservableVector3, Ray, RaycastHit3D, Vector2, Vector3 } from '@pixi/3d';
 import type { ColorSource, PointData, Texture } from 'pixi.js';
 
+import type { RootFrustum } from '../defaults/RootFrustum';
+import type { RootOrthographicCamera } from '../defaults/RootOrthographicCamera';
+import type { RootPerspectiveCamera } from '../defaults/RootPerspectiveCamera';
+import type { RootRaycaster } from '../defaults/RootRaycaster';
 import type { RootRenderTarget, RootRenderTargetOptions } from '../defaults/RootRenderTarget';
+import type { RootScene } from '../defaults/RootScene';
+import type { RootVector3 } from '../defaults/RootVector3';
+import type { AssetsLoader } from '../loaders/AssetsLoader';
 import type { PixiRenderer } from '../renderer/PixiRenderer';
 
 /**
@@ -102,8 +109,20 @@ export interface RegisterDefaults {
   EulerOrder: string;
   /** The classes JSX names resolve to */
   Catalog: Record<string, unknown>;
-  /** The classes core builds its own objects from, which `getThree()` returns */
-  Classes: Record<string, unknown>;
+  /**
+   * The classes core builds its own objects from, which `getThree()` returns: core's own, with the members
+   * r3f's core calls on them
+   */
+  Classes: {
+    Scene: typeof RootScene;
+    PerspectiveCamera: typeof RootPerspectiveCamera;
+    OrthographicCamera: typeof RootOrthographicCamera;
+    Raycaster: typeof RootRaycaster;
+    Vector2: typeof Vector2;
+    Vector3: typeof RootVector3;
+    Frustum: typeof RootFrustum;
+    TextureLoader: typeof AssetsLoader;
+  };
 }
 
 /**

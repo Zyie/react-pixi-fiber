@@ -22,7 +22,7 @@ import type {
   ThreeCamera,
   VisibilityEntry,
   PointerState,
-  R3FRendererSupport,
+  RendererSupport,
 } from '#types'
 
 import { calculateDpr, is, isOrthographicCamera, updateCamera, updateFrustum } from './utils'
@@ -308,7 +308,7 @@ export const createStore = (
         // Renderer Storage (single source of truth)
         actualRenderer: null as unknown as WebGLRenderer | WebGPURenderer,
         // The renderer support configure() loads for this root
-        support: null as unknown as R3FRendererSupport,
+        support: null as unknown as RendererSupport,
 
         // Scheduler for useFrameNext (initialized in loop.ts)
         scheduler: null,

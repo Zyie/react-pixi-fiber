@@ -11,7 +11,7 @@ react-pixi-fiber runs pixi.js 2D and `@pixi/3d` on this core with a support of i
 `@react-fiber/core` package bundles this core and gives roots a renderer support that the 2D and 3D
 packages fill.
 
-The whole change is [`fork.diff`](./fork.diff): <!-- diff-size -->16 files changed, 265 lines added, 123 lines removed<!-- /diff-size -->.
+The whole change is [`fork.diff`](./fork.diff): <!-- diff-size -->15 files changed, 373 lines added, 116 lines removed<!-- /diff-size -->.
 `npm run diff:r3f` writes it, and `npm run test:lint` fails when it is stale.
 
 ## The interface
@@ -36,36 +36,61 @@ export interface RendererHooks {
   dispose(object: object): void
 }
 
-export interface RendererSupport extends RendererHooks {
+export interface BaseRendererSupport extends RendererHooks {
   kind: string
-  three: object
+  three: CoreClasses
   catalog: object
   Renderer: new (parameters: any) => object
 }
 
-export interface WebGLSupport extends RendererSupport {
+export interface WebGLSupport extends BaseRendererSupport {
   kind: 'webgl'
   three: typeof ThreeLegacy
   catalog: typeof ThreeLegacy
   // Renderer, RenderTarget, CubeRenderTarget as before
 }
 
-export interface WebGPUSupport extends RendererSupport {
+export interface WebGPUSupport extends BaseRendererSupport {
   kind: 'webgpu'
   three: typeof ThreeWebGPU
   catalog: typeof ThreeWebGPU
   // Renderer, RenderTarget, CubeRenderTarget, CanvasTarget, occlusion as before
 }
 
+export type RendererSupport = WebGLSupport | WebGPUSupport // as before
+
 export interface RendererProvider {
-  webgl?: () => RendererSupport | Promise<RendererSupport>
-  webgpu?: () => RendererSupport | Promise<RendererSupport>
+  webgl?: () => BaseRendererSupport | Promise<BaseRendererSupport>
+  webgpu?: () => BaseRendererSupport | Promise<BaseRendererSupport>
+}
+
+export interface CoreClasses {
+  Raycaster: new () => CoreRaycaster
+  Vector2: new () => CoreVector2
+  Vector3: new (x?: number, y?: number, z?: number) => CoreVector3
+  Scene: new () => { readonly isScene: boolean }
+  PerspectiveCamera: new (fov?: number, aspect?: number, near?: number, far?: number) => CorePerspectiveCamera
+  OrthographicCamera: new (left?, right?, top?, bottom?, near?, far?) => CoreOrthographicCamera
+  Frustum: new () => CoreFrustum
+  TextureLoader: new () => LoaderLike
 }
 ```
 
 `Hit` is what core reads of a hit to dedupe and bubble it; three's `Intersection` is one. `hitTest` takes
 the object's root state as `object` because each renderer types its own state; three's hook declares it
-as `RootState`.
+as `RootState`. Its `event` is the DOM event: core has set `state.pointer` and `state.raycaster` from it
+already, so a renderer that casts a ray needs neither, and it is there for one that hit tests by the
+pointer's position on the canvas, as the proposal had it.
+
+`isInteractive` keeps the proposal's name, but what it answers is whether an object is a node of the scene
+graph, three's `isObject3D`: core adds a node to its parent rather than attaching it, hides it through
+`visible`, and registers its event and visibility handlers. `isNode` would say that better; the name is
+the r3f team's to pick.
+
+`CoreClasses` is what `three` has to give: the constructors core builds its own objects from, with the
+members it calls on what they make (`CoreRaycaster`, `CoreVector2`, `CoreVector3`, `CoreCamera` and the
+projection cameras, `CoreFrustum`, `CoreMatrix4`; "What core still reads on objects" below). three's two
+namespaces satisfy it, and so do react-pixi-fiber's classes, which its type check holds to it.
 
 three's hooks are in `src/support/threeHooks.ts`, which both `support/webgl.ts` and `support/webgpu.ts`
 spread. It imports nothing from three.
@@ -120,10 +145,12 @@ Why each one is needed:
 
 ## Other changes
 
-- **`kind` is open.** `RendererSupport` is the interface every support implements, no longer the union of
-  three's two. `WebGLSupport` and `WebGPUSupport` extend it, and `R3FRendererSupport`, the type of
-  `state.internal.support`, stays their union. The provider's slots take any support; one that isn't
-  three's goes in `webgpu`, whose path awaits the renderer's `init()`.
+- **`kind` is open.** `BaseRendererSupport` is the interface every support implements, with `kind:
+string`; `WebGLSupport` and `WebGPUSupport` extend it, and `RendererSupport` stays their union, so code
+  that narrows on `kind` compiles as before. The provider's slots take any `BaseRendererSupport`; one that
+  isn't three's goes in `webgpu`, whose path awaits the renderer's `init()`, and has to avoid the kinds
+  `'webgl'` and `'webgpu'`, which core branches on. A slot of its own for other renderers would say this
+  better, and is left to the r3f team.
 - **`catalog` is split from `three`.** JSX names resolve in `support.catalog` (`resolveConstructor` in
   `core/extend.ts`). `three` stays what `registerThree` takes: the classes core builds its own raycaster,
   default scene and camera, pointer and frustum from. three passes its namespace for both. Another
@@ -156,9 +183,13 @@ classes answer it:
   `setFromCamera` and `ray`; a camera's `isCamera`, `position`, `lookAt(x, y, z)`, `aspect` or bounds,
   `zoom`, `fov`, `manual`, `updateProjectionMatrix`, `getWorldPosition`, `projectionMatrix` and
   `matrixWorldInverse`; a scene's `isScene`; a vector's `isVector3`, `copy` and `unproject`; and the
-  frustum's `setFromProjectionMatrix`, `clone` and `intersectsObject`. The support already hands over
-  these classes, and a renderer giving classes with these members is a smaller contract than a hook per
-  object. react-pixi-fiber's `@react-fiber/core` gives @pixi/3d's camera, scene, vector and frustum
+  frustum's `setFromProjectionMatrix`, `clone` and `intersectsObject`. `CoreClasses` in
+  `types/provider.d.ts` types this contract as `three`. The support already hands over these classes, and
+  a renderer giving classes with these members is a smaller contract than a hook per object. The cost is
+  that a renderer's own camera class can be a root's camera only with these members: react-pixi-fiber
+  gives @pixi/3d's `Camera3D` them on a subclass of its own. A camera hook (update the projection, give
+  the projection and view matrices and the world position) would let any renderer's camera be a root's,
+  and is a question for the r3f team. react-pixi-fiber's `@react-fiber/core` gives @pixi/3d's camera, scene, vector and frustum
   classes with these members, and a raycaster that picks with @pixi/3d's hit volumes, so a root needs
   nothing three-shaped.
 - **`applyProps` value writes**: `set`, `copy`, `fromArray`, `setScalar`, `isColor`, a layers `mask` and

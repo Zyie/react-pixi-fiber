@@ -5,6 +5,7 @@ import type { PointData } from 'pixi.js';
 import { cameraProjectionInverse, cameraWorld } from '../renderer/cameraMatrices';
 import { noteCast } from '../stage/hitTest';
 import type { Hit3D, RaycasterLike } from '../types/register';
+import type { RootCamera } from './RootCamera';
 
 const world = new Matrix4();
 const inverse = new Matrix4();
@@ -67,9 +68,9 @@ export class RootRaycaster implements RaycasterLike {
   /**
    * Points the ray from a camera through a point on screen, as r3f's events do for each pointer event
    * @param coords - The point, -1 to 1 on both axes, y up
-   * @param camera - The camera
+   * @param camera - The camera, a root's
    */
-  public setFromCamera(coords: PointData, camera: Camera3D): void {
+  public setFromCamera(coords: PointData, camera: RootCamera): void {
     const projectionInverse = cameraProjectionInverse(camera);
     const cameraMatrix = cameraWorld(camera);
     const { origin, direction } = this.ray;

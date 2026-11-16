@@ -1,7 +1,7 @@
 import { Vector3 } from '@pixi/3d';
-import type { Camera3D } from '@pixi/3d';
 
 import { cameraProjectionInverse, cameraWorld } from '../renderer/cameraMatrices';
+import type { RootCamera } from './RootCamera';
 
 /**
  * The point core makes while no package registers its own: a pixi-3d `Vector3` with the three
@@ -25,10 +25,10 @@ export class RootVector3 extends Vector3 {
 
   /**
    * Moves this point from a camera's clip space into world space
-   * @param camera - The camera
+   * @param camera - The camera, a root's
    * @returns This point
    */
-  public unproject(camera: Camera3D): this {
+  public unproject(camera: RootCamera): this {
     return this.applyMatrix4(cameraProjectionInverse(camera)).applyMatrix4(cameraWorld(camera));
   }
 }

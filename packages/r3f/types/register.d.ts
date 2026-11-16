@@ -1,6 +1,6 @@
 import type { WebGLRenderer, WebGLRenderTarget } from 'three'
 import type { WebGPURenderer, RenderTarget } from 'three/webgpu'
-import type { WebGLSupport, WebGPUSupport } from './provider'
+import type { RendererSupport, WebGLSupport, WebGPUSupport } from './provider'
 
 //* Register ==============================
 // The base RootState is typed for both renderers, so by default `state.renderer` is the union and a
@@ -44,4 +44,4 @@ export type R3FRenderer = ForRegisteredRenderer<WebGPURenderer, WebGLRenderer>
 export type R3FRenderTarget = ForRegisteredRenderer<RenderTarget, WebGLRenderTarget>
 
 /** The renderer support on `state.internal.support`, narrowed to the registered renderer. */
-export type R3FRendererSupport = ForRegisteredRenderer<WebGPUSupport, WebGLSupport>
+export type R3FRendererSupport = ForRegisteredRenderer<WebGPUSupport, WebGLSupport, RendererSupport>
