@@ -1,7 +1,6 @@
 // #region result
 import { Canvas, useFrame } from '@react-fiber/core';
 import '@react-fiber/2d';
-import '@react-fiber/threejs-compat';
 import { Texture } from 'pixi.js';
 import type { Sprite } from 'pixi.js';
 import { useRef } from 'react';

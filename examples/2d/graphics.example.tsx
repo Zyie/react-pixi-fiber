@@ -1,7 +1,6 @@
 // #region result
 import { Canvas } from '@react-fiber/core';
 import '@react-fiber/2d';
-import '@react-fiber/threejs-compat';
 import { FillGradient, GraphicsContext } from 'pixi.js';
 import type { Graphics } from 'pixi.js';
 // #endregion result

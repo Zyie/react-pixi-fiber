@@ -1,7 +1,6 @@
 // #region result
 import { Canvas, useTexture } from '@react-fiber/core';
 import '@react-fiber/2d';
-import '@react-fiber/threejs-compat';
 // #endregion result
 
 import type { Example } from '../example';

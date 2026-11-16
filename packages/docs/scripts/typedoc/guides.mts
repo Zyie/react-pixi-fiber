@@ -5,7 +5,7 @@
  */
 
 /** A section of the Docs sidebar, which is also the folder of its guides' pages: `/docs/<section>/<id>/` */
-export type GuideSection = 'getting-started' | 'tutorials' | '2d' | 'reference' | 'advanced';
+export type GuideSection = 'getting-started' | 'tutorials' | '3d' | '2d' | 'reference' | 'advanced';
 
 /** One guide of the docs site */
 export interface Guide {
@@ -24,6 +24,7 @@ export interface Guide {
 export const SECTIONS: Readonly<Record<GuideSection, string>> = {
   'getting-started': 'Getting started',
   tutorials: 'Tutorials',
+  '3d': '3D',
   '2d': '2D',
   reference: 'Reference',
   advanced: 'Advanced',
@@ -96,6 +97,13 @@ export const GUIDES: readonly Guide[] = [
     title: 'Camera controls',
     file: 'packages/threejs-compat/src/addons/controls/__docs__/camera-controls.md',
     section: 'tutorials',
+  },
+  {
+    id: 'elements-3d',
+    title: '@pixi/3d elements',
+    label: 'Elements',
+    file: 'packages/3d/src/__docs__/elements-3d.md',
+    section: '3d',
   },
   {
     id: 'your-first-2d-scene',
