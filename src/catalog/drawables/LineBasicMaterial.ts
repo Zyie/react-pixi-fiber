@@ -51,7 +51,6 @@ export class LineBasicMaterial extends FlatMaterial {
   /** @param parameters - three's material parameters */
   constructor(parameters: LineBasicMaterialParameters = {}) {
     super();
-    this.toneMapped = true;
     this._color = new Color(0xffffff)._onChange(() => {
       this.baseColor = toPixiColor(this._color);
     });
@@ -78,7 +77,7 @@ export class LineBasicMaterial extends FlatMaterial {
   }
 
   /**
-   * pixi-3d's flat shader, with three's output encoding when `toneMapped` is off
+   * pixi-3d's flat shader, with three's back-side handling
    * @param view - The view about to draw the material
    * @advanced
    */

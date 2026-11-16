@@ -55,6 +55,7 @@
     "zustand": "^5.0.10"
   },
   "devDependencies": {
+    "@pixi/3d": "0.1.0",
     "@types/node": "^26.3.0",
     "@types/pngjs": "^6.0.5",
     "@types/react": "^19.3.0",
@@ -72,7 +73,7 @@
     "oxlint-tsgolint": "^7.0.2005",
     "pixelmatch": "^8.0.0",
     "pixi-filters": "^6.1.5",
-    "pixi.js": "8.22.0-dev.50a266e",
+    "pixi.js": "8.23.0",
     "playwright": "^1.62.1",
     "pngjs": "^7.0.0",
     "react": "~19.3.1",
@@ -84,7 +85,8 @@
     "vitest": "^5.1.0"
   },
   "peerDependencies": {
-    "pixi.js": "^8.22.0-dev.50a266e",
+    "@pixi/3d": "^0.1.0",
+    "pixi.js": "^8.23.0",
     "react": ">=19.0 <19.4",
     "react-dom": ">=19.0 <19.4"
   },

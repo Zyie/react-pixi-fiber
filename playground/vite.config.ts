@@ -76,6 +76,7 @@ export default defineConfig({
     entries: ['index.html', 'src/**/*.{ts,tsx}', '../tests/scenes/**/*.tsx', '../examples/**/*.tsx'],
     include: [
       'pixi.js > eventemitter3',
+      '@pixi/3d',
       'parse-svg-path',
       '@xmldom/xmldom',
       'three',

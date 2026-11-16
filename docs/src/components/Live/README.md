@@ -1,11 +1,11 @@
 # Live code
 
-Every example on the site runs in the page on the repo's own build of react-pixi-fiber, @pixi/3d and the pinned pixi.js, served from the site itself. `<Example>` is built from the parts here.
+Every example on the site runs in the page on the repo's own build of react-pixi-fiber and the pinned @pixi/3d and pixi.js, served from the site itself. `<Example>` is built from the parts here.
 
 ## How a run works
 
 - `docs/scripts/generators/live.mts` writes `docs/static/runtime` at sync time:
-  - `docs/static/runtime/js/`: ES modules of `react-pixi-fiber` (from its entry in `src`), `@pixi/3d` and `@pixi/3d/extras` (from `.repos/pixi-3d/src`), `pixi.js`, `react`, `react/jsx-runtime`, `react-dom` and `react-dom/client`, and the frame's own module, `frame/frame.ts`.
+  - `docs/static/runtime/js/`: ES modules of `react-pixi-fiber` (from its entry in `src`), `@pixi/3d`, `@pixi/3d/extras`, `pixi.js`, `react`, `react/jsx-runtime`, `react-dom` and `react-dom/client`, and the frame's own module, `frame/frame.ts`.
   - `docs/static/runtime/assets/`: the images and models of `tests/assets`, when there is one, registered with PixiJS's `Assets` under their names.
   - `docs/static/runtime/manifest.json`: the files of each of these, which the site's bundle imports.
 - `runtime.ts` runs a program in a sandboxed iframe with an opaque origin (`sandbox="allow-scripts"`). The frame imports the runtime's modules from the site by URL, so the browser caches them across runs and pages; the server has to send `Access-Control-Allow-Origin: *` for them, as GitHub Pages and the dev server do. The page posts only the program and the files it imports by a relative path, as blobs. The frame's import map names each module's URL; chunks import each other by relative path.

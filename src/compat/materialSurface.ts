@@ -17,10 +17,10 @@ import { MathUtils } from '../math/MathUtils';
  * three's `Material` fields and methods that every pixi-3d material has once a root has loaded the
  * support, the catalog's materials and a glTF model's alike
  *
- * `side`, `transparent`, `opacity`, `alphaTest`, `depthTest`, `depthWrite`, `blending` and `visible`
- * drive pixi-3d's render state and shader as in three, and can change at any time. `needsUpdate`
- * rebuilds the shaders of the meshes drawing the material, which is how a change to pixi-3d's own
- * `flatShading`, `vertexColors`, `fog` or `toneMapped` reaches them; the catalog's materials do that
+ * `side`, `transparent`, `opacity`, `alphaTest`, `depthTest`, `depthWrite`, `blending`, `visible` and
+ * `toneMapped` drive pixi-3d's render state and shader as in three, and can change at any time.
+ * `needsUpdate` rebuilds the shaders of the meshes drawing the material, which is how a change to
+ * pixi-3d's own `flatShading`, `vertexColors` or `fog` reaches them; the catalog's materials do that
  * by themselves. The rest are kept for three's shape and change nothing: `shadowSide`, `alphaHash`,
  * `alphaToCoverage`, `depthFunc`, `colorWrite`, `premultipliedAlpha`, `dithering`, `forceSinglePass`,
  * `precision`, the custom blend factors, `clippingPlanes` and the stencil settings.
@@ -97,6 +97,11 @@ export interface MaterialMembers {
   stencilWrite: boolean;
   /** Whether meshes drawing it are drawn */
   visible: boolean;
+  /**
+   * Whether the renderer's tone curve applies; off, the colour takes the output encode alone, and no
+   * fog. pixi-3d's `_skipsToneCurve`, inverted
+   */
+  toneMapped: boolean;
   /**
    * Sets several fields at once, as three's constructors take them
    * @param values - Field names and values
@@ -320,6 +325,18 @@ const members: PropertyDescriptorMap = {
     set(this: BaseMaterial3D, value: boolean) {
       if (this.state.depthTest === value) return;
       this.state.depthTest = value;
+      invalidateMaterial(this);
+    },
+  },
+  toneMapped: {
+    configurable: true,
+    enumerable: true,
+    get(this: BaseMaterial3D) {
+      return !this._skipsToneCurve;
+    },
+    set(this: BaseMaterial3D, value: boolean) {
+      if (this._skipsToneCurve === !value) return;
+      this._skipsToneCurve = !value;
       invalidateMaterial(this);
     },
   },

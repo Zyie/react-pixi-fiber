@@ -51,11 +51,15 @@ export class MeshNormalMaterial extends FlatMaterial {
   public readonly isMeshNormalMaterial = true;
   /** three's class name */
   public type = 'MeshNormalMaterial';
+  /** Kept for three's shape: the colour is never tone mapped */
+  public override toneMapped = true;
 
   /** @param parameters - three's material parameters */
   constructor(parameters: MeshNormalMaterialParameters = {}) {
     super({ extraBits: [normalColorBit] });
-    initThreeMaterial(this, parameters);
+    initThreeMaterial(this, { fog: false, ...parameters });
+    this.colorSpace = 'display';
+    this._skipsToneCurve = true;
   }
 
   /**
@@ -64,6 +68,6 @@ export class MeshNormalMaterial extends FlatMaterial {
    * @advanced
    */
   public override getPrimaryDescriptor(view: View3D): ShaderDescriptor {
-    return threeDescriptor(this, super.getPrimaryDescriptor(view), undefined, true);
+    return threeDescriptor(this, super.getPrimaryDescriptor(view));
   }
 }

@@ -1,4 +1,4 @@
-import { ShaderDescriptor, srgbEncodeBit } from '@pixi/3d';
+import { ShaderDescriptor } from '@pixi/3d';
 import type { BaseMaterial3D, ShaderBit } from '@pixi/3d';
 
 import { installMaterialSurface, invalidateMaterial, threeState } from '../../compat/materialSurface';
@@ -17,39 +17,34 @@ const backSideNormalBit: ShaderBit = {
   gl: { fragment: { material: /*glsl*/ 'normal = -normal;\n' } },
 };
 
-/** The composed descriptors of each base descriptor, one per back-side and output-encode case */
+/** The composed descriptors of each base descriptor, for the front-side and the back-side case */
 const composed = new WeakMap<ShaderDescriptor, (ShaderDescriptor | undefined)[]>();
 
 /**
- * A material's descriptor with three's bits in place of pixi-3d's; the back-side normal flip ahead of
- * the material's bits when it draws only its back faces; and, with `toneMapped` off, the sRGB encode
- * pixi-3d's tone curves end with, which three applies whether or not it tone maps
+ * A material's descriptor with three's bits in place of pixi-3d's, and the back-side normal flip
+ * ahead of the material's bits when it draws only its back faces
  * @param material - The material
  * @param base - The descriptor pixi-3d's material built
  * @param swaps - pixi-3d's bits and the three bits that replace them
- * @param rawOutput - Whether three writes the colour unencoded, as its normal material does
  * @internal
  */
 export function threeDescriptor(
   material: BaseMaterial3D,
   base: ShaderDescriptor,
   swaps?: ReadonlyMap<ShaderBit, ShaderBit>,
-  rawOutput = false,
 ): ShaderDescriptor {
   const backSide = threeState(material).side === BackSide;
-  const encode = !material.toneMapped && !rawOutput;
-  if (!backSide && !encode && !swaps) return base;
+  if (!backSide && !swaps) return base;
 
   let entry = composed.get(base);
   if (!entry) composed.set(base, (entry = []));
-  const slot = (backSide ? 1 : 0) + (encode ? 2 : 0);
+  const slot = backSide ? 1 : 0;
   const existing = entry[slot];
   if (existing) return existing;
 
   const compose = (bits: ShaderBit[]): ShaderBit[] => {
     const out = bits.map((bit) => swaps?.get(bit) ?? bit);
     if (backSide) out.unshift(backSideNormalBit);
-    if (encode) out.push(srgbEncodeBit);
     return out;
   };
   const descriptor = new ShaderDescriptor({}).update({
@@ -65,12 +60,13 @@ export function threeDescriptor(
 }
 
 /** The pixi-3d fields read when a mesh builds its shader, which three lets you change at any time */
-const SHADER_FLAGS = ['flatShading', 'vertexColors', 'toneMapped', 'fog'] as const;
+const SHADER_FLAGS = ['flatShading', 'vertexColors', 'fog'] as const;
 
 /**
  * Finishes building a catalog material: gives pixi-3d's materials three's `Material` fields if no
- * root has yet, makes the shader flags rebuild the meshes' shaders when they change (pixi-3d reads
- * `flatShading`, `vertexColors`, `toneMapped` and `fog` only when a mesh builds its shader), then
+ * root has yet, works in linear light as three's materials do (pixi-3d's unlit materials work on
+ * colours as authored), makes the shader flags rebuild the meshes' shaders when they change
+ * (pixi-3d reads `flatShading`, `vertexColors` and `fog` only when a mesh builds its shader), then
  * applies three's constructor parameters, as three's `setValues` does. Called at the end of each
  * catalog material's constructor.
  * @param material - The material
@@ -79,6 +75,7 @@ const SHADER_FLAGS = ['flatShading', 'vertexColors', 'toneMapped', 'fog'] as con
  */
 export function initThreeMaterial(material: BaseMaterial3D, parameters?: object): void {
   installMaterialSurface();
+  material.colorSpace = 'linear';
   bindShaderFlags(material);
   material.setValues(parameters as Record<string, unknown> | undefined);
 }

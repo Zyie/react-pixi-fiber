@@ -22,19 +22,13 @@ export interface MeshBasicMaterialParameters extends MaterialParameters {
   alphaMap?: Texture | null;
 }
 
-/**
- * Decodes the base colour texture from sRGB to linear with pixi-3d's 2.2 gamma, as its lit materials
- * do, so a textured basic material goes through tone mapping as three's does, and multiplies alpha by
- * the alpha map's green channel. `FlatMaterial`'s own bit shows the texture as authored; this follows
- * it and scales `albedo` by `decode(t) / t` per channel.
- */
+/** Multiplies alpha by the alpha map's green channel */
 const basicMapsBit: ShaderBit = {
   name: 'meshBasicMaps',
   textures: ['alphaMap'],
   gpu: {
     fragment: {
       material: /* wgsl */ `
-  albedo *= pow(baseTex.rgb, vec3<f32>(2.2)) / max(baseTex.rgb, vec3<f32>(1e-4));
   alpha *= sampleAlphaMap(input.vUV).g;
 `,
     },
@@ -42,7 +36,6 @@ const basicMapsBit: ShaderBit = {
   gl: {
     fragment: {
       material: /* glsl */ `
-  albedo *= pow(baseTex.rgb, vec3(2.2)) / max(baseTex.rgb, vec3(1e-4));
   alpha *= sampleAlphaMap(vUV).g;
 `,
     },
@@ -54,8 +47,9 @@ const basicMapsBit: ShaderBit = {
  *
  * `color` is a three `Color`, in the working colour space as in three, so
  * `material.color.set('hotpink')`, `color="hotpink"` and `color-r={1}` all work. Unlike pixi-3d's
- * `FlatMaterial`, it goes through the renderer's tone mapping unless `toneMapped` is off, as three's
- * does. Its `aoMap`, `lightMap`, `specularMap` and `envMap` aren't taken.
+ * `FlatMaterial`, which works on colours as authored, it works in linear light, and it goes through
+ * the renderer's tone mapping unless `toneMapped` is off, as three's does. Its `aoMap`, `lightMap`,
+ * `specularMap` and `envMap` aren't taken.
  * @example
  * ```tsx
  * <meshBasicMaterial color="red" />
@@ -73,7 +67,6 @@ export class MeshBasicMaterial extends FlatMaterial {
   /** @param parameters - three's material parameters */
   constructor(parameters: MeshBasicMaterialParameters = {}) {
     super({ extraBits: [basicMapsBit] });
-    this.toneMapped = true;
     this._color = new Color(0xffffff)._onChange(() => {
       this.baseColor = toPixiColor(this._color);
     });

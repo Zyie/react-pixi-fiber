@@ -1,3 +1,5 @@
+import { linearToSrgb } from '@pixi/3d';
+
 import { SRGBColorSpace } from '../catalog/constants';
 import type { ColorSpace } from './ColorManagement';
 import { ColorManagement, LinearToSRGB, SRGBToLinear } from './ColorManagement';
@@ -205,6 +207,7 @@ const scratch: RGB = { r: 0, g: 0, b: 0 };
 const hslA: HSL = { h: 0, s: 0, l: 0 };
 const hslB: HSL = { h: 0, s: 0, l: 0 };
 const pixiChannels: [number, number, number] = [1, 1, 1];
+const displayChannels: [number, number, number] = [1, 1, 1];
 
 /**
  * three's `Color`: red, green and blue in the working colour space, linear sRGB, as three keeps them
@@ -761,20 +764,37 @@ export class Color {
   }
 }
 
-/** Encodes a linear channel to sRGB with the exact inverse of the decode pixi-3d runs on a `ColorSource` */
-const encodeForPixi = (c: number): number =>
-  clamp(c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055, 0, 1);
+/**
+ * A linear channel as the display channel pixi-3d decodes back to it with `srgbToLinear`, clamped to 0 to 1
+ * @param channel - The linear channel
+ * @internal
+ */
+export const toPixiChannel = (channel: number): number => linearToSrgb(clamp(channel, 0, 1));
 
 /**
- * A colour's channels as the sRGB `ColorSource` array pixi-3d decodes back to the same linear values,
+ * A colour's channels as the display `ColorSource` array pixi-3d decodes back to the same linear values,
  * so the shader gets what three's would. The array is reused by the next call.
  * @param color - The colour; its channels are what the shader gets, linear, whether colour management is on or off
- * @returns `[r, g, b]` in sRGB, clamped to 0 to 1
+ * @returns `[r, g, b]` in display space, clamped to 0 to 1
  * @internal
  */
 export function toPixiColor(color: Color): [number, number, number] {
-  pixiChannels[0] = encodeForPixi(color.r);
-  pixiChannels[1] = encodeForPixi(color.g);
-  pixiChannels[2] = encodeForPixi(color.b);
+  pixiChannels[0] = toPixiChannel(color.r);
+  pixiChannels[1] = toPixiChannel(color.g);
+  pixiChannels[2] = toPixiChannel(color.b);
   return pixiChannels;
+}
+
+/**
+ * A colour's channels encoded to sRGB as three outputs them, for what pixi.js draws without decoding:
+ * a clear colour, a 2D tint. The array is reused by the next call.
+ * @param color - The colour, linear
+ * @returns `[r, g, b]` in sRGB, clamped to 0 to 1
+ * @internal
+ */
+export function toDisplayColor(color: Color): [number, number, number] {
+  displayChannels[0] = clamp(LinearToSRGB(color.r), 0, 1);
+  displayChannels[1] = clamp(LinearToSRGB(color.g), 0, 1);
+  displayChannels[2] = clamp(LinearToSRGB(color.b), 0, 1);
+  return displayChannels;
 }

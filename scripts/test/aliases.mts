@@ -1,7 +1,6 @@
 import path from 'node:path';
 
 const root = path.resolve(import.meta.dirname, '../..');
-const pixi3d = path.join(root, '.repos/pixi-3d/src');
 
 /** The package's entries a scene, an example or a doc may import, by specifier */
 export type FiberEntry = 'react-pixi-fiber' | 'react-pixi-fiber/three' | 'react-pixi-fiber/addons';
@@ -47,8 +46,6 @@ export const sharedAliases = [
   { find: /^~\//, replacement: `${path.join(root, 'src')}/` },
   // r3f's alias for its types folder. Every vendored `#types` import is type-only, but Vite still resolves it.
   { find: /^#types$/, replacement: path.join(root, 'src/r3f/types/index.ts') },
-  { find: /^@pixi\/3d\/extras$/, replacement: path.join(pixi3d, 'extras/index.ts') },
-  { find: /^@pixi\/3d$/, replacement: path.join(pixi3d, 'index.ts') },
   { find: /^@test-scene$/, replacement: path.join(root, 'tests/harness/scene.ts') },
 ];
 

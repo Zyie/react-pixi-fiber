@@ -68,7 +68,7 @@ export class Sprite extends Drawable {
    * @param intersects - List the hit is added to
    */
   public raycast(raycaster: Raycaster, intersects: Intersection[]): void {
-    const rotation = (this.material as Partial<SpriteMaterial>).rotation ?? 0;
+    const rotation = this.material instanceof SpriteMaterial ? this.material.rotation : 0;
     raycastSprite(this, this._center, rotation, raycaster, intersects);
   }
 

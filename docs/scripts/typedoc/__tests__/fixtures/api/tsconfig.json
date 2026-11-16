@@ -3,7 +3,7 @@
   "compilerOptions": {
     "paths": {
       "#types": ["./src/types/index.ts"],
-      "@pixi/3d": ["./.repos/pixi-3d/src/index.ts"]
+      "@pixi/3d": ["./node_modules/@pixi/3d/dist/index.d.ts"]
     }
   }
 }

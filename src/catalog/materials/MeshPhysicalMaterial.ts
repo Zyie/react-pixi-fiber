@@ -382,7 +382,7 @@ export class MeshPhysicalMaterial extends MeshStandardMaterial {
     const textures: Record<string, Texture> = {};
     for (const name in internals._slotByName) textures[name] = internals._textures[internals._slotByName[name]];
 
-    this._deriveLayoutFromBits([pbrMaterialBit, uvTransformBit, ...bits, ...this._extraBits], textures);
+    this._deriveLayoutFromBits([pbrMaterialBit, uvTransformBit, ...bits, ...this.extraBits], textures);
 
     const data = internals.data;
     for (const field in kept) {

@@ -328,7 +328,7 @@ Each item below could be filed as an issue. Items marked **bug** are defects fou
 26. **A light-loop option to visit lights a face turns away from.** three's toon shading reads its ramp's darkest level for them; `createLightingBit` skips them. (S)
 27. **Opaque output at alpha 1.** The material templates premultiply by alpha in every alpha mode, so an opaque material with an `alpha` below 1 comes out darker; react-pixi-fiber sets `alpha` to 1 while a material is opaque. (S)
 28. **Ambient sheen and three's anisotropic tangent frame,** for parity on `MeshPhysicalMaterial`. A DFG table in three's parameterization that material bits could sample would also let the standard material drop its analytic fit. (S–M)
-29. **A public tone mapping and output transform:** let a view take a custom curve bit and an exact sRGB transfer function, and offer AgX and Neutral, so react-pixi-fiber needn't swap `View3D._toneMappingBit`. (S)
+29. **A public tone mapping and output transform:** let a view take a custom curve bit and an exact sRGB transfer function, and offer AgX and Neutral, so react-pixi-fiber needn't swap `View3D._toneMappingBit`, which pixi-3d writes again each time it builds the view's render graph, nor set the `@internal` `_skipsToneCurve` for three's `toneMapped`. (S)
 30. **Fog after the tone curve**, as an option, so the fog colour shows as authored; react-pixi-fiber swaps `View3D._fogBit` for one that mixes in a slot of its tone mapping bit. (S)
 31. **A light-space shadow box** for directional lights (a camera-like frustum rather than a world box), and a per-light shadow map size. (M)
 32. **Spot light penumbra as a smoothstep**, and a settable near plane for spot shadows. (S)

@@ -2,7 +2,7 @@ import type { Container3D, Fog as PixiFog, ShaderBit, View3D } from '@pixi/3d';
 
 import type { Fog } from '../catalog/scene/Fog';
 import type { FogExp2 } from '../catalog/scene/FogExp2';
-import { LinearToSRGB } from '../math/ColorManagement';
+import { toPixiChannel } from '../math/Color';
 import { FOG_SLOT } from './toneMapping';
 
 type SceneFog = Fog | FogExp2;
@@ -55,8 +55,6 @@ const fogBit = (type: FogType): ShaderBit => ({
 
 const FOG_BITS: Record<FogType, ShaderBit> = { linear: fogBit('linear'), exp2: fogBit('exp2') };
 
-const toDisplay = (channel: number): number => Math.min(Math.max(LinearToSRGB(channel), 0), 1);
-
 /**
  * Hands a scene's three fog to its view: `Fog` as linear fog and `FogExp2` as `exp2`, mixed in after
  * the tone curve as three mixes it, so a fully fogged surface shows the fog colour itself
@@ -95,7 +93,7 @@ export function applyFog(view: View3D, scene: Container3D): void {
   } else {
     pixi.density = fog.density;
   }
-  pixi.color[0] = toDisplay(fog.color.r);
-  pixi.color[1] = toDisplay(fog.color.g);
-  pixi.color[2] = toDisplay(fog.color.b);
+  pixi.color[0] = toPixiChannel(fog.color.r);
+  pixi.color[1] = toPixiChannel(fog.color.g);
+  pixi.color[2] = toPixiChannel(fog.color.b);
 }

@@ -32,7 +32,7 @@ export interface PointsMaterialParameters extends MaterialParameters {
  * With `sizeAttenuation` and a perspective camera a point spans `size * height / 2 / depth` pixels,
  * which is `size / 2` in clip space vertically, whatever the canvas; otherwise it spans `size` pixels.
  * The viewport's size in pixels is read from the light-tile transform, which pixi-3d sets to 16 tiles
- * across the view and 9 down. The base colour texture is decoded from sRGB as the lit materials do.
+ * across the view and 9 down. Alpha is multiplied by the alpha map's green channel.
  */
 const pointsBit: ShaderBit = {
   name: 'threePoints',
@@ -54,7 +54,6 @@ const pointsBit: ShaderBit = {
     },
     fragment: {
       material: /* wgsl */ `
-  albedo *= pow(baseTex.rgb, vec3<f32>(2.2)) / max(baseTex.rgb, vec3<f32>(1e-4));
   alpha *= sampleAlphaMap(input.vUV).g;
 `,
     },
@@ -74,7 +73,6 @@ const pointsBit: ShaderBit = {
     },
     fragment: {
       material: /* glsl */ `
-  albedo *= pow(baseTex.rgb, vec3(2.2)) / max(baseTex.rgb, vec3(1e-4));
   alpha *= sampleAlphaMap(vUV).g;
 `,
     },
@@ -109,7 +107,6 @@ export class PointsMaterial extends FlatMaterial {
   /** @param parameters - three's material parameters */
   constructor(parameters: PointsMaterialParameters = {}) {
     super({ extraBits: [pointsBit] });
-    this.toneMapped = true;
     this.state.culling = false;
     this.size = 1;
     this.sizeAttenuation = true;
@@ -172,7 +169,7 @@ export class PointsMaterial extends FlatMaterial {
   }
 
   /**
-   * pixi-3d's flat shader, with three's output encoding when `toneMapped` is off
+   * pixi-3d's flat shader, with three's back-side handling
    * @param view - The view about to draw the material
    * @advanced
    */

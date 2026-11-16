@@ -14,6 +14,6 @@ export interface ReferenceRepo {
 /** Every repository in `.repos/`; `npm run sync:repos` deletes folders that aren't listed here */
 export const referenceRepos: ReferenceRepo[] = [
   { name: 'react-three-fiber', repository: 'https://github.com/pmndrs/react-three-fiber.git', ref: 'v10' },
-  { name: 'pixi-3d', repository: 'https://github.com/pixijs/pixi-3d.git', ref: 'main' },
-  { name: 'pixijs', repository: 'https://github.com/pixijs/pixijs.git', ref: 'dev' },
+  { name: 'pixi-3d', repository: 'https://github.com/pixijs/3d.git', ref: { npm: '@pixi/3d' } },
+  { name: 'pixijs', repository: 'https://github.com/pixijs/pixijs.git', ref: { npm: 'pixi.js' } },
 ];

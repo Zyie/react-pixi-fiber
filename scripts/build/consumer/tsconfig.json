@@ -14,9 +14,7 @@
     "paths": {
       "react-pixi-fiber": ["../../../dist/index.d.ts"],
       "react-pixi-fiber/three": ["../../../dist/three.d.ts"],
-      "react-pixi-fiber/addons": ["../../../dist/addons.d.ts"],
-      "@pixi/3d": ["../../../.repos/pixi-3d/src/index.ts"],
-      "@pixi/3d/extras": ["../../../.repos/pixi-3d/src/extras/index.ts"]
+      "react-pixi-fiber/addons": ["../../../dist/addons.d.ts"]
     }
   },
   "files": ["app.tsx"]

@@ -46,7 +46,7 @@ const matcapBit: ShaderBit = {
   if (material.matcapSet > 0.5) {
     matcapColor = pow(matcapTex, vec3<f32>(2.2));
   }
-  albedo *= pow(baseTex.rgb, vec3<f32>(2.2)) / max(baseTex.rgb, vec3<f32>(1e-4)) * matcapColor;
+  albedo *= matcapColor;
 `,
     },
   },
@@ -63,7 +63,7 @@ const matcapBit: ShaderBit = {
   if (material.matcapSet > 0.5) {
     matcapColor = pow(matcapTex, vec3(2.2));
   }
-  albedo *= pow(baseTex.rgb, vec3(2.2)) / max(baseTex.rgb, vec3(1e-4)) * matcapColor;
+  albedo *= matcapColor;
 `,
     },
   },
@@ -91,7 +91,6 @@ export class MeshMatcapMaterial extends FlatMaterial {
   /** @param parameters - three's material parameters */
   constructor(parameters: MeshMatcapMaterialParameters = {}) {
     super({ extraBits: [matcapBit] });
-    this.toneMapped = true;
     this._color = new Color(0xffffff)._onChange(() => {
       this.baseColor = toPixiColor(this._color);
     });

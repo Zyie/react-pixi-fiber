@@ -185,6 +185,22 @@ function createToneMappingBit(curve: Curve, encoding: (typeof ENCODINGS)[number]
   return bit;
 }
 
+/** The bit each view ends its materials with, which its `_toneMappingBit` reads */
+const heldBits = new WeakMap<View3D, ShaderBit>();
+
+/**
+ * Makes a view's `_toneMappingBit` read the bit in {@link heldBits}, ignoring pixi-3d's writes, since
+ * pixi-3d sets it from its own curve again whenever it builds the view's render graph, which it does
+ * on the view's first draw
+ */
+function holdToneMappingBit(view: View3D): void {
+  Object.defineProperty(view, '_toneMappingBit', {
+    configurable: true,
+    get: () => heldBits.get(view) ?? null,
+    set: () => {},
+  });
+}
+
 /**
  * Puts three's tone mapping and output colour space on a view, as the shader bit its materials and
  * background end with, and its exposure, which three leaves out with no tone mapping
@@ -201,7 +217,8 @@ function createToneMappingBit(curve: Curve, encoding: (typeof ENCODINGS)[number]
 export function applyToneMapping(view: View3D, toneMapping: number, exposure: number, outputColorSpace: string): void {
   view.exposure = toneMapping === 0 || toneMapping === 5 ? 1 : exposure;
   const bit = toneMappingBit(toneMapping, outputColorSpace);
-  if (view._toneMappingBit === bit) return;
+  if (heldBits.get(view) === bit) return;
+  if (!heldBits.has(view)) holdToneMappingBit(view);
+  heldBits.set(view, bit);
   view.toneMapping = view.toneMapping === 'custom' ? 'none' : 'custom';
-  view._toneMappingBit = bit;
 }

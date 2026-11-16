@@ -5,7 +5,7 @@
  *
  * Each repository is a depth-1 checkout of one commit. An entry that follows an npm package checks out
  * the commit its installed version was built from: npm's `gitHead` for a dev build such as
- * `8.22.0-dev.194e42c`, falling back to the `v<version>` tag. Running it again moves each checkout to its
+ * `8.23.0-dev.1e70768`, falling back to the `v<version>` tag. Running it again moves each checkout to its
  * current pin, skips the network for an npm pin that hasn't changed, and deletes folders the manifest no
  * longer lists. In a worktree, a repository the main checkout already has at the same pin is copied from
  * there, with no network. `.repos` is gitignored, so lint, formatting and repo-wide searches skip it.

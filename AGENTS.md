@@ -19,10 +19,10 @@
 - **`tests/README.md`**, the visual harness: scenes, examples, three.js parity and its composites, unit tests, the playground. Read it when you write a scene, an example or a unit test, run a single test, update reference images, or a scene fails.
 - **`docs/README.md`**, the docs site, built from the guides in `src/**/__docs__`, the examples, the parity findings and the JSDoc. Read it when you write a guide, run, build or check the site, or want to see a change on it.
 - **`docs/feasibility.md`**, the findings behind the design: what ports cleanly, what needs an adapter, and what needs changes in pixi-3d or r3f. Read it before you take on a parity gap.
-- **`.repos/`**, read-only source checked out by `npm run sync:repos` (`scripts/repos/manifest.mts`). Run it first: `@pixi/3d` isn't on npm, so `tsconfig.json` paths and the Vite aliases resolve it to `.repos/pixi-3d/src`. Repo-wide searches skip `.repos`, so search it by path.
+- **`.repos/`**, read-only source checked out by `npm run sync:repos` (`scripts/repos/manifest.mts`), for reading. The code builds against the npm packages; `@pixi/3d` and `pixi.js` are checked out at the commit of their installed versions. Repo-wide searches skip `.repos`, so search it by path.
   - `.repos/react-three-fiber`: r3f, `v10` branch, the source of `src/r3f`. Start at its `AGENTS.md`; the fiber package is `packages/fiber`.
-  - `.repos/pixi-3d`: `@pixi/3d`, `main` branch, the renderer. Start at its `AGENTS.md` and `docs/architecture.md`.
-  - `.repos/pixijs`: pixi.js, `dev` branch, the 2D engine pixi-3d extends.
+  - `.repos/pixi-3d`: `@pixi/3d` (github.com/pixijs/3d) at the installed version's tag, the renderer. Start at its `AGENTS.md` and `docs/architecture.md`.
+  - `.repos/pixijs`: pixi.js at the installed version's commit, the 2D engine pixi-3d extends.
 
 ## Verify
 

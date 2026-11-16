@@ -26,7 +26,7 @@ export interface SpriteMaterialParameters extends MaterialParameters {
   sizeAttenuation?: boolean;
 }
 
-/** Turns the sprite's quad in its own plane before pixi-3d turns it to the camera; decodes the map from sRGB */
+/** Turns the sprite's quad in its own plane before pixi-3d turns it to the camera, and multiplies alpha by the alpha map's green channel */
 const spriteBit: ShaderBit = {
   name: 'threeSprite',
   textures: ['alphaMap'],
@@ -41,7 +41,6 @@ const spriteBit: ShaderBit = {
     },
     fragment: {
       material: /* wgsl */ `
-  albedo *= pow(baseTex.rgb, vec3<f32>(2.2)) / max(baseTex.rgb, vec3<f32>(1e-4));
   alpha *= sampleAlphaMap(input.vUV).g;
 `,
     },
@@ -56,7 +55,6 @@ const spriteBit: ShaderBit = {
     },
     fragment: {
       material: /* glsl */ `
-  albedo *= pow(baseTex.rgb, vec3(2.2)) / max(baseTex.rgb, vec3(1e-4));
   alpha *= sampleAlphaMap(vUV).g;
 `,
     },
@@ -89,7 +87,6 @@ export class SpriteMaterial extends FlatMaterial {
   /** @param parameters - three's material parameters */
   constructor(parameters: SpriteMaterialParameters = {}) {
     super({ extraBits: [spriteBit] });
-    this.toneMapped = true;
     this.state.culling = false;
     this._color = new Color(0xffffff)._onChange(() => {
       this.baseColor = toPixiColor(this._color);
@@ -136,7 +133,7 @@ export class SpriteMaterial extends FlatMaterial {
   }
 
   /**
-   * pixi-3d's flat shader, with three's output encoding when `toneMapped` is off
+   * pixi-3d's flat shader, with three's back-side handling
    * @param view - The view about to draw the material
    * @advanced
    */

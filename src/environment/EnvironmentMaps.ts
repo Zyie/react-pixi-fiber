@@ -1,3 +1,4 @@
+import { isLinearFormat } from '@pixi/3d';
 import type { Camera3D, Container3D, View3D } from '@pixi/3d';
 import { Container, CubeTexture, Mesh, MeshGeometry, Shader, Texture, TextureSource, UniformGroup } from 'pixi.js';
 import type { CubeTextureSource, Renderer, TEXTURE_FORMATS } from 'pixi.js';
@@ -57,7 +58,7 @@ interface BakedSource {
   canonical: CubeTexture | null;
   /** The render count of a drawn source when `canonical` was made */
   version: number;
-  /** The source turned and scaled for pixi-3d's lighting, which decodes it with its 2.2 gamma */
+  /** The source turned and scaled for pixi-3d's lighting, which reads a float cube as linear and any other with its 2.2 gamma */
   lighting: CubeTexture | null;
   /** The version, intensity and rotation `lighting` was baked with */
   readonly lightingInputs: LightingInputs;
@@ -331,7 +332,7 @@ export class EnvironmentMaps {
     return baked;
   }
 
-  /** The lighting cube pixi-3d prefilters: the source turned, scaled and encoded with its gamma */
+  /** The lighting cube pixi-3d prefilters: the source turned, scaled and encoded as pixi-3d reads the cube's format */
   private _lighting(
     pixi: Renderer,
     source: EnvironmentTexture,
@@ -364,7 +365,14 @@ export class EnvironmentMaps {
     inputs.order = rotation?.order;
     baked.lighting?.destroy(true);
     baked.lighting = this._createCube(pixi, LIGHTING_SIZE, true);
-    this._bake(pixi, source, baked.lighting, rotation, intensity, GAMMA);
+    this._bake(
+      pixi,
+      source,
+      baked.lighting,
+      rotation,
+      intensity,
+      isLinearFormat(baked.lighting.source.format) ? LINEAR : GAMMA,
+    );
     return baked.lighting;
   }
 

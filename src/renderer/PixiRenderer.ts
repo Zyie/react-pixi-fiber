@@ -5,7 +5,7 @@ import type { ColorSource, Renderer, WebGPURenderer } from 'pixi.js';
 
 import { EnvironmentMaps, isEnvironmentBackground } from '../environment/EnvironmentMaps';
 import type { EnvironmentScene } from '../environment/EnvironmentMaps';
-import { Color as ThreeColor, toPixiColor } from '../math/Color';
+import { Color as ThreeColor, toDisplayColor } from '../math/Color';
 import { Vector4 } from '../math/Vector4';
 import { hasAnchorsIn, placeAnchors } from '../two-d/Anchor2D';
 import { VIEW_IN_LAYER_Z_INDEX, ensureScreen, layerOf, screenOf } from '../two-d/screen';
@@ -398,7 +398,7 @@ export class PixiRenderer {
    * @param alpha - Its opacity, 0 to 1
    */
   public setClearColor(color: ColorSource | ThreeColor, alpha = 1): void {
-    this._clearColor.setValue(color instanceof ThreeColor ? toPixiColor(color) : color);
+    this._clearColor.setValue(color instanceof ThreeColor ? toDisplayColor(color) : color);
     this._clearAlpha = alpha;
     this._backgroundKey = null;
     if (this.pixi) {
@@ -825,7 +825,7 @@ export class PixiRenderer {
     this._applySettings(entry, scene as EnvironmentScene, background);
     this._applySceneSettings(entry, scene as EnvironmentScene);
     if (isColorBackground(background) && background !== null && background !== undefined) {
-      updateBackdropColor(stage, view, background instanceof ThreeColor ? toPixiColor(background) : background);
+      updateBackdropColor(stage, view, background instanceof ThreeColor ? toDisplayColor(background) : background);
     }
     const screen = screenOf(scene);
     if (screen) placeAnchors(scene, view.camera, view, layerOf(screen)!);
@@ -938,7 +938,7 @@ export class PixiRenderer {
   /** Writes the colour a clear goes to, a colour background or the clear colour, into `clearRGBA` */
   private _clearColorOf(background: SceneBackground): void {
     if (background instanceof ThreeColor) {
-      const [r, g, b] = toPixiColor(background);
+      const [r, g, b] = toDisplayColor(background);
       clearRGBA[0] = r;
       clearRGBA[1] = g;
       clearRGBA[2] = b;
@@ -960,7 +960,7 @@ export class PixiRenderer {
    */
   private _applyBackground(pixi: Renderer, background: SceneBackground): boolean {
     if (background instanceof ThreeColor) {
-      const rgb = toPixiColor(background);
+      const rgb = toDisplayColor(background);
       const last = this._backgroundRGB;
       if (this._backgroundKey !== background || last[0] !== rgb[0] || last[1] !== rgb[1] || last[2] !== rgb[2]) {
         this._backgroundKey = background;

@@ -14,7 +14,7 @@ import {
 import type { CacheAsTextureOptions, ColorSource, MaskOptionsAndMask, RenderLayer } from 'pixi.js';
 
 import type { Intersection } from '../compat/Raycaster';
-import { toPixiColor } from '../math/Color';
+import { toDisplayColor } from '../math/Color';
 import type { Color as ThreeColor } from '../math/Color';
 import { clearCursorsUnder } from './cursor';
 import { raycastScreen } from './hitTest';
@@ -352,7 +352,7 @@ export function install2DSurface(): void {
       return colorValue.get!.call(this) as Color['value'];
     },
     set(this: Color, value: ColorSource | ThreeColor | null) {
-      colorValue.set!.call(this, isThreeColor(value) ? toPixiColor(value) : value);
+      colorValue.set!.call(this, isThreeColor(value) ? toDisplayColor(value) : value);
     },
   });
 

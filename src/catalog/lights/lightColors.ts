@@ -1,7 +1,4 @@
-import { Color } from '../../math/Color';
-import { LinearToSRGB } from '../../math/ColorManagement';
-
-const toDisplay = (channel: number): number => Math.min(Math.max(LinearToSRGB(channel), 0), 1);
+import { Color, toPixiChannel } from '../../math/Color';
 
 /**
  * A light's three `Color`, which pixi-3d reads too
@@ -14,17 +11,17 @@ const toDisplay = (channel: number): number => Math.min(Math.max(LinearToSRGB(ch
 export class LightColor extends Color {
   /** Red in display space, as pixi-3d reads it */
   public get red(): number {
-    return toDisplay(this.r);
+    return toPixiChannel(this.r);
   }
 
   /** Green in display space, as pixi-3d reads it */
   public get green(): number {
-    return toDisplay(this.g);
+    return toPixiChannel(this.g);
   }
 
   /** Blue in display space, as pixi-3d reads it */
   public get blue(): number {
-    return toDisplay(this.b);
+    return toPixiChannel(this.b);
   }
 }
 

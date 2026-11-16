@@ -32,7 +32,7 @@ async function mount(element: ReactNode): Promise<void> {
 type Instanced = ElementRef<'instancedMesh'>;
 
 /** The material an instanced mesh's slots draw with, the instance colour copy once it has colours */
-const drawnWith = (mesh: Instanced) => mesh.items[0].material;
+const drawnWith = (mesh: Instanced) => mesh.batch.items[0].material;
 
 // No picture shows a material copy freed or a material's own methods given back.
 it('frees the instance colour copy of a shared material with the last mesh that drew with it', async () => {

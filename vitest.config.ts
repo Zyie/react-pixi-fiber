@@ -30,6 +30,7 @@ export default defineConfig({
     // Listed so a cold cache doesn't optimize them mid-run, which reloads the page and fails that run.
     include: [
       'pixi.js > eventemitter3',
+      '@pixi/3d',
       'parse-svg-path',
       '@xmldom/xmldom',
       'three',

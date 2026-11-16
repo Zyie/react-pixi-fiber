@@ -1,4 +1,4 @@
-import { Mesh3D, Morph } from '@pixi/3d';
+import { Mesh3D } from '@pixi/3d';
 import type { BaseMaterial3D, Geometry3D, PointData3D } from '@pixi/3d';
 
 import { lookAtPoint } from '../../compat/installObject3DSurface';
@@ -50,7 +50,7 @@ export class Mesh extends Mesh3D {
    */
   constructor(geometry: Geometry3D = placeholderGeometry(), material: BaseMaterial3D = placeholderMaterial()) {
     super({ geometry, material, castShadow: false, receiveShadow: false });
-    if (this.morph) settableWeights(this.morph.weights);
+    if (this.weights) settableWeights(this.weights);
   }
 
   /** The shape it draws; a geometry with morph targets gives the mesh its `morphTargetInfluences` */
@@ -64,31 +64,32 @@ export class Mesh extends Mesh3D {
   }
 
   /**
-   * How much of each morph target shows, 0 to 1, as three's; pixi-3d's morph `weights`, a
+   * How much of each morph target shows, 0 to 1, as three's; pixi-3d's `weights`, a
    * `Float32Array` typed as three's array, so writing an entry, or an animation track on it, shows on
    * the next frame. `undefined` while the geometry has no morph targets.
    */
   public get morphTargetInfluences(): number[] | undefined {
-    return this.morph?.weights as unknown as number[] | undefined;
+    return this.weights as unknown as number[] | undefined;
   }
 
   public set morphTargetInfluences(value: ArrayLike<number> | undefined) {
     if (!value) return;
-    if (this.morph) this.morph.weights.set(value);
+    if (this.weights) this.weights.set(value);
     else this._pendingInfluences = value;
   }
 
-  /** Gives the mesh morph weights for its geometry's morph targets, as three's `updateMorphTargets` */
+  /**
+   * Readies the weights pixi-3d made for the geometry's morph targets, as three's `updateMorphTargets`,
+   * with any `morphTargetInfluences` set before the geometry arrived
+   */
   public updateMorphTargets(): void {
-    const count = this.geometry?.morphTargetCount ?? 0;
+    const weights = this.weights;
 
-    if (count === 0 || this.morph) return;
+    if (!weights) return;
 
-    const weights = settableWeights(new Float32Array(count));
-
+    settableWeights(weights);
     if (this._pendingInfluences) weights.set(this._pendingInfluences);
     this._pendingInfluences = undefined;
-    (this as { morph?: Morph }).morph = new Morph(weights);
   }
 
   /** Local rotation in radians, three's `Euler`: its `order` sets how the angles combine, and it stays in step with `quaternion` */

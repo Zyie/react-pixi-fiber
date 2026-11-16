@@ -2,8 +2,8 @@
  * The runtime of the live examples, in `static/runtime`:
  *
  * - `js/`: ES modules of every package a program can import, built from the repo's sources and the
- *   pinned packages: react-pixi-fiber from its entry in `src`, @pixi/3d from `.repos/pixi-3d`, pixi.js,
- *   pixi-filters, React and React DOM, and the frame's own module. A frame imports them from the site by URL, each
+ *   pinned packages: react-pixi-fiber from its entry in `src`, @pixi/3d, pixi.js, pixi-filters, React and
+ *   React DOM, and the frame's own module. A frame imports them from the site by URL, each
  *   chunk importing another by its relative path; `manifest.json` lists them, with what each imports.
  * - `assets/`: the images and models of `tests/assets`, when there is one, which a program loads by name
  *   as the visual tests do.
@@ -30,7 +30,6 @@ const OUT = 'static/runtime';
 const BASE = 'runtime/';
 const LIVE = 'docs/src/components/Live';
 const FRAME = path.join(ROOT, LIVE, 'frame/frame.ts');
-const PIXI3D = path.join(ROOT, '.repos/pixi-3d/src');
 const ASSETS = 'tests/assets';
 const require = createRequire(path.join(ROOT, 'package.json'));
 
@@ -52,8 +51,8 @@ function modules(): Record<string, string> {
     ...Object.fromEntries(ENTRIES.map((entry) => [packageName(entry), path.join(ROOT, entryFile(entry, ROOT))])),
     'pixi.js': 'pixi.js',
     'pixi-filters': 'pixi-filters',
-    '@pixi/3d': path.join(PIXI3D, 'index.ts'),
-    '@pixi/3d/extras': path.join(PIXI3D, 'extras/index.ts'),
+    '@pixi/3d': '@pixi/3d',
+    '@pixi/3d/extras': '@pixi/3d/extras',
     ...Object.fromEntries(COMMONJS.map((name) => [name, `\0facade:${name}`])),
   };
 }
@@ -67,8 +66,8 @@ function chunkName(specifier: string): string {
 }
 
 /**
- * Resolves the names the repo resolves through tsconfig paths, `react-pixi-fiber`, `@pixi/3d` and
- * `~/`, to their sources, and gives each CommonJS package an ES facade with named exports
+ * Resolves the names the repo resolves through tsconfig paths, `react-pixi-fiber` and `~/`, to their
+ * sources, and gives each CommonJS package an ES facade with named exports
  * @param entries - Every module a program can import, from `modules()`
  */
 function runtimePlugin(entries: Readonly<Record<string, string>>): Plugin {
@@ -150,7 +149,7 @@ export const live: Generator = {
   async generate() {
     const built = await cached(
       'live-modules',
-      hashOf([], ['src', '.repos/pixi-3d/src', `${LIVE}/frame`, `${LIVE}/types.ts`, 'tsconfig.json', ...BUILT_WITH]),
+      hashOf([], ['src', `${LIVE}/frame`, `${LIVE}/types.ts`, 'tsconfig.json', ...BUILT_WITH]),
       buildModules,
     );
     const files: GeneratedFiles = { ...built.files };
