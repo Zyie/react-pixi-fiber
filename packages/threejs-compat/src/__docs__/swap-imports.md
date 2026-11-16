@@ -11,6 +11,8 @@
 + import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
 ```
 
+Most scenes look as they do on three.js; [Differences from react-three-fiber](differences.md) lists what doesn't. The one an r3f app meets first is light `decay`: @pixi/3d's lights always fall off with the square of their distance, three's default `decay` of 2, so `decay={0}` changes nothing. react-three-fiber's README demo lights its two boxes with a spot light and a point light ten units away, both with `decay={0}`; after the swap they add almost nothing, and the boxes show the ambient light alone. Until @pixi/3d has a decay exponent, raise such a light's `intensity` by the square of its distance (`Math.PI * 300` for those two), or move it closer.
+
 ## Opting in
 
 The package is optional, and importing any of its three entries installs it:
