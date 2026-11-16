@@ -32,7 +32,7 @@ Four kinds, each a node that lights every lit mesh in the scene, wherever in the
 
 Each has a `color`, any colour pixi takes, and an `intensity`. With no tone curve, which is @pixi/3d's default, a white surface facing a directional light of intensity 1 shows mid grey, and about 3 brings it to white. Point and spot lights dim with distance, so they need more. Give them a `range`, the smallest that looks right: the light fades to nothing there, and the view skips it where it can't reach. Setting `visible={false}` on a light, or on a parent, switches it off.
 
-Shadows are @pixi/3d's own and need no setting on the root: a light with `castShadow` casts them, from each mesh with `castShadow` onto each with `receiveShadow`, and a light's `shadow` options in its `args` (`args={[{ castShadow: true, shadow: { bias: 0.002, cascades: 3 } }]}`) tune them. A root's view otherwise draws with @pixi/3d's defaults: no tone curve, no fog and no environment, which elements can't set on the view yet; threejs-compat's renderer does, from three's settings.
+Shadows are @pixi/3d's own and need no setting on the root: a light with `castShadow` casts them, from each mesh with `castShadow` onto each with `receiveShadow`, and a light's `shadow` options in its `args` (`args={[{ castShadow: true, shadow: { bias: 0.002, cascades: 3 } }]}`) tune them. How soft their edges are, the tone curve, fog and the light around the scene are the root's settings, under [Tone mapping, fog and environment](#tone-mapping-fog-and-environment).
 
 ## Materials
 
@@ -75,3 +75,54 @@ Every material has a base colour texture (`textures-baseColor`), `alpha` and `al
 ![A red, a green and a flat blue sphere on top; under them a sphere glowing orange and a dark metal one with a highlight](../../../../tests/snapshots/docs/3d/materials.webgl.png)
 
 The emissive sphere glows whatever lights it. The metal one is dark but for the light's highlight: metal shows what it reflects, and this scene has no environment around it to reflect.
+
+## Tone mapping, fog and environment
+
+A root draws with @pixi/3d's defaults: no tone curve, an exposure of 1, soft `'pcf'` shadow edges, no fog and no environment. The renderer's `toneMapping`, `exposure` and `shadowFilter` change how every view draws, and the scene's `fog` and `environment` how its own view draws, each under @pixi/3d's names and with its values. Set them as `<Canvas>`'s `renderer` and `scene` props:
+
+<!-- snippet: examples/3d/environment.example.tsx#settings -->
+
+```tsx
+const fog: Fog = { type: 'linear', color: '#a8c0d8', near: 5, far: 22 };
+const sky: Hemisphere = { skyColor: '#5d9cff', groundColor: '#7a4f24' };
+```
+
+<!-- snippet: examples/3d/environment.example.tsx#canvas -->
+
+```tsx
+export function App() {
+  return (
+    <Canvas
+      camera={{ position: [0, 1.5, 7] }}
+      renderer={{ toneMapping: 'aces', exposure: 1.4 }}
+      scene={{ fog, environment: sky }}
+    >
+      <Stage />
+    </Canvas>
+  );
+}
+```
+
+![A white sphere and a metal one reflecting blue sky over brown ground, on a pale floor, with blue columns going back into a light blue haze](../../../../tests/snapshots/docs/3d/environment.webgl.png)
+
+- `toneMapping` is the curve every view ends with. Under `'none'` light past full brightness clips to flat colour; `'aces'`, `'reinhard'` and `'uncharted2'` roll it off, as the white sphere's lit side here; `'custom'` leaves linear light for a post effect that maps it itself. A change recompiles the materials, so don't change it every frame.
+- `exposure` brightens or darkens everything before the curve, and is free to change every frame.
+- `shadowFilter` is how soft shadow edges are: `'hard'`, `'pcf'` or `'pcf-high'`.
+- `fog` fades what is far into its `color`: `'linear'` fog from `near` to `far`, `'exponential'` and `'exp2'` fog by `density`. The view keeps the object, so changing its `color`, `near`, `far` or `density` is free.
+- `environment` lights every lit surface from around the scene and is what metal reflects: a `Hemisphere`, sky colour above and ground colour below, or a `CubeTexture` for image-based light.
+
+They can change while the scene runs. `state.renderer` and `state.scene`, from `useThree` or `useFrame`, hold them, and every view takes them before it draws, a view the renderer makes again after freeing an idle one included:
+
+<!-- snippet: examples/3d/environment.example.tsx#runtime -->
+
+```tsx
+function Haze() {
+  useFrame(({ renderer, elapsed }) => {
+    renderer.exposure = 1.4 + 0.2 * Math.sin(elapsed);
+    fog.far = 22 + 8 * Math.sin(elapsed / 2);
+  });
+  return null;
+}
+```
+
+A portal's scene and a `<View3D>`'s have a `fog` and an `environment` of their own, which `attach` sets from inside (`<primitive object={fog} attach="fog" />`); the renderer's settings apply to their views too. With threejs-compat installed, the renderer draws with three's settings instead ([Canvas](../../../threejs-compat/src/__docs__/canvas.md)): `toneMapping` takes three's constants, and `toneMappingExposure`, `outputColorSpace` and `shadows` take the place of `exposure` and `shadowFilter`.

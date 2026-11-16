@@ -1,6 +1,6 @@
 import type { ShadowFilter, View3D } from '@pixi/3d';
 import { PixiRenderer } from '@react-fiber/core';
-import type { PixiRenderTarget } from '@react-fiber/core';
+import type { PixiRenderTarget, PixiShadowMap } from '@react-fiber/core';
 import { updateBackdrop } from '@react-fiber/core/extension';
 import type { RenderedScene, ViewSettings } from '@react-fiber/core/extension';
 import { CubeTexture, Texture } from 'pixi.js';
@@ -54,13 +54,14 @@ const isEnvironmentTexture = (value: unknown): value is Texture | CubeTexture =>
  *
  * three's renderer settings are forwarded to each view as it draws: `toneMapping`,
  * `toneMappingExposure` and `outputColorSpace` become three's own tone curve, exposure and output
- * transform at the end of every material, and `shadowMap.type` the view's shadow filter.
- * `shadowMap.enabled` gates which lights cast shadows. The scene's lights, `fog`, `environment` and a
- * texture `background` are read as three reads them. A scene whose `background` is a colour, a three
- * `Color` or a pixi `ColorSource`, clears the canvas to it before it draws, as three's does, untouched
- * by tone mapping; a 2D texture is stretched over the viewport, and a cube or equirectangular texture
- * is drawn around the camera with three's rotation, intensity and blur. Render targets read back as
- * three reads them, in linear light.
+ * transform at the end of every material, and `shadowMap.type` the view's shadow filter. They take the
+ * place of `PixiRenderer`'s @pixi/3d settings: `toneMapping` takes three's constants, and `exposure`
+ * and `shadowFilter` go unread. `shadowMap.enabled` gates which lights cast shadows. The scene's
+ * lights, `fog`, `environment` and a texture `background` are read as three reads them. A scene whose
+ * `background` is a colour, a three `Color` or a pixi `ColorSource`, clears the canvas to it before it
+ * draws, as three's does, untouched by tone mapping; a 2D texture is stretched over the viewport, and
+ * a cube or equirectangular texture is drawn around the camera with three's rotation, intensity and
+ * blur. Render targets read back as three reads them, in linear light.
  * @example
  * ```tsx
  * import { Canvas, useThree } from '@react-fiber/threejs-compat';
@@ -77,7 +78,27 @@ const isEnvironmentTexture = (value: unknown): value is Texture | CubeTexture =>
  * @standard
  */
 export class ThreeRenderer extends PixiRenderer {
+  /** Brightness before tone mapping, which three leaves out with `NoToneMapping` @default 1 */
+  public toneMappingExposure: number = 1;
+  /** three's output colour space: `'srgb'`, or `'srgb-linear'` to write linear values @default 'srgb' */
+  public outputColorSpace: string = 'srgb';
+  /** three's shadow map settings, which r3f's core writes from the `shadows` setting */
+  public readonly shadowMap: PixiShadowMap = { enabled: false, type: 1, autoUpdate: true, needsUpdate: false };
+  private _threeToneMapping: number = 0;
   private _environments: EnvironmentMaps | null = null;
+
+  /**
+   * three's tone mapping constant, which r3f's core sets to `ACESFilmicToneMapping` when a root is
+   * first configured
+   * @default NoToneMapping
+   */
+  public override get toneMapping(): number {
+    return this._threeToneMapping;
+  }
+
+  public override set toneMapping(value: number) {
+    this._threeToneMapping = value;
+  }
 
   /**
    * Sets what the canvas and targets clear to
@@ -167,10 +188,8 @@ export class ThreeRenderer extends PixiRenderer {
   }
 
   /**
-   * Copies three's renderer settings onto a scene's view before it draws. Into a target, tone mapping
-   * is off and exposure 1, as three draws into a target in linear light, and the colour is stored with
-   * the 2.2 gamma pixi-3d decodes a colour map with. A cube or equirectangular environment or background
-   * goes through `EnvironmentMaps`.
+   * Copies three's renderer settings onto a scene's view before it draws: its output, then a cube or
+   * equirectangular environment or background, which goes through `EnvironmentMaps`
    * @param entry - The scene's view
    * @param scene - The scene
    * @param background - The scene's background
@@ -179,12 +198,6 @@ export class ThreeRenderer extends PixiRenderer {
     super._applySettings(entry, scene, background);
     const { view } = entry;
     const toTarget = this._renderTarget !== null;
-    if (toTarget) applyToneMapping(view, 0, 1, TARGET_OUTPUT);
-    else applyToneMapping(view, this.toneMapping, this.toneMappingExposure, this.outputColorSpace);
-    const shadowFilter = SHADOW_FILTERS[this.shadowMap.type] ?? 'pcf';
-    if (view.shadowFilter !== shadowFilter) view.shadowFilter = shadowFilter;
-    setShadowsEnabled(view, this.shadowMap.enabled);
-
     const { environment } = scene;
     if (this._environments || isEnvironmentTexture(environment) || isEnvironmentBackground(background)) {
       this._environments ??= new EnvironmentMaps();
@@ -199,6 +212,20 @@ export class ThreeRenderer extends PixiRenderer {
         this._frame,
       );
     }
+  }
+
+  /**
+   * Gives a view three's tone mapping, output and shadow filter. Into a target, tone mapping is off and
+   * exposure 1, as three draws into a target in linear light, and the colour is stored with the 2.2
+   * gamma pixi-3d decodes a colour map with.
+   * @param view - The view about to draw
+   */
+  protected override _applyOutput(view: View3D): void {
+    if (this._renderTarget !== null) applyToneMapping(view, 0, 1, TARGET_OUTPUT);
+    else applyToneMapping(view, this.toneMapping, this.toneMappingExposure, this.outputColorSpace);
+    const shadowFilter = SHADOW_FILTERS[this.shadowMap.type] ?? 'pcf';
+    if (view.shadowFilter !== shadowFilter) view.shadowFilter = shadowFilter;
+    setShadowsEnabled(view, this.shadowMap.enabled);
   }
 
   /**

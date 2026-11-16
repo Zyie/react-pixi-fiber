@@ -2,7 +2,7 @@ import type { ColorSource } from 'pixi.js';
 import type * as React from 'react';
 import type { Options as ResizeOptions } from 'react-use-measure';
 
-import type { PixiRenderer, PixiRendererParameters } from '../renderer/PixiRenderer';
+import type { PixiRendererParameters } from '../renderer/PixiRenderer';
 import type { ThreeElement } from './elements';
 import type { ComputeFunction, EventManager } from './events';
 import type { Registered, RegisteredInstance } from './register';
@@ -32,11 +32,29 @@ export type TrackedPromise<T> = Promise<T> &
   ({ status: 'pending' } | { status: 'fulfilled'; value: T } | { status: 'rejected'; reason: unknown });
 
 /**
- * three's shadow settings: `true` for PCF, a named type, or `shadowMap` fields
+ * three's `renderer.shadowMap`, which `@react-fiber/threejs-compat`'s renderer has and r3f's core
+ * writes from the `shadows` renderer setting
+ * @category renderer
+ * @standard
+ */
+export interface PixiShadowMap {
+  /** Draw shadows at all; lights cast them only while this is on, as in three @default false */
+  enabled: boolean;
+  /** three's shadow map type constant (`PCFShadowMap`, ...), mapped to a pixi-3d `shadowFilter` @default 1 */
+  type: number;
+  /** Kept for three's shape; pixi-3d renders shadows every frame */
+  autoUpdate: boolean;
+  /** Kept for three's shape; pixi-3d renders shadows every frame */
+  needsUpdate: boolean;
+}
+
+/**
+ * three's shadow settings: `true` for PCF, a named type, or `shadowMap` fields. A renderer without a
+ * `shadowMap`, core's own, keeps none of them: @pixi/3d's shadows need no setting.
  * @category types
  * @standard
  */
-export type ShadowsConfig = boolean | 'basic' | 'percentage' | 'soft' | 'variance' | Partial<PixiRenderer['shadowMap']>;
+export type ShadowsConfig = boolean | 'basic' | 'percentage' | 'soft' | 'variance' | Partial<PixiShadowMap>;
 
 /**
  * Renderer settings r3f reads itself instead of passing to the renderer

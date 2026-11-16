@@ -1,9 +1,10 @@
 import { Camera3D, Matrix4, Quaternion, Vector3, Vector4, View3D } from '@pixi/3d';
-import type { Container3D } from '@pixi/3d';
+import type { Container3D, ShadowFilter, ToneMapping } from '@pixi/3d';
 import { CLEAR, Color, Container, CubeTexture, Texture, autoDetectRenderer } from 'pixi.js';
 import type { ColorSource, Renderer, WebGPURenderer } from 'pixi.js';
 
 import { hasAnchorsIn, placeAnchors } from '../bridges/Anchor2D';
+import type { RootScene } from '../defaults/RootScene';
 import { VIEW_IN_LAYER_Z_INDEX, ensureScreen, layerOf, screenOf } from '../stage/screen';
 import { releaseBackdrop, updateBackdropColor } from './backdrop';
 import { ProxyCamera } from './ProxyCamera';
@@ -36,22 +37,6 @@ export interface PixiRendererParameters {
 }
 
 /**
- * three's `renderer.shadowMap`; r3f writes it from the `shadows` renderer setting
- * @category renderer
- * @standard
- */
-export interface PixiShadowMap {
-  /** Draw shadows at all; lights cast them only while this is on, as in three @default false */
-  enabled: boolean;
-  /** three's shadow map type constant (`PCFShadowMap`, ...), mapped to a pixi-3d `shadowFilter` @default 1 */
-  type: number;
-  /** Kept for three's shape; pixi-3d renders shadows every frame */
-  autoUpdate: boolean;
-  /** Kept for three's shape; pixi-3d renders shadows every frame */
-  needsUpdate: boolean;
-}
-
-/**
  * What the scene settings of a view are kept in: the view, what it is drawn from, and its last background
  * @category renderer
  * @advanced
@@ -66,8 +51,9 @@ export interface ViewSettings {
 }
 
 /**
- * A scene as the renderer reads it: a 3D root, with the background and environment r3f's
- * `<color attach="background">` and `<Environment>` set on it
+ * A scene as the renderer reads it: a 3D root, with the background, environment and fog set on it, by
+ * `<Canvas background>` and `scene` props, r3f's `<color attach="background">` and `<Environment>`, or
+ * the scene's own fields
  * @category renderer
  * @advanced
  */
@@ -76,6 +62,8 @@ export type RenderedScene = Container3D & {
   background?: unknown;
   /** What lights it */
   environment?: unknown;
+  /** The distance fog it is drawn with */
+  fog?: unknown;
 };
 
 /** A view drawn inside the 2D tree, which gets its scene's settings as it draws */
@@ -177,12 +165,17 @@ function destroyPixi(pixi: Renderer): void {
  * `EventSystem` is off; r3f's event layer handles 2D and 3D.
  *
  * A scene whose `background` is a colour clears the canvas to it before it draws, as three's does;
- * any other background that isn't a texture, such as pixi-3d's `Hemisphere`, becomes its view's. A 3D
- * package's renderer extends this one to read more of a scene: `@react-fiber/threejs-compat`'s draws
- * with three's tone mapping, output, shadows, lights, fog, environment and texture backgrounds
- * (`ThreeRenderer`), from the settings r3f's core writes here (`toneMapping`, `outputColorSpace`,
- * `shadowMap`), which this class keeps and leaves to it.
- * The canvas is transparent unless `alpha` is `false`, as in three.
+ * any other background that isn't a texture, such as pixi-3d's `Hemisphere`, becomes its view's.
+ * Every view draws with this renderer's {@link PixiRenderer#toneMapping | toneMapping},
+ * {@link PixiRenderer#exposure | exposure} and {@link PixiRenderer#shadowFilter | shadowFilter}, and
+ * with its scene's `fog` and `environment` ({@link RootScene}), under @pixi/3d's names and values: set
+ * them as `renderer` and `scene` props of `<Canvas>`, or on `state.renderer` and a scene while the root
+ * runs. They start at @pixi/3d's defaults, no tone curve, an exposure of 1, `'pcf'` shadows, no fog and
+ * no environment, and a view made after one was freed draws with them too. A 3D package's renderer
+ * extends this one to draw a scene its own way: `@react-fiber/threejs-compat`'s draws with three's
+ * tone mapping, output, shadows, lights, fog, environment and texture backgrounds (`ThreeRenderer`),
+ * from the settings r3f's core writes on it, in place of these. The canvas is transparent unless
+ * `alpha` is `false`, as in three.
  *
  * `setRenderTarget(target)` points the next renders at a {@link RenderTarget} (or a face of a
  * {@link WebGLCubeRenderTarget}) instead of the canvas, and `setViewport`, `setScissor` and
@@ -195,14 +188,18 @@ function destroyPixi(pixi: Renderer): void {
  * ```tsx
  * import { Canvas, useThree } from '@react-fiber/core';
  *
- * <Canvas renderer={{ preference: 'webgpu', antialias: false }}>
+ * <Canvas
+ *   renderer={{ preference: 'webgpu', toneMapping: 'aces', exposure: 1.2 }}
+ *   scene={{ fog: { type: 'exp2', color: '#9fb8d0', density: 0.08 } }}
+ * >
  *   <Scene />
  * </Canvas>;
  *
- * // Inside the canvas: the pixi.js renderer it holds, and the @pixi/3d view it draws a scene with
+ * // Inside the canvas: change a setting, and read the pixi.js renderer it holds and a scene's view
  * const { renderer, scene } = useThree();
- * const view = renderer.getView(scene);
- * console.log(renderer.pixi?.name, view?.camera);
+ * renderer.exposure = 1.5;
+ * scene.environment = { skyColor: '#bcd4ff', groundColor: '#5a4632' };
+ * console.log(renderer.pixi?.name, renderer.getView(scene)?.camera);
  * ```
  * @category renderer
  * @standard
@@ -220,14 +217,14 @@ export class PixiRenderer {
   public preference: 'webgl' | 'webgpu';
   /** Clear the canvas before each `render`, as three's `autoClear` @default true */
   public autoClear = true;
-  /** three's tone mapping constant, which r3f's core sets (`ACESFilmicToneMapping`) and a 3D package's renderer draws with @default NoToneMapping */
-  public toneMapping = 0;
-  /** Brightness before tone mapping, which r3f's core sets and a 3D package's renderer draws with @default 1 */
-  public toneMappingExposure = 1;
-  /** three's output colour space, which r3f's core sets and a 3D package's renderer draws with @default 'srgb' */
-  public outputColorSpace = 'srgb';
-  /** three's shadow map settings, which r3f's core writes from the `shadows` setting and a 3D package's renderer draws with */
-  public readonly shadowMap: PixiShadowMap = { enabled: false, type: 1, autoUpdate: true, needsUpdate: false };
+  /**
+   * Brightness before the tone curve, every view's `exposure`: 2 draws an unlit colour about 1.37
+   * times as bright. Free to change every frame.
+   * @default 1
+   */
+  public exposure: number = 1;
+  /** How soft the edges of shadows are, every view's `shadowFilter`: `'hard'`, `'pcf'` or `'pcf-high'` @default 'pcf' */
+  public shadowFilter: ShadowFilter = 'pcf';
   /**
    * Frames a scene can go undrawn before its view is freed. A frame ends when a scene is drawn a
    * second time, so a HUD that unmounts stops holding a view while the main scene keeps drawing.
@@ -235,6 +232,7 @@ export class PixiRenderer {
    */
   public viewMaxIdleFrames: number = 120;
 
+  private _toneMapping: ToneMapping = 'none';
   private readonly _antialias: boolean;
   private readonly _powerPreference: PixiRendererParameters['powerPreference'];
   private readonly _useBackBuffer: boolean;
@@ -306,6 +304,26 @@ export class PixiRenderer {
     });
     if (this.pixi.name === 'webgpu') this.backend = { isWebGPUBackend: true };
     return this;
+  }
+
+  /**
+   * The tone curve every view ends with, @pixi/3d's `ToneMapping`: `'none'`, the sRGB encode alone, so
+   * light past 1 clips; `'aces'`, `'reinhard'` or `'uncharted2'`, a filmic curve that rolls bright
+   * light off; or `'custom'`, raw linear light for a post effect that maps it itself. A change
+   * recompiles the materials, so don't change it every frame.
+   *
+   * Only those names are kept. r3f's core writes three's `ACESFilmicToneMapping` here when a root is
+   * first configured, which a root without `@react-fiber/threejs-compat` doesn't have, so the curve
+   * stays @pixi/3d's default. A renderer that extends this one may take other values:
+   * threejs-compat's `ThreeRenderer` takes three's constants.
+   * @default 'none'
+   */
+  public get toneMapping(): ToneMapping | number {
+    return this._toneMapping;
+  }
+
+  public set toneMapping(value: ToneMapping | number) {
+    if (typeof value === 'string') this._toneMapping = value;
   }
 
   /** Whether `init` has resolved */
@@ -391,9 +409,11 @@ export class PixiRenderer {
   /**
    * The view a scene is drawn through, made the first time the scene is drawn
    *
-   * For pixi-3d settings with no three counterpart: passes, environment, fog, culling. A view that
-   * was freed, because its scene went {@link PixiRenderer#viewMaxIdleFrames | viewMaxIdleFrames}
-   * frames undrawn, is made new on the scene's next draw without those settings.
+   * For pixi-3d settings the renderer and the scene don't hold: passes, culling, shadow quality,
+   * resolution. Its tone mapping, exposure, shadow filter, fog and environment are the renderer's and
+   * the scene's, given to it before every draw. A view that was freed, because its scene went
+   * {@link PixiRenderer#viewMaxIdleFrames | viewMaxIdleFrames} frames undrawn, is made new on the
+   * scene's next draw without the settings set here.
    * @param scene - A scene this renderer draws
    * @returns The scene's view, or `undefined` before its first `render` and after it is freed
    */
@@ -606,10 +626,11 @@ export class PixiRenderer {
 
   /**
    * Makes a view drawn inside the 2D tree, such as a `<View3D>`'s, draw its scene as `render` draws
-   * one: three's tone mapping and output, the scene's lights, fog, environment and background, and the
-   * 2D anchored to its 3D. Before each draw of a stage the view is in, they are applied, so the view
-   * draws wherever it is in the tree: on the canvas, or in a scene drawn into a target. A colour
-   * background fills the view's rect, under it in `stage`, since the view can't clear the canvas.
+   * one: with the renderer's tone mapping, exposure and shadow filter, its scene's fog, environment and
+   * background (three's lights and settings with threejs-compat), and the 2D anchored to its 3D. Before
+   * each draw of a stage the view is in, they are applied, so the view draws wherever it is in the
+   * tree: on the canvas, or in a scene drawn into a target. A colour background fills the view's rect,
+   * under it in `stage`, since the view can't clear the canvas.
    * @param view - The view, whose camera is in its scene
    * @param scene - The scene it draws, its `root`
    * @param stage - The container that holds the view, which backdrops go into under it
@@ -894,9 +915,9 @@ export class PixiRenderer {
   }
 
   /**
-   * Gives a view what it draws with before it draws: its alpha, and its scene's background when that is
-   * neither a colour nor a texture, such as pixi-3d's `Hemisphere`. A subclass adds its renderer
-   * settings, and calls this.
+   * Gives a view what it draws with before it draws: its alpha, its scene's background when that is
+   * neither a colour nor a texture, such as pixi-3d's `Hemisphere`, and the renderer's output
+   * ({@link PixiRenderer#_applyOutput | _applyOutput}). A subclass adds its own settings, and calls this.
    * @param entry - The view and its stage
    * @param _scene - The scene it draws
    * @param background - The scene's background
@@ -904,23 +925,41 @@ export class PixiRenderer {
   protected _applySettings(entry: ViewSettings, _scene: RenderedScene, background: unknown): void {
     const { view } = entry;
     applyViewAlpha(view);
-    if (background === undefined) return;
-    const viewBackground =
-      this._backgroundColor(background) !== null || background instanceof Texture || background instanceof CubeTexture
-        ? null
-        : background;
-    if (viewBackground !== entry.background) {
-      entry.background = viewBackground;
-      view.background = viewBackground as View3D['background'];
+    if (background !== undefined) {
+      const viewBackground =
+        this._backgroundColor(background) !== null || background instanceof Texture || background instanceof CubeTexture
+          ? null
+          : background;
+      if (viewBackground !== entry.background) {
+        entry.background = viewBackground;
+        view.background = viewBackground as View3D['background'];
+      }
     }
+    this._applyOutput(view);
   }
 
   /**
-   * What a subclass reads off the scene itself before its view draws, such as its lights and fog
-   * @param _entry - The view and its stage
-   * @param _scene - The scene
+   * Gives a view the renderer's tone mapping, exposure and shadow filter. A subclass draws with its own
+   * settings in their place.
+   * @param view - The view about to draw
    */
-  protected _applySceneSettings(_entry: ViewSettings, _scene: RenderedScene): void {}
+  protected _applyOutput(view: View3D): void {
+    view.toneMapping = this._toneMapping;
+    view.exposure = this.exposure;
+    view.shadowFilter = this.shadowFilter;
+  }
+
+  /**
+   * Gives a view what it reads off its scene before it draws, @pixi/3d's `fog` and `environment`
+   * ({@link RootScene}). A subclass reads its own instead, such as three's lights and fog.
+   * @param entry - The view and its stage
+   * @param scene - The scene
+   */
+  protected _applySceneSettings(entry: ViewSettings, scene: RenderedScene): void {
+    const { fog = null, environment = null } = scene as Partial<Pick<RootScene, 'fog' | 'environment'>>;
+    entry.view.fog = fog;
+    entry.view.environment = environment;
+  }
 
   /**
    * Puts back what {@link PixiRenderer#_applySceneSettings | _applySceneSettings} changed, once a view has drawn

@@ -1,5 +1,5 @@
 import { Camera3D, Container3D, Geometry3D } from '@pixi/3d';
-import type { Mesh3D, PhongMaterial } from '@pixi/3d';
+import type { Fog, Hemisphere, Mesh3D, PhongMaterial } from '@pixi/3d';
 import { RootPerspectiveCamera, RootRaycaster, RootScene, createRoot } from '@react-fiber/core';
 import type { ReconcilerRoot, RootState } from '@react-fiber/core';
 import { act } from 'react';
@@ -75,4 +75,41 @@ it('updates a mesh in place on re-render, and destroys it with its geometry and 
   expect(mesh.destroyed).toBe(true);
   expect(geometry._destroyed).toBe(true);
   expect(phong.destroyed).toBe(true);
+});
+
+// A picture can't show the setting a root reads back, nor which view drew it.
+it("keeps @pixi/3d's output defaults through r3f's first configure, and gives a view made after one was freed the settings", async () => {
+  const state = await mount(
+    <mesh3D>
+      <sphereGeometry3D />
+    </mesh3D>,
+  );
+  const { renderer, scene } = state;
+
+  expect(renderer.toneMapping).toBe('none');
+  expect(renderer.exposure).toBe(1);
+  expect(renderer.shadowFilter).toBe('pcf');
+  expect(scene.fog).toBeNull();
+  expect(scene.environment).toBeNull();
+
+  const fog: Fog = { type: 'exp2', color: '#a8c0d8', density: 0.1 };
+  const environment: Hemisphere = { skyColor: '#5d9cff', groundColor: '#7a4f24' };
+  renderer.toneMapping = 'aces';
+  renderer.exposure = 1.5;
+  renderer.shadowFilter = 'hard';
+  scene.fog = fog;
+  scene.environment = environment;
+  state.advance(performance.now());
+  const first = renderer.getView(scene)!;
+
+  renderer.releaseView(scene);
+  state.advance(performance.now() + 16);
+  const view = renderer.getView(scene)!;
+
+  expect(view).not.toBe(first);
+  expect(view.toneMapping).toBe('aces');
+  expect(view.exposure).toBe(1.5);
+  expect(view.shadowFilter).toBe('hard');
+  expect(view.fog).toBe(fog);
+  expect(view.environment).toBe(environment);
 });

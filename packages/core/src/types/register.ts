@@ -74,7 +74,7 @@ export interface Hit3D extends Omit<RaycastHit3D, 'target'> {
  */
 export interface RegisterDefaults {
   /** The class of a root's default scene, and of the scene a bridge draws */
-  Scene: typeof Container3D;
+  Scene: typeof RootScene;
   /** The class of a root's default camera */
   PerspectiveCamera: typeof Camera3D;
   /** The class of a root's camera with `orthographic` */

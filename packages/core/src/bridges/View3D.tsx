@@ -103,10 +103,11 @@ function SyncSize({ width, height }: { width: number; height: number }): null {
  *
  * Its children are the view's scene, rendered through r3f's `createPortal`, with its own camera and
  * `size`: `useThree` inside it gives that camera and the view's size, and `useFrame` runs as usual. The
- * view draws its scene as a `<Canvas>` draws one, with three's tone mapping and output, the scene's
- * lights, fog, environment and background (`<color attach="background">` fills the view's rect), and
- * 2D in it draws on its own screen layer over or, with a negative `zIndex`, under its 3D, as in a
- * Canvas. It draws in the same pass as the rest of the 2D, with no extra canvas or render target.
+ * view draws its scene as a `<Canvas>` draws one: with the renderer's tone mapping, exposure and shadow
+ * filter, the scene's lights, `fog`, `environment` and background (`attach` sets them from inside, and a
+ * colour background fills the view's rect), or three's settings with `@react-fiber/threejs-compat`. 2D
+ * in it draws on its own screen layer over or, with a negative `zIndex`, under its 3D, as in a Canvas.
+ * It draws in the same pass as the rest of the 2D, with no extra canvas or render target.
  *
  * Events reach its 3D and 2D through its own camera, at the place the view has in the 2D's draw order:
  * 2D over the view is hit first, and a mask or `hitArea` above it clips its hits. A click anywhere on

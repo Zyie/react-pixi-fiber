@@ -132,12 +132,7 @@ export type {
   Registered,
   RegisteredInstance,
 } from './types/register';
-export {
-  PixiRenderer,
-  type PixiRenderTarget,
-  type PixiRendererParameters,
-  type PixiShadowMap,
-} from './renderer/PixiRenderer';
+export { PixiRenderer, type PixiRenderTarget, type PixiRendererParameters } from './renderer/PixiRenderer';
 export { RootCamera } from './defaults/RootCamera';
 export { RootFrustum } from './defaults/RootFrustum';
 export { RootOrthographicCamera } from './defaults/RootOrthographicCamera';

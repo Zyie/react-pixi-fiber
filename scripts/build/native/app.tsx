@@ -16,9 +16,11 @@ function Spinner() {
   const mesh = useRef<Mesh3D>(null);
   const fov = useThree((state) => state.camera.fov);
 
-  useFrame(({ camera }, delta) => {
+  useFrame(({ camera, renderer, scene }, delta) => {
     mesh.current!.rotation.y += delta;
     camera.position.z = 6 + Math.sin(fov);
+    renderer.exposure = 1 + Math.sin(delta) * 0.1;
+    scene.environment ??= { skyColor: '#bcd4ff', groundColor: '#5a4632' };
   });
 
   return (
@@ -36,7 +38,11 @@ function Spinner() {
 
 function App() {
   return (
-    <Canvas camera={{ fov: 50, position: [0, 1, 6] }}>
+    <Canvas
+      camera={{ fov: 50, position: [0, 1, 6] }}
+      renderer={{ toneMapping: 'aces', shadowFilter: 'pcf-high' }}
+      scene={{ fog: { type: 'exp2', color: '#9fb8d0', density: 0.05 } }}
+    >
       <ambientLight3D intensity={0.3} />
       <directionalLight3D angle={[-35, 30, 0]} color="white" intensity={2} />
       <Spinner />
