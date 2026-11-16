@@ -79,8 +79,14 @@ function CanvasImpl({
   primary: _primary,
   share: _share,
   occlusion: _occlusion,
-  ...divProps
+  ...props
 }: CanvasProps): React.JSX.Element {
+  // Props v10 removed: kept off the <div> and handed to configure(), which throws naming the new API
+  const {
+    shadows: removedShadows,
+    primaryCanvas: removedPrimaryCanvas,
+    ...divProps
+  } = props as typeof props & { shadows?: unknown; primaryCanvas?: unknown };
   const Bridge = useBridge();
 
   const [hasInitialSize, setHasInitialSize] = React.useState(false);
@@ -148,6 +154,7 @@ function CanvasImpl({
         renderer,
         scene,
         events,
+        ...({ shadows: removedShadows, primaryCanvas: removedPrimaryCanvas } as {}),
         orthographic,
         frameloop,
         dpr,

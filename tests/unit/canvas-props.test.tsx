@@ -1,7 +1,8 @@
 import { Canvas, useFrame } from '@react-fiber/threejs-compat';
 import type { RootState } from '@react-fiber/threejs-compat';
 import { LinearSRGBColorSpace, NeutralToneMapping } from '@react-fiber/threejs-compat/three';
-import type { ComponentProps } from 'react';
+import { Component } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import { createRoot as createDomRoot } from 'react-dom/client';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
@@ -117,4 +118,38 @@ it('calls onPointerMissed for a click that hits nothing', async () => {
 
   await vi.waitFor(() => expect(missed).toHaveBeenCalled());
   expect(missed.mock.calls[0][0].type).toBe('click');
+});
+
+// An attribute on the wrapper and an error naming the new API show in no picture.
+it('keeps the shadows prop v10 removed off its <div> and fails naming the renderer setting, as r3f does', async () => {
+  let caught: unknown;
+
+  class Boundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+    public state = { failed: false };
+
+    public static getDerivedStateFromError(): { failed: boolean } {
+      return { failed: true };
+    }
+
+    public componentDidCatch(error: unknown): void {
+      caught = error;
+    }
+
+    public render(): ReactNode {
+      return this.state.failed ? null : this.props.children;
+    }
+  }
+
+  const removed = { shadows: true } as ComponentProps<typeof Canvas>;
+  const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+  dom.render(
+    <Boundary>
+      <Canvas {...removed} />
+    </Boundary>,
+  );
+
+  await vi.waitFor(() => expect(caught).toBeInstanceOf(Error), { timeout: 5000 });
+  expect((caught as Error).message).toContain('renderer={{ shadows }}');
+  expect(host.querySelector('[shadows]')).toBeNull();
+  error.mockRestore();
 });
