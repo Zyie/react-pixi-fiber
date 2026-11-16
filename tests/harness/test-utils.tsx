@@ -2,6 +2,7 @@ import { describe, expect, inject, test } from 'vitest';
 import { server } from 'vitest/browser';
 
 import type { FiberFamily } from '../../scripts/test/aliases.mts';
+import type { CompareResult } from '../../scripts/test/browser-commands.mts';
 import { markForCapture } from './capture';
 import { expectFailure, failsOn, skipReason, titleNote } from './expectations';
 import { playwrightPointers } from './playwright-input';
@@ -86,9 +87,15 @@ async function checkSceneReferences(
   // The wait gives the browser the time to put the frame on screen, which a WebGPU canvas needs.
   await new Promise((resolve) => setTimeout(resolve, scene.delay ?? 10));
 
-  const result = await server.commands.compareScreenshot(markForCapture(canvas), key, renderer, pixelMatch, {
-    parity: scene.parity === false ? false : { maxDiff: DEFAULT_PARITY_MAX_DIFF, ...scene.parity },
-  });
+  const result: CompareResult = await server.commands.compareScreenshot(
+    markForCapture(canvas),
+    key,
+    renderer,
+    pixelMatch,
+    {
+      parity: scene.parity === false ? false : { maxDiff: DEFAULT_PARITY_MAX_DIFF, ...scene.parity },
+    },
+  );
 
   if (!result.passed) {
     expect.fail(

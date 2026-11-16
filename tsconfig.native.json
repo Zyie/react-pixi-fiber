@@ -2,12 +2,9 @@
   // The folders the native vitest project runs, @react-fiber/3d's scenes and unit tests and the examples of
   // 3d's and core's guides, type-checked as an app on core, 2d and 3d sees them: without threejs-compat in
   // the program, whose `Register` would type a root's scene and renderer as three's. tsconfig.json leaves
-  // them out, and a tsconfig.json in each folder points an editor here.
+  // them out, and a tsconfig.json in each folder extends this one, so editors and oxlint's type-aware pass
+  // find it. scripts/test/check-programs.mts fails `npm run test:types` on a file neither config names, or both.
   "extends": "./tsconfig.json",
-  "compilerOptions": {
-    // The page and frame playwright gives the harness's browser commands, which vitest.config.ts brings in
-    "types": ["node", "@types/web", "vite/client", "@vitest/browser-playwright"]
-  },
   "include": [
     "tests/scenes/3d",
     "tests/unit/native",
@@ -17,9 +14,8 @@
     "examples/core",
     // The app on core, 2d and 3d alone that `npm run test:bundle` checks against dist, here against the sources
     "scripts/build/native/app.tsx",
-    // What the native project's pages install, and the browser commands a scene's test calls
-    "tests/harness/setup/native.ts",
-    "scripts/test/browser-commands.mts"
+    // What the native project's pages install, which types their elements
+    "tests/harness/setup/native.ts"
   ],
   "exclude": ["node_modules", "**/dist"]
 }

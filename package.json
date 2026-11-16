@@ -23,7 +23,7 @@
     "test:three": "vitest run --project three --browser.headless",
     "test:update": "vitest run --project three --project scenes --project native --project 2d --browser.headless --update=true",
     "test:unit": "vitest run --project unit --browser.headless",
-    "test:types": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.native.json && tsc --noEmit -p packages/core && tsc --noEmit -p packages/2d && tsc --noEmit -p packages/3d && tsc --noEmit -p packages/threejs-compat",
+    "test:types": "node scripts/test/check-programs.mts && tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.native.json && tsc --noEmit -p packages/core && tsc --noEmit -p packages/2d && tsc --noEmit -p packages/3d && tsc --noEmit -p packages/threejs-compat",
     "test:lint": "oxlint --deny-warnings --ignore-pattern=packages/docs/** && oxfmt --check && node scripts/r3f/fork.mts --check",
     "lint": "oxlint --fix && oxfmt --write",
     "docs:dev": "node packages/docs/scripts/site.mts dev",

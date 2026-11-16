@@ -21,7 +21,15 @@
       "@test-utils": ["./tests/harness/test-utils.tsx"]
     }
   },
-  "include": ["packages/*/src", "tests", "examples", "playground", "scripts", "*.config.ts"],
+  "include": [
+    "packages/*/src",
+    "packages/*/tsdown.config.ts",
+    "tests",
+    "examples",
+    "playground",
+    "scripts",
+    "*.config.ts"
+  ],
   // packages/r3f is type-checked through what core imports from it. Its own entries (index, legacy, webgpu)
   // each declare three's JSX elements, which would clash with ours. The docs site has its own tsconfig.json.
   // The native folders are tsconfig.native.json's: threejs-compat, in this program, registers three's
@@ -37,6 +45,7 @@
     "tests/docs/core",
     "examples/3d",
     "examples/core",
-    "scripts/build/native"
+    "scripts/build/native",
+    "tests/harness/setup/native.ts"
   ]
 }
