@@ -65,7 +65,6 @@ export const threeHooks: RendererHooks = {
   },
 
   dispose(object: any) {
-    // A THREE.Scene is never disposed, because three has broken its own API
-    if (object.type !== 'Scene' && typeof object.dispose === 'function') object.dispose()
+    if (typeof object.dispose === 'function') object.dispose()
   },
 }

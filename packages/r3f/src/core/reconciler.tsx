@@ -297,7 +297,10 @@ function removeChild(
 
   // Dispose object whenever the reconciler feels like it, through the renderer's support.
   // Never dispose of primitives because their state may be kept outside of React!
-  if (shouldDispose && child.type !== 'primitive') {
+  // In order for an object to be able to dispose it
+  //   - cannot be a <primitive object={...} />
+  //   - cannot be a THREE.Scene, because three has broken its own API
+  if (shouldDispose && child.type !== 'primitive' && child.object.type !== 'Scene') {
     disposeOnIdle(child.object, support)
   }
 

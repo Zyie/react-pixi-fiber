@@ -154,7 +154,7 @@ index 819a4d3..f433f4b 100644
    }, [portalScene, container, injectScene])
  
 diff --git a/packages/fiber/src/core/reconciler.tsx b/packages/fiber/src/core/reconciler.tsx
-index 4163218..8a84566 100644
+index 4163218..ddf6ad0 100644
 --- a/packages/fiber/src/core/reconciler.tsx
 +++ b/packages/fiber/src/core/reconciler.tsx
 @@ -25,7 +25,6 @@ import {
@@ -279,25 +279,24 @@ index 4163218..8a84566 100644
      removeInteractivity(findInitialRoot(child), child.object)
    }
  
-@@ -308,14 +295,10 @@ function removeChild(
+@@ -308,14 +295,13 @@ function removeChild(
    // Unlink instance object
    delete child.object.__r3f
  
 -  // Dispose object whenever the reconciler feels like it.
 +  // Dispose object whenever the reconciler feels like it, through the renderer's support.
    // Never dispose of primitives because their state may be kept outside of React!
--  // In order for an object to be able to dispose it
+   // In order for an object to be able to dispose it
 -  //   - has a dispose method
--  //   - cannot be a <primitive object={...} />
--  //   - cannot be a THREE.Scene, because three has broken its own API
--  if (shouldDispose && child.type !== 'primitive' && child.object.type !== 'Scene') {
+   //   - cannot be a <primitive object={...} />
+   //   - cannot be a THREE.Scene, because three has broken its own API
+   if (shouldDispose && child.type !== 'primitive' && child.object.type !== 'Scene') {
 -    disposeOnIdle(child.object)
-+  if (shouldDispose && child.type !== 'primitive') {
 +    disposeOnIdle(child.object, support)
    }
  
    // Tree was updated, request a frame for top-level instance (invalidateInstance would skip it, since
-@@ -356,19 +339,20 @@ function flushReconstructedInstances(): void {
+@@ -356,19 +342,20 @@ function flushReconstructedInstances(): void {
  function swapReconstructedInstances(): void {
    // Detach instance
    for (const [instance] of reconstructed) {
@@ -322,7 +321,7 @@ index 4163218..8a84566 100644
          }
        }
      }
-@@ -384,18 +368,19 @@ function swapReconstructedInstances(): void {
+@@ -384,18 +371,19 @@ function swapReconstructedInstances(): void {
      // the new object via swapInteractivity, and scrubbing it here would destroy exactly what that
      // transfer needs. Only orphans — instances with no parent, which the second loop skips — are
      // removed outright.
@@ -344,7 +343,7 @@ index 4163218..8a84566 100644
      const parent = instance.parent
      if (parent) {
        // Validated by createInstance, so the constructor is known to resolve
-@@ -411,7 +396,7 @@ function swapReconstructedInstances(): void {
+@@ -411,7 +399,7 @@ function swapReconstructedInstances(): void {
        // so a hover or an in-flight pointer capture survives the swap rather than being torn down
        // and rebuilt (#3744). This also retires the old object as a raycast target, which is the
        // job the first loop skipped for exactly this reason.
@@ -353,7 +352,7 @@ index 4163218..8a84566 100644
          swapInteractivity(findInitialRoot(instance), prevObject, instance.object)
        }
  
-@@ -431,15 +416,15 @@ function swapReconstructedInstances(): void {
+@@ -431,15 +419,15 @@ function swapReconstructedInstances(): void {
  
        if (instance.props.attach) {
          attach(parent, instance)
@@ -620,10 +619,10 @@ index c89c2fb..9572bc1 100644
    entry.handlers = handlers
 diff --git a/packages/fiber/src/support/threeHooks.ts b/packages/fiber/src/support/threeHooks.ts
 new file mode 100644
-index 0000000..643c7f3
+index 0000000..2e9478c
 --- /dev/null
 +++ b/packages/fiber/src/support/threeHooks.ts
-@@ -0,0 +1,71 @@
+@@ -0,0 +1,70 @@
 +/**
 + * @fileoverview The renderer hooks of three's supports (webgl.ts, webgpu.ts)
 + *
@@ -691,8 +690,7 @@ index 0000000..643c7f3
 +  },
 +
 +  dispose(object: any) {
-+    // A THREE.Scene is never disposed, because three has broken its own API
-+    if (object.type !== 'Scene' && typeof object.dispose === 'function') object.dispose()
++    if (typeof object.dispose === 'function') object.dispose()
 +  },
 +}
 diff --git a/packages/fiber/src/support/webgl.ts b/packages/fiber/src/support/webgl.ts

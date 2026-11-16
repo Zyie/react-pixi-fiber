@@ -11,7 +11,7 @@ react-pixi-fiber runs pixi.js 2D and `@pixi/3d` on this core with a support of i
 `@react-fiber/core` package bundles this core and gives roots a renderer support that the 2D and 3D
 packages fill.
 
-The whole change is [`fork.diff`](./fork.diff): <!-- diff-size -->16 files changed, 267 lines added, 127 lines removed<!-- /diff-size -->.
+The whole change is [`fork.diff`](./fork.diff): <!-- diff-size -->16 files changed, 265 lines added, 123 lines removed<!-- /diff-size -->.
 `npm run diff:r3f` writes it, and `npm run test:lint` fails when it is stale.
 
 ## The interface
@@ -81,7 +81,7 @@ spread. It imports nothing from three.
 | `applyProp(object, key, value)` | assigned a prop that no value rule (`set`, `copy`, `fromArray`, ...) took; reset a prop an update removed to the value a fresh instance holds; attached a child with `parent[key] = child`, into an array for `foo-0`, and on detach wrote back the value it replaced or deleted the key | `applyProps`, for each prop before it is resolved; `diffProps`, with `undefined` for each removed prop before its reset; `attach` and `detach`, for a string `attach` |
 | `hitTest(object, event, state)` | `object.updateWorldMatrix(true, true)`, then `state.raycaster.intersectObject(object, true)`                                                                                                                                                                                             | `intersect` in `core/events.ts`, for each object in `internal.interaction`                                                                                            |
 | `compareHits(a, b)`             | `a.distance - b.distance`                                                                                                                                                                                                                                                                | the hit sort in `intersect`, after `interactivePriority` and the roots' event priority                                                                                |
-| `dispose(object)`               | `object.dispose()` when it has one and isn't a `Scene`                                                                                                                                                                                                                                   | `removeChild`, `swapReconstructedInstances`                                                                                                                           |
+| `dispose(object)`               | `object.dispose()` when it has one                                                                                                                                                                                                                                                       | `removeChild`, unless the object is a `Scene`, as before; `swapReconstructedInstances`                                                                                |
 
 Why each one is needed:
 
@@ -113,9 +113,10 @@ Why each one is needed:
   nested layer's hits into a range of distances. Its support now orders hits by where they are drawn and
   leaves `distance` as the ray's.
 - **`dispose`.** How an object is freed is the renderer's: pixi frees with `destroy`. Core keeps when: at
-  idle priority, at once in an `act` environment, never for a primitive or under `dispose={null}`. Core
-  can't tell whether an object has anything to free, so it now schedules the hook for every removed
-  object, where it used to schedule only objects with a `dispose` method.
+  idle priority, at once in an `act` environment, never for a primitive, under `dispose={null}` or, in
+  `removeChild`, for a `Scene`, where upstream checks it too. Core can't tell whether an object has
+  anything to free, so it now schedules the hook for every removed object, where it used to schedule only
+  objects with a `dispose` method.
 
 ## Other changes
 
