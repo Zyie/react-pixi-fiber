@@ -105,9 +105,8 @@ export interface SupportParts {
   install?(): void;
 }
 
-/** An extension's `ref`, kept with its priority and name */
+/** An extension's `ref`, kept with its priority */
 interface Entry<T> {
-  readonly name: string | undefined;
   readonly priority: number;
   readonly ref: T;
 }
@@ -121,9 +120,9 @@ interface Entry<T> {
 function handleSorted<T>(type: ExtensionType, list: Entry<T>[], changed?: () => void): void {
   extensions.handle(
     type,
-    ({ name, priority = 0, ref }: ExtensionFormat) => {
+    ({ priority = 0, ref }: ExtensionFormat) => {
       if (list.some((entry) => entry.ref === ref)) return;
-      list.push({ name, priority, ref: ref as T });
+      list.push({ priority, ref: ref as T });
       list.sort((a, b) => b.priority - a.priority);
       changed?.();
     },
@@ -142,9 +141,11 @@ function handleSorted<T>(type: ExtensionType, list: Entry<T>[], changed?: () => 
  */
 export const objectHooks: ObjectHooks[] = [];
 
+const hooks: Entry<ObjectHooks>[] = [];
 const catalogs: Entry<Record<string, unknown>>[] = [];
 const parts: Entry<SupportParts>[] = [];
 const installed = new WeakSet<SupportParts>();
+
 /**
  * The classes JSX names resolve to: every package's, a higher priority package's replacing a lower one's
  * of the same name. The object stays the same as packages join, so a root that loaded it sees them all.
@@ -152,7 +153,10 @@ const installed = new WeakSet<SupportParts>();
  */
 export const catalog: Record<string, unknown> = {};
 
-extensions.handleByList(FiberExtensionType.Objects, objectHooks, 0);
+handleSorted(FiberExtensionType.Objects, hooks, () => {
+  objectHooks.length = 0;
+  for (const { ref } of hooks) objectHooks.push(ref);
+});
 handleSorted(FiberExtensionType.Catalog, catalogs, () => {
   for (const key of Object.keys(catalog)) delete catalog[key];
   for (let i = catalogs.length - 1; i >= 0; i--) Object.assign(catalog, catalogs[i].ref);
@@ -160,7 +164,7 @@ handleSorted(FiberExtensionType.Catalog, catalogs, () => {
 handleSorted(FiberExtensionType.Support, parts);
 
 /**
- * The hooks that own an object, the highest priority first
+ * The hooks of the highest priority package whose `test` takes an object
  * @param object - An element's object
  * @internal
  */

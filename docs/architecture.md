@@ -75,7 +75,7 @@ core knows no package above it. A package plugs in by registering with pixi.js's
 
 | Type      | `ref`                                                                       | What core does with it                                                                                                                              |
 | --------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Objects` | `ObjectHooks`: `test(object)` and any of the renderer hooks                 | Keeps them by priority (`handleByList`); the support asks the first whose `test` takes the object                                                   |
+| `Objects` | `ObjectHooks`: `test(object)` and any of the renderer hooks                 | Keeps them by priority; the support asks the first whose `test` takes the object                                                                    |
 | `Catalog` | classes by the PascalCase name of their element (`{ Sprite2D: Sprite }`)    | Merges them into `catalog`, one object a root's support holds as `catalog` and `three`, a higher priority's class replacing a lower one's of a name |
 | `Support` | `SupportParts`: `Renderer`, `RenderTarget`, `CubeRenderTarget`, `install()` | The highest priority package's renderer and targets are the support's; each `install` runs once, when the first root loads the support              |
 
