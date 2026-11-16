@@ -31,7 +31,6 @@ const screens = new WeakMap<Container3D, Container>();
 const screenScenes = new WeakMap<Container, Container3D>();
 const layers = new WeakMap<Container, Container>();
 const layerScreens = new WeakMap<Container, Container>();
-const watchedChildren = new WeakSet<Container[]>();
 const warned = new Set<string>();
 
 /**
@@ -78,13 +77,6 @@ export const layerOf = (screen: Container): Container | undefined => layers.get(
 export const isLayer3D = (container: object): boolean => layerScreens.has(container as Container);
 
 /**
- * The screen layer a 3D layer belongs to
- * @param layer - A 3D layer
- * @internal
- */
-export const screenOfLayer = (layer: Container): Container | undefined => layerScreens.get(layer);
-
-/**
  * The screen layer of a scene, made the first time it is asked for: a root's scene when the root is
  * created, any other scene when a 2D element first joins it. It sorts its children by zIndex. Its 3D
  * layer, at a zIndex just under 0, holds the scene's 3D view and the 2D anchored to the 3D. Both are
@@ -102,7 +94,6 @@ export function ensureScreen(scene: Container3D): Container {
   screenScenes.set(screen, scene);
   layers.set(screen, layer);
   layerScreens.set(layer, screen);
-  watchChildOrder(screen);
   scene.once('destroyed', () => releaseScreen(scene));
   return screen;
 }
@@ -133,31 +124,6 @@ export function warnOnce(message: string): void {
   if (warned.has(message)) return;
   warned.add(message);
   warn(message);
-}
-
-/**
- * Makes a container notice when r3f reorders its children by splicing `children` itself, as it does
- * when a keyed child moves: the container's render group rebuilds its draw order on the next frame.
- * pixi.js's own `addChildAt` and `removeChild` splice the same array and flag the same change.
- * @param container - A container elements are children of
- * @internal
- */
-export function watchChildOrder(container: Container): void {
-  const { children } = container;
-  if (watchedChildren.has(children)) return;
-  watchedChildren.add(children);
-  Object.defineProperty(children, 'splice', {
-    configurable: true,
-    writable: true,
-    value(this: Container[], ...args: Parameters<Container[]['splice']>) {
-      const removed = Array.prototype.splice.apply(this, args);
-      const renderGroup = container.renderGroup ?? container.parentRenderGroup;
-      if (renderGroup) renderGroup.structureDidChange = true;
-      if (container.sortableChildren) container.sortDirty = true;
-      container._didContainerChangeTick++;
-      return removed;
-    },
-  });
 }
 
 /**
@@ -193,7 +159,6 @@ export function indexByElementOrder<T>(list: readonly T[], child: Linked<T>): nu
  * @internal
  */
 export function addInElementOrder(parent: Container, child: Linked<Container>): void {
-  watchChildOrder(parent);
   const index = indexByElementOrder(parent.children, child);
   if (index === -1) parent.addChild(child);
   else parent.addChildAt(child, index);

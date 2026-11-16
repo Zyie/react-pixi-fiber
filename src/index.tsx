@@ -145,6 +145,7 @@ export {
   type PixiShadowMap,
 } from './renderer/PixiRenderer';
 export { pixiSupport, type PixiSupport } from './support/pixiSupport';
+export type { PixiHooks, SceneHit, SceneObject } from './support/hooks';
 export { AssetsLoader } from './two-d/AssetsLoader';
 export { useAsset } from './two-d/useAsset';
 export type * from './two-d/types';

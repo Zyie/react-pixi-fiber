@@ -7,25 +7,31 @@ import { registerRootExtension } from '../r3f/src/core/extensions';
 import { PixiRenderer } from '../renderer/PixiRenderer';
 import { releaseFrame2D, setupFrame2D } from '../two-d/frame';
 import { ensureScreen, releaseScreen } from '../two-d/screen';
-import { install2DDispatch, install2DSurface } from '../two-d/surface';
+import { install2DSurface } from '../two-d/surface';
 import type { RootState, RootStore } from '../types/state';
+import { pixiHooks } from './hooks';
+import type { PixiHooks } from './hooks';
 
 /**
- * pixi-3d as an r3f renderer support: what r3f's core loads when a root is configured
+ * pixi-3d and pixi.js 2D as an r3f renderer support: what r3f's core loads when a root is configured
  *
- * The same contract as r3f's `support/webgpu.ts`: the namespace JSX names and core's classes come
- * from, the renderer class, and the render target classes `useRenderTarget` and `<Environment>` make.
- * `kind` is `'pixi'`. Core's only branch on it tests for `'webgl'`, so a pixi root takes the path that
- * awaits the renderer's async `init()`, and the WebGL-only occlusion gate stays off. pixi.js can't
- * share a renderer between canvases, so there is no canvas target.
+ * The same contract as r3f's `support/webgpu.ts`: the classes core builds its own objects from, the
+ * namespace JSX names resolve in, the renderer class, the render target classes `useRenderTarget` and
+ * `<Environment>` make, and the hooks core calls where it reaches into the objects it draws (adding a
+ * child, hit testing, ordering hits, freeing). `kind` is `'pixi'`. Core's only branch on it tests for
+ * `'webgl'`, so a pixi root takes the path that awaits the renderer's async `init()`, and the
+ * WebGL-only occlusion gate stays off. pixi.js can't share a renderer between canvases, so there is no
+ * canvas target.
  * @category renderer
  * @advanced
  */
-export interface PixiSupport {
+export interface PixiSupport extends PixiHooks {
   /** Always `'pixi'` */
   kind: 'pixi';
-  /** The catalog: pixi-3d's classes plus the three-named ones */
+  /** The classes core builds the default raycaster, scene and camera from: the catalog */
   three: PixiCatalog;
+  /** The namespace JSX names resolve in: pixi-3d's classes plus the three-named ones */
+  catalog: PixiCatalog;
   /** The renderer r3f constructs */
   Renderer: typeof PixiRenderer;
   /** The target `useRenderTarget` makes */
@@ -44,8 +50,10 @@ export interface PixiSupport {
  * @advanced
  */
 export const pixiSupport: PixiSupport = {
+  ...pixiHooks,
   kind: 'pixi',
   three: catalog,
+  catalog,
   Renderer: PixiRenderer,
   RenderTarget: WebGLRenderTarget,
   CubeRenderTarget: WebGLCubeRenderTarget,
@@ -60,7 +68,6 @@ export const pixiSupport: PixiSupport = {
 const screenExtension = {
   name: 'react-pixi-fiber:screen',
   setup: (store: RootStore): Partial<RootState> => {
-    install2DDispatch();
     setupFrame2D(store);
     return { screen: ensureScreen(store.getState().scene) };
   },

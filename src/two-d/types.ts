@@ -29,8 +29,8 @@ import type { Properties } from '../types/utils';
 /**
  * A hit on a 2D element: r3f's intersection, with the 2D object and the pointer in 2D's spaces
  *
- * 2D hits sort by draw order, not by depth: one drawn over the 3D comes before every 3D hit, with a
- * negative `distance`, and one drawn under the 3D after them all.
+ * 2D hits sort by draw order, not by depth: one drawn over the 3D comes before every 3D hit, and one
+ * drawn under the 3D after them all. Its `distance` is 0.
  * @category events
  * @standard
  */

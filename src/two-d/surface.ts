@@ -1,10 +1,8 @@
-import type { Container3D } from '@pixi/3d';
 import {
   AnimatedSprite,
   BlurFilter,
   Color,
   Container,
-  FederatedEvent,
   Filter,
   Graphics,
   GraphicsContext,
@@ -13,22 +11,10 @@ import {
 } from 'pixi.js';
 import type { CacheAsTextureOptions, ColorSource, MaskOptionsAndMask, RenderLayer } from 'pixi.js';
 
-import type { Intersection } from '../compat/Raycaster';
 import { toDisplayColor } from '../math/Color';
 import type { Color as ThreeColor } from '../math/Color';
 import { clearCursorsUnder } from './cursor';
-import { raycastScreen } from './hitTest';
-import {
-  THREE_IN_2D,
-  addInElementOrder,
-  addToScene,
-  indexByElementOrder,
-  isLayer3D,
-  isNode3D,
-  screenOf,
-  screenOfLayer,
-  warnOnce,
-} from './screen';
+import { THREE_IN_2D, addInElementOrder, indexByElementOrder, isLayer3D, isNode3D, warnOnce } from './screen';
 import type { Linked } from './screen';
 
 /** What draws into a graphics or a context, as the `draw` prop */
@@ -46,7 +32,6 @@ const adoptedMasks = new WeakMap<Container, Container>();
 const particleIds = new WeakMap<Particle, number>();
 let nextParticleId = 0;
 let installed = false;
-let dispatchInstalled = false;
 
 /**
  * A particle's id, given the first time r3f asks for its `uuid`, since particles have no `uid`
@@ -103,34 +88,6 @@ function listProxy<T>(list: T[], onChange: () => void): T[] {
 }
 
 /**
- * Undoes r3f's insertion of a child before a sibling: r3f splices the child into its parent's
- * `children` and sets `parent` itself, then dispatches `{ type: 'added' }` on it. The child is taken
- * back out and added through the parent's own API, where its element is among its siblings. A 2D child
- * of a scene goes on the scene's screen layer, which keeps it as its child if it was there already.
- * @param child - The child r3f inserted
- * @param event - The plain event r3f dispatched
- */
-function reinsert(child: Linked<Container>, event: { type: string }): void {
-  const holder = child as { parent: Container | Container3D | null };
-  const parent = holder.parent;
-  if (event.type !== 'added' || !parent) return;
-  const index = (parent.children as unknown[]).indexOf(child);
-  if (index !== -1) parent.children.splice(index, 1);
-  if (isLayer3D(child)) {
-    holder.parent = screenOfLayer(child) ?? null;
-    return;
-  }
-  if (isNode3D(parent)) {
-    const screen = screenOf(parent);
-    holder.parent = screen?.children.includes(child) ? screen : null;
-    addToScene(parent, child);
-  } else {
-    holder.parent = null;
-    addInElementOrder(parent, child);
-  }
-}
-
-/**
  * Adds a particle to a particle container where its element is among its siblings
  * @param container - The particle container
  * @param particle - The particle
@@ -143,6 +100,38 @@ function addParticleInOrder(container: ParticleContainer, particle: Linked<Parti
   if (index === -1) particles.push(particle);
   else particles.splice(index, 0, particle);
   container.update();
+}
+
+/**
+ * Adds a child to a 2D container, or moves it, where its element is among its siblings: a particle to a
+ * particle container, any other 2D object to any container. A screen layer's 3D layer stays where it
+ * is, and a 3D object is left out with a warning.
+ * @param parent - The container
+ * @param child - The child's object
+ * @internal
+ */
+export function add2D(parent: Container, child: Linked<object>): void {
+  if (isLayer3D(child)) return;
+  if (child instanceof Particle) {
+    if (parent instanceof ParticleContainer) addParticleInOrder(parent, child);
+    else warnOnce('react-pixi-fiber: a <particle2D> must be inside a <particleContainer2D>.');
+  } else if (child instanceof Container) addInElementOrder(parent, child);
+  else if (isNode3D(child)) warnOnce(THREE_IN_2D);
+}
+
+/**
+ * Takes a child out of a 2D container, clearing the cursor it or anything under it set
+ * @param parent - The container
+ * @param child - The child's object
+ * @internal
+ */
+export function remove2D(parent: Container, child: object): void {
+  if (isLayer3D(child)) return;
+  if (child instanceof Particle && parent instanceof ParticleContainer) parent.removeParticle(child);
+  else if (child instanceof Container && child.parent === parent) {
+    clearCursorsUnder(child);
+    parent.removeChild(child);
+  }
 }
 
 /**
@@ -173,13 +162,12 @@ function runDraw<T extends Graphics | GraphicsContext>(target: T, draw: DrawCall
 }
 
 /**
- * Gives pixi.js's 2D classes what r3f's core needs of an element's object, so 2D elements join the same
- * reconciler and event system as the 3D ones. Run once, when the first root loads the support.
+ * Gives pixi.js's 2D classes what r3f's core and the pixi support's hooks read of an element's object,
+ * so 2D elements join the same reconciler and event system as the 3D ones. Run once, when the first
+ * root loads the support.
  *
- * - Every `Container` answers r3f's duck typing: `isObject3D`, a `uuid`, `add` and `remove` (which keep
- *   children in the order of their elements), `traverse`,
- *   `traverseAncestors`, `dispose` (`destroy`) and `raycast`, which hit tests the screen layer with
- *   pixi's `EventBoundary`.
+ * - Every `Container` answers r3f's duck typing: `isObject3D`, a `uuid`, `traverse`,
+ *   `traverseAncestors` and `dispose` (`destroy`).
  * - `filters` hands out a list that `attach="filters-0"` can write into and r3f's detach can delete
  *   from; every change sets the container's filters to the list without its gaps.
  * - `mask` reads `null` when there is none, so a detached mask element clears it, and a mask element
@@ -222,43 +210,6 @@ export function install2DSurface(): void {
         return `pixi2d-${this.uid}`;
       },
     },
-    add: {
-      configurable: true,
-      value(this: Container, ...objects: Linked<object>[]) {
-        for (const object of objects) {
-          if (isLayer3D(object)) continue;
-          if (object instanceof Particle) {
-            if (this instanceof ParticleContainer) addParticleInOrder(this, object);
-            else warnOnce('react-pixi-fiber: a <particle2D> must be inside a <particleContainer2D>.');
-          } else if (object instanceof Container) addInElementOrder(this, object);
-          else if (isNode3D(object)) warnOnce(THREE_IN_2D);
-        }
-        return this;
-      },
-    },
-    remove: {
-      configurable: true,
-      value(this: Container, ...objects: object[]) {
-        for (const object of objects) {
-          if (isLayer3D(object)) continue;
-          if (object instanceof Particle && this instanceof ParticleContainer) this.removeParticle(object);
-          else if (object instanceof Container && object.parent === this) {
-            clearCursorsUnder(object);
-            this.removeChild(object);
-          }
-        }
-        return this;
-      },
-    },
-    raycast: {
-      configurable: true,
-      writable: true,
-      value(this: Container, _raycaster: unknown, intersects: Intersection[]) {
-        raycastScreen(this, intersects);
-        return false;
-      },
-    },
-    updateWorldMatrix: { configurable: true, writable: true, value() {} },
     traverse: {
       configurable: true,
       writable: true,
@@ -408,28 +359,6 @@ export function install2DSurface(): void {
       this.blurXFilter.destroy();
       this.blurYFilter.destroy();
       this.destroy();
-    },
-  });
-}
-
-/**
- * Lets r3f's plain `{ type: 'added' }` event, which it dispatches on a child it inserted before a
- * sibling, through pixi's `dispatchEvent`, which takes only federated events: the child is moved where
- * its element is. pixi.js mixes its event members into `Container` when its renderer loads them, which
- * would replace a `dispatchEvent` set earlier, so this runs once a root's renderer exists.
- * @internal
- */
-export function install2DDispatch(): void {
-  if (dispatchInstalled) return;
-  dispatchInstalled = true;
-  const federatedDispatch = descriptorOf(Container.prototype, 'dispatchEvent').value as Container['dispatchEvent'];
-  Object.defineProperty(Container.prototype, 'dispatchEvent', {
-    configurable: true,
-    writable: true,
-    value(this: Linked<Container>, event: FederatedEvent | { type: string }) {
-      if (event instanceof FederatedEvent) return federatedDispatch.call(this, event);
-      reinsert(this, event);
-      return true;
     },
   });
 }

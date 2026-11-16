@@ -1,5 +1,5 @@
-import { Container3D, Matrix4, Mesh3D, Sphere } from '@pixi/3d';
-import type { BaseMaterial3D, Camera3D, Geometry3D, PointData3D } from '@pixi/3d';
+import { Matrix4, Mesh3D, Sphere } from '@pixi/3d';
+import type { BaseMaterial3D, Camera3D, Container3D, Geometry3D, PointData3D } from '@pixi/3d';
 import type { Attribute, PointData } from 'pixi.js';
 
 import { BackSide, DoubleSide, FrontSide } from '../catalog/constants';
@@ -80,44 +80,6 @@ export interface RaycasterParameters {
 const byDistance = (a: Intersection, b: Intersection): number => a.distance - b.distance;
 
 let casts = 0;
-
-/**
- * Where a layer drawn inside the 2D sorts among r3f's hits: from `base`, `span` wide in r3f's
- * `distance`. A `<View3D>` and a `<RenderTexture2D>` give their portal's raycaster one, so the hits of
- * their 2D and 3D sort where they are drawn.
- * @internal
- */
-export interface LayerSlot {
-  base: number;
-  span: number;
-}
-
-const slots = new WeakMap<Raycaster, LayerSlot>();
-
-/**
- * Gives a raycaster the slot its layer's hits sort in, or takes it away
- * @param raycaster - A portal's raycaster
- * @param base - Where the slot starts, in r3f's `distance`, or `null` for none
- * @param span - How wide it is
- * @internal
- */
-export function setLayerSlot(raycaster: Raycaster, base: number | null, span = 0): void {
-  if (base === null) {
-    slots.delete(raycaster);
-    return;
-  }
-  let slot = slots.get(raycaster);
-  if (!slot) slots.set(raycaster, (slot = { base, span }));
-  slot.base = base;
-  slot.span = span;
-}
-
-/**
- * The slot a raycaster's layer sorts in, if it has one
- * @param raycaster - The raycaster
- * @internal
- */
-export const layerSlotOf = (raycaster: Raycaster): LayerSlot | undefined => slots.get(raycaster);
 
 /**
  * How many times any raycaster has been pointed, by `set` or `setFromCamera`. Every pointer event points
@@ -234,9 +196,7 @@ export class Raycaster {
     recursive = true,
     intersects: Intersection<T>[] = [],
   ): Intersection<T>[] {
-    const from = intersects.length;
     this._intersect(object, recursive, intersects as Intersection[]);
-    this._toSlot(intersects as Intersection[], from);
     return intersects.sort(byDistance);
   }
 
@@ -252,31 +212,13 @@ export class Raycaster {
     recursive = true,
     intersects: Intersection<T>[] = [],
   ): Intersection<T>[] {
-    const from = intersects.length;
     for (let i = 0; i < objects.length; i++) this._intersect(objects[i], recursive, intersects as Intersection[]);
-    this._toSlot(intersects as Intersection[], from);
     return intersects.sort(byDistance);
   }
 
-  /**
-   * Moves the 3D hits of a layer drawn inside the 2D into its slot, keeping their order: the middle half
-   * of it, between the layer's 2D in front and its 2D behind
-   * @param intersects - The hits
-   * @param from - The first hit of this call
-   */
-  private _toSlot(intersects: Intersection[], from: number): void {
-    const slot = slots.get(this);
-    if (!slot) return;
-    for (let i = from; i < intersects.length; i++) {
-      const hit = intersects[i];
-      if (!(hit.object instanceof Container3D)) continue;
-      hit.distance = slot.base + slot.span * (0.25 + (0.5 * hit.distance) / (hit.distance + 1));
-    }
-  }
-
   private _intersect(object: Container3D, recursive: boolean, intersects: Intersection[]): void {
-    const stop = (object.raycast(this, intersects) as unknown) === false;
-    if (stop || !recursive) return;
+    object.raycast(this, intersects);
+    if (!recursive) return;
     const { children } = object;
     for (let i = 0; i < children.length; i++) this._intersect(children[i], true, intersects);
   }

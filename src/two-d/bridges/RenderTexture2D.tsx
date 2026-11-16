@@ -4,16 +4,15 @@ import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, 
 import type { JSX, ReactNode, Ref } from 'react';
 
 import { Scene } from '../../catalog/scene/Scene';
-import type { Raycaster } from '../../compat/Raycaster';
 import { useRenderTarget } from '../../environment/hooks/useRenderTarget';
 import type { RenderTargetOptions } from '../../environment/RenderTarget';
 import type { WebGLRenderTarget } from '../../environment/WebGLRenderTarget';
+import { IN_3D, drawOrder, layerOrderOf, setLayerOrder } from '../../events/hitOrder';
 import { useFrame as coreUseFrame } from '../../r3f/src/core/hooks/useFrame';
 import { createPortal as coreCreatePortal } from '../../r3f/src/core/portal';
 import type { Instance } from '../../types/elements';
 import type { DomEvent } from '../../types/events';
 import type { RootState, Size } from '../../types/state';
-import { slotAtHit } from '../hitTest';
 import { ensureScreen } from '../screen';
 
 type Compute = (event: DomEvent, state: RootState, previous?: RootState) => void;
@@ -171,7 +170,7 @@ export function RenderTexture2D({
       if (!hit?.uv) return;
       state.pointer.set(hit.uv.x * 2 - 1, hit.uv.y * 2 - 1);
       state.raycaster.setFromCamera(state.pointer, state.camera);
-      slotAtHit(state.raycaster as Raycaster, hit.distance);
+      setLayerOrder(state.raycaster, drawOrder(layerOrderOf(previous.raycaster), IN_3D, hit.distance));
     },
     [target],
   );

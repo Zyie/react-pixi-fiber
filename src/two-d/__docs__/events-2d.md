@@ -50,7 +50,7 @@ A handler gets r3f's event, with `object` and `eventObject` as pixi.js container
 - `local`: the pointer in the local space of the object that was hit.
 - `getLocalPosition(container)`: the pointer, as `global` has it now, in any container's space.
 
-2D hits sort before 3D ones by a negative `distance`; there is no `face` or `uv`.
+Hits sort by where they are drawn: 2D over the 3D before every 3D hit, 2D under it after them all. A 2D hit's `distance` is 0, and it has no `face` or `uv`.
 
 ## Dragging
 

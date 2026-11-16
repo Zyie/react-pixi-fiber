@@ -22,7 +22,7 @@ import { MATRIX4_MEMBERS, Matrix4 } from '../math/Matrix4';
 import { QUATERNION_MEMBERS, Quaternion, setQuaternionFromEuler } from '../math/Quaternion';
 import type { EulerLike } from '../math/Quaternion';
 import { VECTOR3_MEMBERS, Vector3 } from '../math/Vector3';
-import { THREE_IN_2D, addToScene, removeFromScene, warnOnce } from '../two-d/screen';
+import { addToScene, removeFromScene } from '../two-d/screen';
 import { cameraProjection, cameraProjectionInverse, cameraWorldInverse } from './cameraMatrices';
 import { installMaterialSurface } from './materialSurface';
 import { placeholderGeometry, placeholderMaterial } from './placeholders';
@@ -99,13 +99,8 @@ export interface Object3DMembers {
    */
   attach(object: Container3D): this;
   /**
-   * Dispatches a pixi federated event as a pixi.js `Container` does, and handles the plain event
-   * objects r3f sends as three's `EventDispatcher` would
-   *
-   * r3f inserts before a sibling by splicing the child into `parent.children`, setting `parent`
-   * itself, then dispatching `{ type: 'added' }`. On that event the child is spliced back out and
-   * re-added through `addChildAt`, so the view attaches it and pixi-3d's own events fire as for any
-   * add. Other plain events, such as r3f's `childadded`, have no listeners here and do nothing.
+   * Dispatches a pixi federated event as a pixi.js `Container` does; a plain event object, as three's
+   * `EventDispatcher` takes, has no listeners here and does nothing
    */
   dispatchEvent(event: { type: string }): void;
   /**
@@ -530,14 +525,6 @@ const object3D: Members<Object3DMembers & Container3D> = {
   dispatchEvent: {
     value(this: Container3D, event: { type: string }) {
       if (event instanceof FederatedEvent) return Container.prototype.dispatchEvent.call(this, event);
-      const parent = this.parent;
-      if (event.type !== 'added' || !parent) return;
-      const index = parent.children.indexOf(this);
-      if (index === -1) return;
-      parent.children.splice(index, 1);
-      this.parent = null;
-      if (parent instanceof Container3D) parent.addChildAt(this, index);
-      else warnOnce(THREE_IN_2D);
     },
   },
   getObjectById: {
