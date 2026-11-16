@@ -11,7 +11,7 @@ react-pixi-fiber runs pixi.js 2D and `@pixi/3d` on this core with a support of i
 `@react-fiber/core` package bundles this core and gives roots a renderer support that the 2D and 3D
 packages fill.
 
-The whole change is [`fork.diff`](./fork.diff): <!-- diff-size -->15 files changed, 373 lines added, 116 lines removed<!-- /diff-size -->.
+The whole change is [`fork.diff`](./fork.diff): <!-- diff-size -->15 files changed, 377 lines added, 116 lines removed<!-- /diff-size -->.
 `npm run diff:r3f` writes it, and `npm run test:lint` fails when it is stale.
 
 ## The interface
@@ -155,9 +155,12 @@ string`; `WebGLSupport` and `WebGPUSupport` extend it, and `RendererSupport` sta
   `core/extend.ts`). `three` stays what `registerThree` takes: the classes core builds its own raycaster,
   default scene and camera, pointer and frustum from. three passes its namespace for both. Another
   renderer can keep core's classes out of its JSX names.
-- **Supports written before the hooks keep working.** `initializeRenderer` fills a missing hook with
-  three's and a missing `catalog` with `three`, so a support without them, such as the hand-built mock in
-  `tests/webgl2-fallback-multicanvas.test.tsx`, runs as it did.
+- **Three's supports written before the hooks keep working.** For a support of kind `'webgl'` or
+  `'webgpu'`, `initializeRenderer` fills a missing hook with three's and a missing `catalog` with `three`,
+  so one without them, such as the hand-built mock in `tests/webgl2-fallback-multicanvas.test.tsx`, runs
+  as it did. Any other support is used as it is, the object the provider gave, so a support written as a
+  class keeps its methods, and one that leaves a hook out fails where core calls it rather than running
+  three's code on objects that aren't three's.
 - **Core keys objects itself.** Hover and capture entries, the visibility registry and a portal's key
   were keyed by `object.uuid`; they are now keyed by `getObjectId(object)` (`core/utils/objectId.ts`), a
   string core keeps per object in a `WeakMap`. three's keys were unique per object and so are these, so

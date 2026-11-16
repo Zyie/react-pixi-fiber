@@ -298,9 +298,13 @@ export function initializeRenderer<TCanvas extends HTMLCanvasElement | Offscreen
 
   if (!state.internal.actualRenderer) {
     return resolveThen(wantsGL ? webgl!() : webgpu!(), (loaded) => {
-      // Any support takes three's path for its slot: `webgpu` awaits the renderer's init(). One written
-      // before supports had a catalog and hooks gets three's, which is what core did before
-      const support = { ...threeHooks, ...loaded, catalog: loaded.catalog ?? loaded.three } as R3FRendererSupport
+      // Any support takes three's path for its slot: `webgpu` awaits the renderer's init(). One of three's
+      // written before supports had a catalog and hooks gets three's, which is what core did before
+      const support = (
+        loaded.kind === 'webgl' || loaded.kind === 'webgpu'
+          ? { ...threeHooks, ...loaded, catalog: loaded.catalog ?? loaded.three }
+          : loaded
+      ) as R3FRendererSupport
       registerThree(support.three)
       state.internal.support = support
       ensureStoreThreeObjects(store)
