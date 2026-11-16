@@ -4,7 +4,7 @@
 
 ## Textures
 
-`useTexture` gives a texture a `<sprite2D>` takes directly. It is three's `Texture` from `@react-fiber/threejs-compat/three`, which extends pixi's, so the same texture can be a sprite's and a material's:
+`useTexture` gives a texture a `<sprite2D>` takes directly: a pixi `Texture`, which pixi's `Assets` loads, so the same texture can be a sprite's and a @pixi/3d material's. With threejs-compat installed it is three's `Texture`, which extends pixi's, so a sprite still takes it:
 
 <!-- snippet: examples/2d/spritesheet.example.tsx#picture -->
 

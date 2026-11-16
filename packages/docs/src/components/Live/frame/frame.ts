@@ -1,4 +1,3 @@
-import { DefaultLoadingManager } from '@react-fiber/threejs-compat/three';
 /**
  * The module a live example's frame runs before the program: it reports the console and errors to the
  * page, tells the page once pixi has drawn a frame and with which renderer, registers the runtime's
@@ -155,12 +154,20 @@ function setPaused(pause: boolean): void {
   }
 }
 
+/** The import of threejs-compat in a program, which runs three's loaders */
+const COMPAT_IMPORT = /["']@react-fiber\/threejs-compat(?:\/[\w-]+)?["']/;
+
 /**
  * Has three's loaders (`TextureLoader`, `GLTFLoader`, ...) load the runtime's assets by the paths the
- * visual tests serve them at, `/textures/crate.png`, as pixi's `Assets` loads them by name
- * @param message - What the page sent, with the runtime's assets
+ * visual tests serve them at, `/textures/crate.png`, as pixi's `Assets` loads them by name. Only a
+ * program that imports threejs-compat loads it, so one that doesn't runs without three's names, as an
+ * app on `@react-fiber/2d` and `@react-fiber/3d` does.
+ * @param message - What the page sent, with the runtime's assets and the program
  */
-function serveAssets(message: RunMessage): void {
+async function serveAssets(message: RunMessage): Promise<void> {
+  if (!COMPAT_IMPORT.test(await message.program.text())) return;
+
+  const { DefaultLoadingManager } = await import('@react-fiber/threejs-compat/three');
   const files = new Map(message.assets.map(({ alias, file }) => [alias, new URL(file, document.baseURI).href]));
 
   DefaultLoadingManager.setURLModifier((url) => files.get(url.replace(/[?#].*$/, '').replace(/^\//, '')) ?? url);
@@ -183,7 +190,7 @@ export async function run(message: RunMessage, program: string): Promise<void> {
 
   try {
     Assets.add(message.assets.map(({ alias, file }) => ({ alias: [alias, `/${alias}`], src: file })));
-    serveAssets(message);
+    await serveAssets(message);
 
     const module = (await import(/* @vite-ignore */ program)) as Parameters<typeof mount>[0];
 

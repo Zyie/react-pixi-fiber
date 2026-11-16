@@ -8,10 +8,10 @@ import styles from './styles.module.css';
 
 /** Where a lost reader most likely wanted to go */
 const WAYS = [
-  { to: '/docs/', title: 'Docs', body: 'Install, a first scene and every tutorial' },
+  { to: '/docs/', title: 'Docs', body: 'The packages, a first scene and every guide' },
   { to: '/examples/', title: 'Examples', body: 'Every example, drawn by its visual test' },
   { to: '/api/', title: 'API', body: 'Every export, from its JSDoc' },
-  { to: '/docs/reference/differences/', title: 'Differences', body: 'What differs from react-three-fiber' },
+  { to: '/docs/threejs-compat/differences/', title: 'Differences', body: 'What differs from react-three-fiber' },
 ];
 
 /**

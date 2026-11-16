@@ -6,8 +6,9 @@
  */
 import type { SidebarsConfig } from '@docusaurus/plugin-content-docs';
 
+import { ENTRIES } from '../../typedoc/entries.mts';
 import type { GuideSection } from '../../typedoc/guides.mts';
-import { GUIDES, INTRODUCTION_ID, SECTIONS } from '../../typedoc/guides.mts';
+import { GUIDES, INTRODUCTION_ID, SECTION_PACKAGES, SECTIONS } from '../../typedoc/guides.mts';
 
 /** The id of the introduction, the page at `/docs/`, which the Getting started heading links */
 export const INTRODUCTION = 'docs/index';
@@ -15,12 +16,15 @@ export const INTRODUCTION = 'docs/index';
 /** The overview of each section but the first, whose overview is the introduction */
 export const SECTION_INDEX: Readonly<Record<GuideSection, string>> = {
   'getting-started': INTRODUCTION,
-  tutorials: 'docs/tutorials/index',
-  '3d': 'docs/3d/index',
+  core: 'docs/core/index',
   '2d': 'docs/2d/index',
-  reference: 'docs/reference/index',
-  advanced: 'docs/advanced/index',
+  '3d': 'docs/3d/index',
+  'threejs-compat': 'docs/threejs-compat/index',
+  r3f: 'docs/r3f/index',
 };
+
+/** The page of the r3f fork's diff against upstream, which the content generator writes from the diff itself */
+export const FORK_DIFF = { id: 'docs/r3f/diff', title: 'The diff against upstream', file: 'packages/r3f/fork.diff' };
 
 /**
  * The id of a guide's page
@@ -35,8 +39,8 @@ export function guidePage(id: string): string {
 }
 
 /**
- * The URL of a page of the Docs section: `docs/tutorials/basic-animations` is
- * `/docs/tutorials/basic-animations/`, and an index is its folder, `docs/tutorials/index` `/docs/tutorials/`
+ * The URL of a page of the Docs section: `docs/2d/sprites-2d` is `/docs/2d/sprites-2d/`, and an index
+ * is its folder, `docs/2d/index` `/docs/2d/`
  * @param id - The page's id
  */
 export function pageUrl(id: string): string {
@@ -44,9 +48,10 @@ export function pageUrl(id: string): string {
 }
 
 /** The page made from each doc of the repo that is one, by the doc's path from the repo root */
-const DOC_PAGES: ReadonlyMap<string, { readonly id: string; readonly title: string }> = new Map(
-  GUIDES.map(({ file, id, title }) => [file, { id: guidePage(id), title }] as const),
-);
+const DOC_PAGES: ReadonlyMap<string, { readonly id: string; readonly title: string }> = new Map([
+  ...GUIDES.map(({ file, id, title }) => [file, { id: guidePage(id), title }] as const),
+  [FORK_DIFF.file, FORK_DIFF] as const,
+]);
 
 /**
  * Where a link to a doc of the repo goes: the page made from it, at the anchor
@@ -71,9 +76,21 @@ export function titleOf(file: string): string | null {
 }
 
 /**
+ * The API reference of the entries of a section's package, the links its sidebar ends with
+ * @param section - The section
+ */
+function apiLinks(section: GuideSection): { type: 'link'; label: string; href: string }[] {
+  if (section === 'getting-started') return [];
+
+  const entries = ENTRIES.filter((entry) => entry.package === SECTION_PACKAGES[section] && entry.subpath === '.');
+
+  return entries.map((entry) => ({ type: 'link' as const, label: 'API reference', href: `/api/${entry.name}/` }));
+}
+
+/**
  * The Docs sidebar: a heading per section, always open, so every page is listed on every page. A
- * heading links the section's overview, which is what the breadcrumbs link too. The reference ends with
- * the API reference, which has a sidebar of its own.
+ * heading links the section's overview, which is what the breadcrumbs link too. A package's section
+ * ends with its API reference, which has a sidebar of its own, and the r3f fork's with its diff.
  */
 export const DOCS_SIDEBAR: SidebarsConfig[string] = (Object.keys(SECTIONS) as GuideSection[]).map((section) => ({
   type: 'category' as const,
@@ -85,6 +102,7 @@ export const DOCS_SIDEBAR: SidebarsConfig[string] = (Object.keys(SECTIONS) as Gu
     ...GUIDES.filter((guide) => guide.section === section && guide.id !== INTRODUCTION_ID).map(({ id }) =>
       guidePage(id),
     ),
-    ...(section === 'reference' ? [{ type: 'link' as const, label: 'API reference', href: '/api/' }] : []),
+    ...(section === 'r3f' ? [FORK_DIFF.id] : []),
+    ...apiLinks(section),
   ],
 }));

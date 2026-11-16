@@ -12,7 +12,7 @@ import { docNodes } from '../mdx.mts';
 function firstScene(names: Record<string, string> = {}): DocContext {
   return {
     source: 'packages/threejs-compat/src/__docs__/your-first-scene.md',
-    output: 'content/docs/getting-started/your-first-scene.mdx',
+    output: 'content/docs/threejs-compat/your-first-scene.mdx',
     names: new Map(Object.entries(names)),
   };
 }
@@ -68,8 +68,10 @@ await test("a snippet with no picture after it stays a code block, titled with i
 
 await test("a link to another guide goes to its page, read as its title where its text is the guide's file name", () => {
   assert.equal(
-    toMdx('See [installation.md](installation.md) and [the events](events-and-interaction.md#the-event-object).'),
-    'See [Installation](/docs/getting-started/installation/) and [the events](/docs/tutorials/events-and-interaction/#the-event-object).',
+    toMdx(
+      'See [installation.md](../../../core/src/__docs__/installation.md) and [the events](events-and-interaction.md#the-event-object).',
+    ),
+    'See [Installation](/docs/getting-started/installation/) and [the events](/docs/threejs-compat/events-and-interaction/#the-event-object).',
   );
 });
 

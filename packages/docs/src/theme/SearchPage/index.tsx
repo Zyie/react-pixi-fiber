@@ -26,16 +26,16 @@ const CONTEXT = 100;
 
 /** The pages a reader who hasn't typed yet is offered */
 const START_HERE: readonly { readonly label: string; readonly to: string; readonly about: string }[] = [
-  { label: 'Introduction', to: '/docs/', about: "react-three-fiber's API, rendered by pixi-3d" },
-  { label: 'Installation', to: '/docs/getting-started/installation/', about: 'Add it beside React and PixiJS' },
-  { label: 'Your first scene', to: '/docs/getting-started/your-first-scene/', about: 'Canvas, a mesh, lights, props' },
-  { label: 'Basic animations', to: '/docs/tutorials/basic-animations/', about: 'Refs and useFrame' },
-  { label: 'Events and interaction', to: '/docs/tutorials/events-and-interaction/', about: 'Clicks and hovers' },
+  { label: 'Introduction', to: '/docs/', about: "The packages, and react-three-fiber's API on pixi.js" },
   {
-    label: 'Differences from r3f',
-    to: '/docs/reference/differences/',
-    about: 'What carries over to pixi-3d, item by item',
+    label: 'Installation',
+    to: '/docs/getting-started/installation/',
+    about: 'Add the packages beside React and PixiJS',
   },
+  { label: 'Your first 2D scene', to: '/docs/2d/your-first-2d-scene/', about: 'Sprites, graphics and text' },
+  { label: 'Your first 3D scene', to: '/docs/3d/your-first-3d-scene/', about: "@pixi/3d's elements, lit" },
+  { label: 'Swap your three.js imports', to: '/docs/threejs-compat/swap-imports/', about: 'Run an r3f app' },
+  { label: 'Renderer hooks', to: '/docs/r3f/renderer-hooks/', about: "The r3f fork's interface" },
   { label: 'API reference', to: '/api/', about: 'Every name react-pixi-fiber exports' },
 ];
 

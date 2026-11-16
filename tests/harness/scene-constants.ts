@@ -42,12 +42,12 @@ export const PIXI_ONLY = {
 } as const satisfies { skip: { renderers: ['three']; reason: string }; parity: false };
 
 /**
- * The folders of keys whose scenes run without `@react-fiber/threejs-compat`: `tests/scenes/3d` and
- * `examples/3d`, @pixi/3d's elements from `@react-fiber/3d` with `@react-fiber/2d`. The `native` vitest
+ * The folders of keys whose scenes run without `@react-fiber/threejs-compat`: `tests/scenes/3d`,
+ * `examples/3d` and `examples/core`, @pixi/3d's elements from `@react-fiber/3d` with `@react-fiber/2d`. The `native` vitest
  * project runs them on a page where the compat package can't load, and the playground leaves it out of
  * their frames.
  */
-export const NATIVE_FOLDERS = ['3d', 'docs/3d'] as const;
+export const NATIVE_FOLDERS = ['3d', 'docs/3d', 'docs/core'] as const;
 
 /**
  * The folders of keys whose scenes and examples draw what three.js can't, pixi.js 2D or @pixi/3d's own

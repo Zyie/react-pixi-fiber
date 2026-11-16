@@ -9,11 +9,11 @@ interface TwoDFeature {
   readonly body: ReactNode;
   /** The guide, or the section of it, the card opens */
   readonly to: string;
-  /** The example in `examples/2d` whose picture the card shows */
+  /** The example whose picture the card shows, `<topic>/<name>` */
   readonly example: string;
 }
 
-const GUIDE = '/docs/2d/mixing-2d-and-3d/';
+const GUIDE = '/docs/core/mixing-2d-and-3d/';
 
 /** pixi.js 2D first, then the four bridges between 2D and 3D */
 const FEATURES: readonly TwoDFeature[] = [
@@ -26,7 +26,7 @@ const FEATURES: readonly TwoDFeature[] = [
       </>
     ),
     to: '/docs/2d/your-first-2d-scene/',
-    example: 'graphics',
+    example: '2d/graphics',
   },
   {
     title: 'Filters and masks',
@@ -37,7 +37,7 @@ const FEATURES: readonly TwoDFeature[] = [
       </>
     ),
     to: '/docs/2d/filters-and-masks-2d/',
-    example: 'filters',
+    example: '2d/filters',
   },
   {
     title: 'Labels that follow 3D',
@@ -47,7 +47,7 @@ const FEATURES: readonly TwoDFeature[] = [
       </>
     ),
     to: `${GUIDE}#2d-that-follows-3d`,
-    example: 'anchored-labels',
+    example: 'core/anchored-labels',
   },
   {
     title: '3D inside 2D',
@@ -57,7 +57,7 @@ const FEATURES: readonly TwoDFeature[] = [
       </>
     ),
     to: `${GUIDE}#3d-inside-2d`,
-    example: 'model-cards',
+    example: 'core/model-cards',
   },
   {
     title: '2D filters on the 3D',
@@ -68,7 +68,7 @@ const FEATURES: readonly TwoDFeature[] = [
       </>
     ),
     to: `${GUIDE}#the-3d-layer-as-a-2d-node`,
-    example: 'impact',
+    example: 'core/impact',
   },
   {
     title: '2D on a material',
@@ -78,7 +78,7 @@ const FEATURES: readonly TwoDFeature[] = [
       </>
     ),
     to: `${GUIDE}#2d-in-a-texture`,
-    example: 'screen-texture',
+    example: 'core/screen-texture',
   },
 ];
 
@@ -91,7 +91,7 @@ export default function TwoD(): ReactNode {
           <ExampleCard
             href={to}
             title={title}
-            thumbnail={{ src: `/example-pictures/2d/${example}.webp`, width: 400, height: 300 }}
+            thumbnail={{ src: `/example-pictures/${example}.webp`, width: 400, height: 300 }}
             className={styles.card}
           >
             <span className={styles.body}>{body}</span>

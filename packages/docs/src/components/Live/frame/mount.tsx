@@ -1,5 +1,5 @@
+import { Canvas } from '@react-fiber/core';
 import '@react-fiber/2d';
-import { Canvas } from '@react-fiber/threejs-compat';
 /**
  * Mounts an example in the live frame, as the visual tests mount it: the example's `render()` inside a
  * `<Canvas>` that fills the frame, or, when `render()` returns a `<Canvas>` of its own, that one. Either
@@ -8,7 +8,7 @@ import { Canvas } from '@react-fiber/threejs-compat';
  * the reference pictures and this must agree on what an example is; `docs/README.md` says where.
  */
 import { cloneElement, createElement, isValidElement } from 'react';
-import type { ComponentType, ReactElement, ReactNode } from 'react';
+import type { ComponentProps, ComponentType, ReactElement, ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import type { Renderer } from '../types';
@@ -17,7 +17,7 @@ import type { Renderer } from '../types';
 interface ExampleModule {
   readonly example?: {
     readonly render?: () => ReactNode;
-    readonly camera?: unknown;
+    readonly camera?: ComponentProps<typeof Canvas>['camera'];
     readonly canvas?: Readonly<{ renderer?: unknown } & Record<string, unknown>>;
   };
   readonly default?: ComponentType;

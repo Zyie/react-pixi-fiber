@@ -16,14 +16,14 @@ export default function Home(): ReactNode {
   const { siteConfig } = useDocusaurusContext();
 
   return (
-    <Layout title="react-three-fiber's API, rendered by pixi.js and pixi-3d" description={siteConfig.tagline}>
+    <Layout title="react-three-fiber's API, rendered by pixi.js and @pixi/3d" description={siteConfig.tagline}>
       <Hero />
       <main>
         <Section
-          id="features"
-          kicker="Why react-pixi-fiber"
-          title="Everything r3f does in React, on pixi-3d"
-          lead="The React side is react-three-fiber's own code. What changes is what it drives: pixi-3d objects under three's names."
+          id="packages"
+          kicker="The packages"
+          title="Pick the packages for what you draw"
+          lead="core is react-three-fiber's API on pixi.js. 2d and 3d add pixi's own classes as elements, and threejs-compat gives @pixi/3d three's names for an r3f app."
           className={styles.tinted}
         >
           <Features />
@@ -31,20 +31,23 @@ export default function Home(): ReactNode {
 
         <Section
           id="two-d"
-          kicker="pixi.js 2D"
+          kicker="2D and 3D"
           title="2D in the same tree, and across into the 3D"
-          lead="pixi.js's classes are elements too, drawn over or under the 3D with the same hooks and events. Four bridges cross between them."
+          lead="pixi.js's classes are elements beside @pixi/3d's, drawn over or under the 3D with the same hooks and events. Four bridges cross between them."
         >
           <TwoD />
           <div className={styles.links}>
             <Link className={styles.more} to="/docs/2d/your-first-2d-scene/">
               Your first 2D scene
             </Link>
-            <Link className={styles.more} to="/docs/2d/mixing-2d-and-3d/">
+            <Link className={styles.more} to="/docs/core/mixing-2d-and-3d/">
               Mixing 2D and 3D
             </Link>
             <Link className={styles.more} to="/examples/?topic=2d">
               The 2D examples
+            </Link>
+            <Link className={styles.more} to="/examples/?topic=core">
+              The 2D and 3D examples
             </Link>
           </div>
         </Section>
@@ -52,8 +55,8 @@ export default function Home(): ReactNode {
         <Section
           id="how-it-works"
           kicker="How it works"
-          title="r3f's core, a thin seam, pixi-3d"
-          lead="Four layers, and only one of them is new code."
+          title="r3f's core, the packages, PixiJS"
+          lead="react-three-fiber's core asks its renderer through eight hooks; core answers them for pixi, and each package for its own objects."
           className={styles.tinted}
         >
           <Layers />
@@ -69,8 +72,8 @@ export default function Home(): ReactNode {
                 Render your first scene
               </Heading>
               <p className={styles.ctaLead}>
-                Install it beside React and PixiJS, and write the scene you would write for react-three-fiber, with
-                pixi.js 2D beside it.
+                Install the packages beside React and PixiJS, and write 2D and 3D in one tree with
+                react-three-fiber&apos;s API.
               </p>
               <Install />
               <div className={styles.ctaActions}>

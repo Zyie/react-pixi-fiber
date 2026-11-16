@@ -11,38 +11,46 @@ const LAYERS: readonly {
   body: ReactNode;
 }[] = [
   {
-    name: 'Your scene',
+    name: 'Your app',
     owner: 'react',
     ownerLabel: 'React',
     body: (
       <>
-        <code>&lt;Canvas&gt;</code>, <code>&lt;mesh&gt;</code>, <code>useFrame</code>: written for react-three-fiber,
-        imported from <code>react-pixi-fiber</code>.
+        <code>&lt;Canvas&gt;</code>, <code>&lt;sprite2D&gt;</code>, <code>&lt;mesh3D&gt;</code> or three&apos;s{' '}
+        <code>&lt;mesh&gt;</code>, <code>useFrame</code>: react-three-fiber&apos;s API.
       </>
+    ),
+  },
+  {
+    name: '2d, 3d and threejs-compat',
+    owner: 'ours',
+    ownerLabel: 'packages',
+    body: (
+      <>
+        Each registers its elements and the hooks of the objects it owns with core, through pixi.js&apos;s{' '}
+        <code>extensions</code>.
+      </>
+    ),
+  },
+  {
+    name: 'core',
+    owner: 'ours',
+    ownerLabel: 'react-pixi-fiber',
+    body: (
+      <>The renderer support, the stage, hit order across 2D and 3D, a root&apos;s scene and camera, the bridges.</>
     ),
   },
   {
     name: 'react-three-fiber v10 core',
     owner: 'r3f',
     ownerLabel: 'r3f, forked',
-    body: <>Reconciler, store, frame loop, events, Canvas and loaders, with renderer hooks in a checked diff.</>,
+    body: <>Reconciler, store, frame loop, events, Canvas and loaders, with eight renderer hooks in a checked diff.</>,
   },
   {
-    name: 'Support, three-compat and aliases',
-    owner: 'ours',
-    ownerLabel: 'react-pixi-fiber',
-    body: (
-      <>
-        A pixi-3d renderer behind r3f&apos;s seam, three&apos;s object surface on pixi-3d objects, and three&apos;s JSX
-        names.
-      </>
-    ),
-  },
-  {
-    name: 'pixi-3d on PixiJS',
+    name: 'pixi.js and @pixi/3d',
     owner: 'pixi',
-    ownerLabel: 'pixi-3d',
-    body: <>Meshes, materials, lights and glTF, drawn with WebGL or WebGPU.</>,
+    ownerLabel: 'PixiJS',
+    body: <>2D, meshes, materials, lights and glTF, drawn with WebGL or WebGPU.</>,
   },
 ];
 
@@ -63,14 +71,14 @@ export default function Layers(): ReactNode {
       </ol>
       <div className={styles.aside}>
         <p>
-          Because r3f&apos;s core is copied rather than rewritten, it behaves as r3f does: the same event order, the
-          same Suspense, the same frame loop. Updating it is copying it again.
+          Because r3f&apos;s core is forked rather than rewritten, it behaves as r3f does: the same event order, the
+          same Suspense, the same frame loop. Its whole change is a diff of a few hundred lines.
         </p>
         <p>
-          What react-pixi-fiber writes is the thin layer that teaches that core to drive pixi-3d. Where pixi-3d differs
-          from three.js, the reference says so.
+          Core answers the fork&apos;s hooks for pixi, and asks the package that owns each object: 2d for
+          pixi.js&apos;s, 3d for @pixi/3d&apos;s. threejs-compat gives those same objects three&apos;s names.
         </p>
-        <Link to="/docs/reference/differences/">Read what differs from react-three-fiber</Link>
+        <Link to="/docs/r3f/">Read about the r3f fork</Link>
       </div>
     </div>
   );

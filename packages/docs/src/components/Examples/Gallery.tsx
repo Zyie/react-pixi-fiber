@@ -177,8 +177,8 @@ export default function Gallery(props: {
           No examples yet. Each one is a file in <code>examples/</code> that the visual tests draw; they show up here as
           they land.
         </p>
-        <Link className="button button--secondary" to="/docs/getting-started/your-first-scene/">
-          Start with your first scene
+        <Link className="button button--secondary" to="/docs/">
+          Start with the docs
         </Link>
       </div>
     );

@@ -33,7 +33,7 @@ const config: Config = {
   future: { v4: true, faster: { rspackPersistentCache: false } },
   customFields: {
     install: installable(
-      'npm install @react-fiber/threejs-compat @react-fiber/2d @react-fiber/core react react-dom pixi.js @pixi/3d',
+      'npm install @react-fiber/core @react-fiber/2d @react-fiber/3d react react-dom pixi.js @pixi/3d',
     ),
   },
   i18n: { defaultLocale: 'en', locales: ['en'] },
@@ -123,8 +123,14 @@ const config: Config = {
       hideOnScroll: false,
       items: [
         { type: 'docSidebar', sidebarId: 'docs', label: 'Docs', position: 'left' },
-        { to: '/docs/3d/', label: '3D', position: 'left', activeBaseRegex: '^/docs/3d/' },
         { to: '/docs/2d/', label: '2D', position: 'left', activeBaseRegex: '^/docs/2d/' },
+        { to: '/docs/3d/', label: '3D', position: 'left', activeBaseRegex: '^/docs/3d/' },
+        {
+          to: '/docs/threejs-compat/',
+          label: 'three.js compat',
+          position: 'left',
+          activeBaseRegex: '^/docs/threejs-compat/',
+        },
         { type: 'docSidebar', sidebarId: 'examples', label: 'Examples', position: 'left' },
         { type: 'docSidebar', sidebarId: 'api', label: 'API', position: 'left' },
         { type: 'search', position: 'right' },
@@ -140,12 +146,13 @@ const config: Config = {
           title: 'Learn',
           items: [
             { label: 'Docs', to: '/docs/' },
-            { label: '3D', to: '/docs/3d/' },
+            { label: 'Core', to: '/docs/core/' },
             { label: '2D', to: '/docs/2d/' },
-            { label: 'Mixing 2D and 3D', to: '/docs/2d/mixing-2d-and-3d/' },
+            { label: '3D', to: '/docs/3d/' },
+            { label: 'three.js compat', to: '/docs/threejs-compat/' },
+            { label: 'The r3f fork', to: '/docs/r3f/' },
             { label: 'Examples', to: '/examples/' },
             { label: 'API', to: '/api/' },
-            { label: 'Differences from r3f', to: '/docs/reference/differences/' },
           ],
         },
         {

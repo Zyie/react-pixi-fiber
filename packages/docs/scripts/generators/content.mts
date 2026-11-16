@@ -7,6 +7,9 @@
  * `content/sidebar.mts` says which pages there are and how the sidebar groups them; `content/mdx.mts`
  * turns a doc into the nodes of a page. Every page's "Edit this page" opens its source on GitHub.
  */
+import fs from 'node:fs';
+import path from 'node:path';
+
 import type { Nodes, PhrasingContent, Root } from 'mdast';
 import { visit } from 'unist-util-visit';
 
@@ -16,7 +19,7 @@ import { PACKAGE_SOURCES, ROOT } from '../paths.mts';
 import type { GeneratedFiles, Generator, Shared } from '../sync.mts';
 import { ENTRIES, packageName } from '../typedoc/entries.mts';
 import type { Guide, GuideSection } from '../typedoc/guides.mts';
-import { DIFFERENCES_ID, GUIDES, INTRODUCTION_ID, SECTIONS } from '../typedoc/guides.mts';
+import { DIFFERENCES_ID, GUIDES, INTRODUCTION_ID, SECTION_PACKAGES, SECTIONS } from '../typedoc/guides.mts';
 import { installable, PRERELEASE } from '../version.mts';
 import { apiLinks } from './api/model.mts';
 import { Cards, Lead, Status, TabItem, Tabs } from './components.mts';
@@ -24,7 +27,7 @@ import type { DocContext } from './content/mdx.mts';
 import { docNodes } from './content/mdx.mts';
 import type { Parity } from './content/parity.mts';
 import { FEASIBILITY, PARITY_CLASSES, readParity } from './content/parity.mts';
-import { guidePage, pageUrl, SECTION_INDEX } from './content/sidebar.mts';
+import { FORK_DIFF, guidePage, pageUrl, SECTION_INDEX } from './content/sidebar.mts';
 import type { Flow, Page } from './markdown.mts';
 import {
   code,
@@ -293,9 +296,19 @@ function guidePageOf(guide: Guide, sources: Sources, parity: Parity): Page {
   );
 }
 
+/** What each section's overview says first: what its package is */
+const SECTION_LEADS: Readonly<Record<Exclude<GuideSection, 'getting-started'>, string>> = {
+  core: "@react-fiber/core is react-three-fiber's API on pixi.js: <Canvas>, roots, the hooks and the events, the stage that draws 2D over and under the 3D, the frame loop, and the bridges between 2D and 3D. Every app has it, and the other packages plug into it.",
+  '2d': "@react-fiber/2d puts pixi.js 2D in the same canvas, tree, hooks and events as the 3D: sprites, graphics, text, filters and masks as elements, drawn over or under the 3D, with react-three-fiber's API and no change to pixi.js's classes.",
+  '3d': "@react-fiber/3d puts @pixi/3d's own classes in the tree as elements, under pixi's conventions: options objects, @pixi/3d's vectors and rotations and pixi colours, with react-three-fiber's hooks, events and loading, and nothing of three.js installed.",
+  'threejs-compat':
+    "@react-fiber/threejs-compat is the optional mixin that gives @pixi/3d's objects three.js's names and API, so a react-three-fiber app swaps its imports. These are react-three-fiber's own guides, running on @pixi/3d with the same code.",
+  r3f: "@react-fiber/r3f is react-three-fiber's core, forked so that it asks its renderer through eight hooks where it reached into three.js objects. Written for react-three-fiber's maintainers: the interface, each hook and why, the diff against upstream, and how r3f's own tests run on it.",
+};
+
 /**
  * The overview of a section, which its heading in the sidebar links: a card for each of its guides,
- * with what it covers, and for the reference, the API
+ * with what it covers, then its package's API reference, or for the r3f fork, its diff
  * @param section - The section
  * @param sources - The guides
  */
@@ -311,29 +324,87 @@ function sectionIndex(section: Exclude<GuideSection, 'getting-started'>, sources
       ...(count > 0 ? [text(' '), link(`/examples/?topic=${guide.id}`, examplesText(count))] : []),
     ];
   });
-  const leads: Record<typeof section, string> = {
-    tutorials:
-      "Step by step through react-three-fiber's tutorials, each running on pixi-3d with the same code. Every one assumes you know some React.",
-    '3d': "@pixi/3d's own classes as elements, under pixi's conventions: options objects, @pixi/3d's vectors and rotations and pixi colours, with react-three-fiber's hooks, events and loading, and no three.js names.",
-    '2d': "pixi.js 2D in the same canvas, tree, hooks and events as the 3D: sprites, graphics, text, filters and masks as elements, drawn over or under the 3D, with react-three-fiber's API, and bridges that put 2D on 3D objects, 3D inside 2D and 2D filters on the 3D.",
-    reference:
-      'What differs from react-three-fiber, item by item, and every name react-pixi-fiber exports, read from its source and JSDoc.',
-    advanced: 'Keeping scenes fast as they grow: rendering on demand, sharing resources and instancing, on pixi-3d.',
-  };
+  const pkg = SECTION_PACKAGES[section];
+  const entries = ENTRIES.filter((entry) => entry.package === pkg);
+  const topic = sources.exampleCounts.get(section) ?? 0;
 
-  if (section === 'reference') {
+  if (section === 'r3f') {
     items.push([
-      link('/api/', 'API reference'),
-      text(
-        ' Every export of react-pixi-fiber, from its JSDoc, with its types: the hooks, the components and the types.',
-      ),
+      link(pageUrl(FORK_DIFF.id), FORK_DIFF.title),
+      text(' Every line the fork changes, file by file, as git apply takes it in the repository of react-three-fiber.'),
+    ]);
+  }
+  if (topic > 0) {
+    items.push([
+      link(`/examples/?topic=${section}`, `The ${SECTIONS[section]} examples`),
+      text(` The ${examplesText(topic)} of the package, each drawn by its visual test and runnable in the page.`),
+    ]);
+  }
+  for (const entry of entries) {
+    items.push([
+      link(`/api/${entry.name}/`, `${packageName(entry)} API`),
+      text(' Every export of the entry, from its JSDoc, with its types.'),
     ]);
   }
 
-  return page(SECTION_INDEX[section], { title, description: leads[section], custom_edit_url: null }, [
+  return page(SECTION_INDEX[section], { title, description: SECTION_LEADS[section], custom_edit_url: null }, [
     heading(1, title),
-    Lead({}, [paragraph(leads[section])]),
+    Lead({}, [paragraph(SECTION_LEADS[section])]),
     cards(`${title} pages`, items),
+  ]);
+}
+
+/**
+ * The fork's diff against upstream as a page of the r3f section: how big it is, each file with what it
+ * adds and removes, then each file's hunks, read from `packages/r3f/fork.diff`
+ * @param readme - The fork's README, whose size line and upstream commit the page repeats
+ */
+function forkDiffPage(readme: string): Page {
+  const diff = fs.readFileSync(path.join(ROOT, FORK_DIFF.file), 'utf8');
+  const files = diff
+    .split(/^(?=diff --git )/m)
+    .filter((part) => part.startsWith('diff --git '))
+    .map((part) => {
+      const name = /^diff --git a\/(\S+)/.exec(part)![1]!;
+      const lines = part.split('\n');
+      const added = lines.filter((line) => line.startsWith('+') && !line.startsWith('+++')).length;
+      const removed = lines.filter((line) => line.startsWith('-') && !line.startsWith('---')).length;
+
+      return { name, added, removed, body: part.trimEnd() };
+    });
+  const commit = /commit `([0-9a-f]{40})`/.exec(readme)?.[1] ?? '';
+  const size = /<!-- diff-size -->(.*?)<!-- \/diff-size -->/.exec(readme)?.[1] ?? '';
+  const lead = `The whole of the fork's change to react-three-fiber's packages/fiber at ${commit.slice(0, 7)}: ${size}. npm run diff:r3f writes it, npm run test:lint fails when it is stale, and git apply takes it in packages/fiber of a clone of r3f at that commit.`;
+
+  return page(FORK_DIFF.id, { title: FORK_DIFF.title, description: describe(lead), custom_edit_url: null }, [
+    heading(1, FORK_DIFF.title),
+    Lead({}, [
+      paragraph(
+        "The whole of the fork's change to react-three-fiber's ",
+        inlineCode('packages/fiber'),
+        ' at ',
+        link(
+          `https://github.com/pmndrs/react-three-fiber/tree/${commit}/packages/fiber`,
+          inlineCode(commit.slice(0, 7)),
+        ),
+        `: ${size}. `,
+        inlineCode('npm run diff:r3f'),
+        ' writes it, ',
+        inlineCode('npm run test:lint'),
+        ' fails when it is stale, and ',
+        inlineCode('git apply'),
+        ' takes it in ',
+        inlineCode('packages/fiber'),
+        ' of a clone of r3f at that commit. ',
+        link(pageUrl(guidePage('renderer-hooks')), 'Renderer hooks'),
+        ' says what each change is for.',
+      ),
+    ]),
+    table(
+      ['File', 'Added', 'Removed'],
+      files.map(({ name, added, removed }) => [[inlineCode(name)], [text(`${added}`)], [text(`${removed}`)]]),
+    ),
+    ...files.flatMap(({ name, body }) => [heading(2, name), code(body, 'diff')]),
   ]);
 }
 
@@ -372,11 +443,8 @@ export function docsPages(shared: Shared): readonly Page[] {
 
   return [
     ...GUIDES.map((guide) => guidePageOf(guide, sources, parity)),
-    sectionIndex('tutorials', sources),
-    sectionIndex('3d', sources),
-    sectionIndex('2d', sources),
-    sectionIndex('reference', sources),
-    sectionIndex('advanced', sources),
+    ...(Object.keys(SECTION_LEADS) as (keyof typeof SECTION_LEADS)[]).map((section) => sectionIndex(section, sources)),
+    forkDiffPage(fs.readFileSync(path.join(ROOT, 'packages/r3f/README.md'), 'utf8')),
   ];
 }
 
@@ -384,6 +452,14 @@ export function docsPages(shared: Shared): readonly Page[] {
 export const content: Generator = {
   name: 'content',
   outputs: ['content/docs', 'llms/docs'],
-  sources: [...PACKAGE_SOURCES, 'examples', 'package.json', FEASIBILITY, 'packages/docs/scripts/typedoc'],
+  sources: [
+    ...PACKAGE_SOURCES,
+    'examples',
+    'package.json',
+    FEASIBILITY,
+    'packages/docs/scripts/typedoc',
+    'packages/r3f/README.md',
+    FORK_DIFF.file,
+  ],
   generate: (shared) => Object.assign({}, ...shared(docsPages).map(writePage)) as GeneratedFiles,
 };

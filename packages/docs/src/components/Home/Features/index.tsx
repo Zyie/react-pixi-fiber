@@ -9,27 +9,62 @@ interface GuideLink {
   readonly to: string;
 }
 
-/** What react-pixi-fiber promises, each with an icon of 24 by 24 drawn in strokes and the guides about it */
+/** The packages, each with an icon of 24 by 24 drawn in strokes, what it is and the guides about it */
 const FEATURES: readonly { title: string; icon: ReactNode; body: ReactNode; guides: readonly GuideLink[] }[] = [
   {
-    title: "r3f's own core",
+    title: '@react-fiber/core',
     icon: (
       <>
         <rect x="4" y="4" width="16" height="16" rx="3" />
-        <path d="M9 12l2 2 4-4" />
+        <path d="M9 12h6M12 9v6" />
       </>
     ),
     body: (
       <>
-        The reconciler, the store, the frame loop, the events and <code>&lt;Canvas&gt;</code> are react-three-fiber
-        v10&apos;s own code, forked with a small, checked diff that adds renderer hooks; r3f&apos;s own tests pass on
-        it.
+        <code>&lt;Canvas&gt;</code>, roots, <code>useFrame</code>, <code>useThree</code> and the events, the stage that
+        draws 2D over and under 3D, and the bridges between them. Every app has it.
       </>
     ),
-    guides: [{ label: 'How it works', to: '/docs/#how-does-it-work' }],
+    guides: [
+      { label: 'Canvas and roots', to: '/docs/core/canvas-and-roots/' },
+      { label: 'Events across 2D and 3D', to: '/docs/core/events-2d-and-3d/' },
+    ],
   },
   {
-    title: "three's names in JSX",
+    title: '@react-fiber/2d',
+    icon: (
+      <>
+        <rect x="4" y="6" width="10" height="10" rx="1.5" />
+        <circle cx="16" cy="14" r="4" />
+      </>
+    ),
+    body: (
+      <>
+        pixi.js&apos;s classes as elements: <code>&lt;sprite2D&gt;</code>, <code>&lt;graphics2D&gt;</code>,{' '}
+        <code>&lt;text2D&gt;</code>, filters and masks, with pixi&apos;s own options and no change to its classes.
+      </>
+    ),
+    guides: [{ label: 'Your first 2D scene', to: '/docs/2d/your-first-2d-scene/' }],
+  },
+  {
+    title: '@react-fiber/3d',
+    icon: (
+      <>
+        <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z" />
+        <path d="M12 12l8-4.5M12 12v9M12 12L4 7.5" opacity="0.6" />
+      </>
+    ),
+    body: (
+      <>
+        @pixi/3d&apos;s classes as elements under pixi&apos;s conventions: <code>&lt;mesh3D&gt;</code>,{' '}
+        <code>&lt;sphereGeometry3D&gt;</code>, <code>&lt;phongMaterial3D&gt;</code>, options objects as{' '}
+        <code>args</code>.
+      </>
+    ),
+    guides: [{ label: 'Your first 3D scene', to: '/docs/3d/your-first-3d-scene/' }],
+  },
+  {
+    title: '@react-fiber/threejs-compat',
     icon: (
       <>
         <path d="M8 7l-5 5 5 5M16 7l5 5-5 5" />
@@ -38,15 +73,17 @@ const FEATURES: readonly { title: string; icon: ReactNode; body: ReactNode; guid
     ),
     body: (
       <>
-        <code>&lt;mesh&gt;</code>, <code>&lt;boxGeometry&gt;</code> and <code>&lt;meshStandardMaterial&gt;</code> are
-        pixi-3d objects with three&apos;s arguments and props, so <code>args</code> and <code>color</code> mean what
-        they mean in three.js.
+        Optional: three.js&apos;s names and API over @pixi/3d, <code>&lt;mesh&gt;</code> and{' '}
+        <code>&lt;meshStandardMaterial&gt;</code> included, so a react-three-fiber app swaps its imports.
       </>
     ),
-    guides: [{ label: 'Your first scene', to: '/docs/getting-started/your-first-scene/' }],
+    guides: [
+      { label: 'Swap your imports', to: '/docs/threejs-compat/swap-imports/' },
+      { label: 'Differences from r3f', to: '/docs/threejs-compat/differences/' },
+    ],
   },
   {
-    title: 'Hooks you already know',
+    title: '@react-fiber/r3f',
     icon: (
       <>
         <circle cx="12" cy="12" r="9" />
@@ -55,66 +92,18 @@ const FEATURES: readonly { title: string; icon: ReactNode; body: ReactNode; guid
     ),
     body: (
       <>
-        <code>useFrame</code>, <code>useThree</code>, <code>useLoader</code> and Suspense, <code>invalidate</code> and{' '}
-        <code>advance</code> run as r3f runs them, because they are r3f.
-      </>
-    ),
-    guides: [{ label: 'Basic animations', to: '/docs/tutorials/basic-animations/' }],
-  },
-  {
-    title: 'Events that bubble',
-    icon: (
-      <>
-        <path d="M5 3l6 16 2.5-6.5L20 10z" />
-      </>
-    ),
-    body: (
-      <>
-        <code>onClick</code>, <code>onPointerOver</code> and the rest dispatch through r3f&apos;s event system, on hits
-        from pixi-3d&apos;s ray casts against each mesh&apos;s geometry.
-      </>
-    ),
-    guides: [{ label: 'Events and interaction', to: '/docs/tutorials/events-and-interaction/' }],
-  },
-  {
-    title: 'WebGL and WebGPU',
-    icon: (
-      <>
-        <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z" />
-        <path d="M12 12l8-4.5M12 12v9M12 12L4 7.5" />
-      </>
-    ),
-    body: (
-      <>
-        PixiJS picks the renderer and pixi-3d draws through it: physically based materials, shadows, image-based light
-        and glTF models.
+        react-three-fiber v10&apos;s own core, forked so it asks its renderer through eight hooks, in a checked diff
+        that r3f&apos;s own tests pass on.
       </>
     ),
     guides: [
-      { label: 'Loading models', to: '/docs/tutorials/loading-models/' },
-      { label: 'Loading textures', to: '/docs/tutorials/loading-textures/' },
+      { label: 'Renderer hooks', to: '/docs/r3f/renderer-hooks/' },
+      { label: 'The diff', to: '/docs/r3f/diff/' },
     ],
-  },
-  {
-    title: 'Parity, measured',
-    icon: (
-      <>
-        <rect x="3" y="5" width="8" height="14" rx="2" />
-        <rect x="13" y="5" width="8" height="14" rx="2" />
-        <path d="M7 9v6M17 9v6" opacity="0.6" />
-      </>
-    ),
-    body: (
-      <>
-        A scene names only the package, so the same file renders through real three.js too. Every difference is written
-        down, item by item.
-      </>
-    ),
-    guides: [{ label: 'Differences from r3f', to: '/docs/reference/differences/' }],
   },
 ];
 
-/** What the library promises, as a grid of cards */
+/** The packages, as a grid of cards */
 export default function Features(): ReactNode {
   return (
     <ul className={styles.grid}>

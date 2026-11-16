@@ -69,7 +69,7 @@ function Scene() {
 > [!NOTE]
 > Everything loaded with `useLoader` is cached by its URL.
 
-Loading the same URL anywhere in the tree gives back the same asset, so a model loaded in several components is one model in memory. [Loading models and textures](../../../../src/__docs__/loading-models-and-textures.md) has more.
+Loading the same URL anywhere in the tree gives back the same asset, so a model loaded in several components is one model in memory. [Loading models](loading-models.md) has more.
 
 ## Instancing
 

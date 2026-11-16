@@ -20,7 +20,7 @@ import type { GeneratedFiles, Generator, Shared } from '../sync.mts';
 import type { ApiCallable, ApiDoc, ApiEntry, ApiMember, ApiSymbol } from '../typedoc/api.mts';
 import { ENTRIES, entryFile, isVendored, MAIN, packageName } from '../typedoc/entries.mts';
 import type { Entry, EntryName } from '../typedoc/entries.mts';
-import { GUIDES } from '../typedoc/guides.mts';
+import { GUIDES, SECTION_PACKAGES } from '../typedoc/guides.mts';
 import type { ApiModel, SymbolPage } from './api/model.mts';
 import { apiModel, AUGMENTS, KINDS } from './api/model.mts';
 import { ApiBadge, ApiCode, ApiEntries, ApiField, ApiFields, ApiMeta, ApiUsage } from './components.mts';
@@ -577,7 +577,9 @@ function entryPage(site: Site, api: ApiEntry): Page {
   const file = entryFile(entry, ROOT);
   const writer = writerOf(linkerOf(site, entry, null), file, `${OUT}/${entry.name}/index.mdx`);
   const examples = site.usage.examples.get(route) ?? [];
-  const guides = GUIDES.filter((guide) => guide.section !== 'reference').map((guide) => ({
+  const guides = GUIDES.filter(
+    (guide) => guide.section !== 'getting-started' && SECTION_PACKAGES[guide.section] === entry.package,
+  ).map((guide) => ({
     title: guide.title,
     href: pageUrl(guidePage(guide.id)),
     sections: [],

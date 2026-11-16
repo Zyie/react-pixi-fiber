@@ -101,8 +101,9 @@ export default function Swap(): ReactNode {
         </div>
       </div>
       <figcaption className={styles.note}>
-        Swap the import; the scene stays as written. The visual tests hold every scene to three.js&apos;s picture of it,
-        and <Link to="/docs/reference/differences/">the reference</Link> tracks what still differs.
+        With <Link to="/docs/threejs-compat/">threejs-compat</Link>, swap the import and the scene stays as written. The
+        visual tests hold every scene to three.js&apos;s picture of it, and{' '}
+        <Link to="/docs/threejs-compat/differences/">the differences</Link> list what still differs.
       </figcaption>
     </figure>
   );

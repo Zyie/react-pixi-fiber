@@ -4,8 +4,11 @@
  * the label of its section.
  */
 
-/** A section of the Docs sidebar, which is also the folder of its guides' pages: `/docs/<section>/<id>/` */
-export type GuideSection = 'getting-started' | 'tutorials' | '3d' | '2d' | 'reference' | 'advanced';
+/**
+ * A section of the Docs sidebar, which is also the folder of its guides' pages: `/docs/<section>/<id>/`.
+ * After Getting started, a section per package, its guides living in that package.
+ */
+export type GuideSection = 'getting-started' | 'core' | '2d' | '3d' | 'threejs-compat' | 'r3f';
 
 /** One guide of the docs site */
 export interface Guide {
@@ -23,11 +26,20 @@ export interface Guide {
 /** The title of each section, in the sidebar's order */
 export const SECTIONS: Readonly<Record<GuideSection, string>> = {
   'getting-started': 'Getting started',
-  tutorials: 'Tutorials',
-  '3d': '3D',
+  core: 'Core',
   '2d': '2D',
-  reference: 'Reference',
-  advanced: 'Advanced',
+  '3d': '3D',
+  'threejs-compat': 'three.js compat',
+  r3f: 'The r3f fork',
+};
+
+/** The npm package each section but the first documents */
+export const SECTION_PACKAGES: Readonly<Record<Exclude<GuideSection, 'getting-started'>, string>> = {
+  core: '@react-fiber/core',
+  '2d': '@react-fiber/2d',
+  '3d': '@react-fiber/3d',
+  'threejs-compat': '@react-fiber/threejs-compat',
+  r3f: '@react-fiber/r3f',
 };
 
 /** The guide that is the introduction, the page at `/docs/` */
@@ -36,182 +48,75 @@ export const INTRODUCTION_ID = 'introduction';
 /** The guide the reference's parity tables, read from docs/feasibility.md, are added to */
 export const DIFFERENCES_ID = 'differences';
 
+/** The guide of the r3f fork that its diff, read from `packages/r3f/fork.diff`, follows as a page of its own */
+export const FORK_ID = 'renderer-hooks';
+
+/**
+ * A guide in a package's `src/__docs__`
+ * @param id - Its id, which is its file's name
+ * @param title - Its title
+ * @param section - Its section, whose package holds it
+ * @param label - Its label in the sidebar, when shorter than its title
+ * @param folder - The folder of `src` its `__docs__` is in, when not `src` itself
+ */
+function guide(
+  id: string,
+  title: string,
+  section: Exclude<GuideSection, 'getting-started'>,
+  label?: string,
+  folder = '',
+): Guide {
+  return { id, title, label, section, file: `packages/${section}/src/${folder}__docs__/${id}.md` };
+}
+
 /** Every guide, in the order of the site's navigation */
 export const GUIDES: readonly Guide[] = [
-  {
-    id: INTRODUCTION_ID,
-    title: 'Introduction',
-    file: 'packages/threejs-compat/src/__docs__/introduction.md',
-    section: 'getting-started',
-  },
-  {
-    id: 'installation',
-    title: 'Installation',
-    file: 'packages/threejs-compat/src/__docs__/installation.md',
-    section: 'getting-started',
-  },
-  {
-    id: 'your-first-scene',
-    title: 'Your first scene',
-    file: 'packages/threejs-compat/src/__docs__/your-first-scene.md',
-    section: 'getting-started',
-  },
-  {
-    id: 'events-and-interaction',
-    title: 'Events and interaction',
-    file: 'packages/threejs-compat/src/__docs__/events-and-interaction.md',
-    section: 'tutorials',
-  },
-  {
-    id: 'loading-models',
-    title: 'Loading models',
-    file: 'packages/threejs-compat/src/__docs__/loading-models.md',
-    section: 'tutorials',
-  },
-  {
-    id: 'loading-textures',
-    title: 'Loading textures',
-    file: 'packages/threejs-compat/src/__docs__/loading-textures.md',
-    section: 'tutorials',
-  },
-  {
-    id: 'basic-animations',
-    title: 'Basic animations',
-    file: 'packages/threejs-compat/src/__docs__/basic-animations.md',
-    section: 'tutorials',
-  },
-  {
-    id: 'lights-and-shadows',
-    title: 'Lights and shadows',
-    file: 'packages/threejs-compat/src/__docs__/lights-and-shadows.md',
-    section: 'tutorials',
-  },
-  {
-    id: 'environment',
-    title: 'Environment',
-    file: 'packages/threejs-compat/src/environment/__docs__/environment.md',
-    section: 'tutorials',
-  },
-  {
-    id: 'camera-controls',
-    title: 'Camera controls',
-    file: 'packages/threejs-compat/src/addons/controls/__docs__/camera-controls.md',
-    section: 'tutorials',
-  },
-  {
-    id: 'elements-3d',
-    title: '@pixi/3d elements',
-    label: 'Elements',
-    file: 'packages/3d/src/__docs__/elements-3d.md',
-    section: '3d',
-  },
-  {
-    id: 'your-first-2d-scene',
-    title: 'Your first 2D scene',
-    file: 'packages/2d/src/__docs__/your-first-2d-scene.md',
-    section: '2d',
-  },
-  {
-    id: 'objects-2d',
-    title: '2D objects, properties and arguments',
-    label: '2D objects',
-    file: 'packages/2d/src/__docs__/objects-2d.md',
-    section: '2d',
-  },
-  {
-    id: 'screen-layer',
-    title: 'The screen layer',
-    file: 'packages/2d/src/__docs__/screen-layer.md',
-    section: '2d',
-  },
-  {
-    id: 'mixing-2d-and-3d',
-    title: 'Mixing 2D and 3D',
-    label: '2D and 3D bridges',
-    file: 'packages/2d/src/__docs__/mixing-2d-and-3d.md',
-    section: '2d',
-  },
-  { id: 'events-2d', title: '2D events', file: 'packages/2d/src/__docs__/events-2d.md', section: '2d' },
-  { id: 'animation-2d', title: 'Animating 2D', file: 'packages/2d/src/__docs__/animation-2d.md', section: '2d' },
-  {
-    id: 'loading-2d',
-    title: 'Loading textures and spritesheets',
-    label: 'Loading 2D assets',
-    file: 'packages/2d/src/__docs__/loading-2d.md',
-    section: '2d',
-  },
-  { id: 'graphics-2d', title: 'Graphics', file: 'packages/2d/src/__docs__/graphics-2d.md', section: '2d' },
-  { id: 'text-2d', title: 'Text', file: 'packages/2d/src/__docs__/text-2d.md', section: '2d' },
-  {
-    id: 'sprites-2d',
-    title: 'Sprites and spritesheets',
-    label: 'Sprites',
-    file: 'packages/2d/src/__docs__/sprites-2d.md',
-    section: '2d',
-  },
-  {
-    id: 'filters-and-masks-2d',
-    title: 'Filters, masks and blend modes',
-    label: 'Filters and masks',
-    file: 'packages/2d/src/__docs__/filters-and-masks-2d.md',
-    section: '2d',
-  },
-  { id: 'meshes-2d', title: 'Meshes', file: 'packages/2d/src/__docs__/meshes-2d.md', section: '2d' },
-  { id: 'particles-2d', title: 'Particles', file: 'packages/2d/src/__docs__/particles-2d.md', section: '2d' },
-  { id: 'extend-2d', title: 'Your own 2D classes', file: 'packages/2d/src/__docs__/extend-2d.md', section: '2d' },
-  { id: 'performance-2d', title: '2D performance', file: 'packages/2d/src/__docs__/performance-2d.md', section: '2d' },
-  { id: 'canvas', title: 'Canvas', file: 'packages/threejs-compat/src/__docs__/canvas.md', section: 'reference' },
-  {
-    id: 'objects',
-    title: 'Objects, properties and arguments',
-    label: 'Objects',
-    file: 'packages/threejs-compat/src/__docs__/objects.md',
-    section: 'reference',
-  },
-  {
-    id: 'loading-hooks',
-    title: 'Loading hooks',
-    file: 'packages/threejs-compat/src/__docs__/loading-hooks.md',
-    section: 'reference',
-  },
-  { id: 'events', title: 'Events', file: 'packages/threejs-compat/src/__docs__/events.md', section: 'reference' },
-  {
-    id: 'three-entry',
-    title: 'The three entry',
-    file: 'packages/threejs-compat/src/__docs__/three-entry.md',
-    section: 'reference',
-  },
-  {
-    id: 'visibility',
-    title: 'Visibility',
-    file: 'packages/threejs-compat/src/__docs__/visibility.md',
-    section: 'reference',
-  },
-  {
-    id: 'camera-parenting',
-    title: 'Camera parenting',
-    file: 'packages/threejs-compat/src/__docs__/camera-parenting.md',
-    section: 'reference',
-  },
-  {
-    id: 'render-targets',
-    title: 'Render targets',
-    file: 'packages/threejs-compat/src/environment/__docs__/render-targets.md',
-    section: 'reference',
-  },
-  {
-    id: DIFFERENCES_ID,
-    title: 'Differences from react-three-fiber',
-    label: 'Differences from r3f',
-    file: 'packages/threejs-compat/src/__docs__/differences.md',
-    section: 'reference',
-  },
-  {
-    id: 'scaling-performance',
-    title: 'Scaling performance',
-    file: 'packages/threejs-compat/src/__docs__/scaling-performance.md',
-    section: 'advanced',
-  },
+  { ...guide(INTRODUCTION_ID, 'Introduction', 'core'), section: 'getting-started' },
+  { ...guide('installation', 'Installation', 'core'), section: 'getting-started' },
+  guide('canvas-and-roots', 'Canvas and roots', 'core'),
+  guide('screen-layer', 'The stage', 'core'),
+  guide('events-2d-and-3d', 'Events across 2D and 3D', 'core'),
+  guide('frame-loop', 'The frame loop', 'core'),
+  guide('mixing-2d-and-3d', 'Mixing 2D and 3D', 'core', '2D and 3D bridges'),
+  guide('your-first-2d-scene', 'Your first 2D scene', '2d'),
+  guide('objects-2d', '2D objects, properties and arguments', '2d', '2D objects'),
+  guide('events-2d', '2D events', '2d'),
+  guide('animation-2d', 'Animating 2D', '2d'),
+  guide('loading-2d', 'Loading textures and spritesheets', '2d', 'Loading 2D assets'),
+  guide('graphics-2d', 'Graphics', '2d'),
+  guide('text-2d', 'Text', '2d'),
+  guide('sprites-2d', 'Sprites and spritesheets', '2d', 'Sprites'),
+  guide('filters-and-masks-2d', 'Filters, masks and blend modes', '2d', 'Filters and masks'),
+  guide('meshes-2d', 'Meshes', '2d'),
+  guide('particles-2d', 'Particles', '2d'),
+  guide('extend-2d', 'Your own 2D classes', '2d'),
+  guide('performance-2d', '2D performance', '2d'),
+  guide('your-first-3d-scene', 'Your first 3D scene', '3d'),
+  guide('objects-3d', 'Objects', '3d'),
+  guide('props-3d', 'Props, args and attach', '3d'),
+  guide('lights-and-materials-3d', 'Lights and materials', '3d'),
+  guide('events-3d', 'Events in 3D', '3d', 'Events'),
+  guide('loading-3d', 'Loading models and textures', '3d', 'Loading'),
+  guide('swap-imports', 'Swap your three.js imports', 'threejs-compat'),
+  guide('your-first-scene', 'Your first scene', 'threejs-compat'),
+  guide('events-and-interaction', 'Events and interaction', 'threejs-compat'),
+  guide('loading-models', 'Loading models', 'threejs-compat'),
+  guide('loading-textures', 'Loading textures', 'threejs-compat'),
+  guide('basic-animations', 'Basic animations', 'threejs-compat'),
+  guide('lights-and-shadows', 'Lights and shadows', 'threejs-compat'),
+  guide('environment', 'Environment', 'threejs-compat', undefined, 'environment/'),
+  guide('camera-controls', 'Camera controls', 'threejs-compat', undefined, 'addons/controls/'),
+  guide('canvas', 'Canvas', 'threejs-compat'),
+  guide('objects', 'Objects, properties and arguments', 'threejs-compat', 'Objects'),
+  guide('loading-hooks', 'Loading hooks', 'threejs-compat'),
+  guide('events', 'Events', 'threejs-compat'),
+  guide('three-entry', 'The three entry', 'threejs-compat'),
+  guide('visibility', 'Visibility', 'threejs-compat'),
+  guide('camera-parenting', 'Camera parenting', 'threejs-compat'),
+  guide('render-targets', 'Render targets', 'threejs-compat', undefined, 'environment/'),
+  guide(DIFFERENCES_ID, 'Differences from react-three-fiber', 'threejs-compat', 'Differences from r3f'),
+  guide('scaling-performance', 'Scaling performance', 'threejs-compat'),
+  { id: FORK_ID, title: 'Renderer hooks', file: 'packages/r3f/README.md', section: 'r3f' },
 ];
 
 /**
