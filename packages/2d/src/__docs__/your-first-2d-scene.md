@@ -13,7 +13,7 @@ The `<Canvas>` is `@react-fiber/core`'s ([Canvas and roots](../../../core/src/__
 }
 ```
 
-The 2D elements come from `@react-fiber/2d`, which installs them when it is imported, once, anywhere in the app. `@react-fiber/core` gives the root its scene and camera, so a 2D app needs nothing else, and `@react-fiber/3d` adds @pixi/3d's elements beside the 2D.
+The 2D elements come from `@react-fiber/2d`, which installs them when it is imported, once, anywhere in the app. `@react-fiber/core` gives the root its scene and camera, so a 2D app needs nothing else, and `@react-fiber/3d` adds @pixi/3d's elements beside the 2D. A root's scene and camera are @pixi/3d's, so `@pixi/3d` is in a 2D app's bundle too: about 550 KB minified and 165 KB gzipped beside pixi.js, for a scene with no 3D in it.
 
 Then render a Canvas into it, with a white frame, a line of text and a blue square that turns:
 
