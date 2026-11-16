@@ -27,15 +27,16 @@ function toCoreProps<TCanvas extends HTMLCanvasElement | OffscreenCanvas>(
  * same canvas returns a handle to the same root.
  * @example
  * ```tsx
- * import { createRoot, events } from '@react-fiber/threejs-compat';
+ * import { createRoot, events } from '@react-fiber/core';
+ * import '@react-fiber/3d';
  *
  * const root = createRoot(document.querySelector('canvas')!);
  * await root.configure({ events, camera: { position: [0, 0, 5] } });
  * root.render(
- *   <mesh>
- *     <boxGeometry />
- *     <meshStandardMaterial color="orange" />
- *   </mesh>,
+ *   <mesh3D>
+ *     <cubeGeometry3D />
+ *     <material3D baseColor="orange" />
+ *   </mesh3D>,
  * );
  * ```
  * @param canvas - The canvas to draw into

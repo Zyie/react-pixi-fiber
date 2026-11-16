@@ -8,6 +8,17 @@
     "dist"
   ],
   "type": "module",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "three": [
+        "./dist/three.d.ts"
+      ],
+      "addons": [
+        "./dist/addons.d.ts"
+      ]
+    }
+  },
   "exports": {
     ".": "./dist/index.js",
     "./addons": "./dist/addons.js",

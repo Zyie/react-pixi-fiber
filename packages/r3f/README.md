@@ -235,7 +235,8 @@ checkout of upstream's files and fails unless that gives the fork's files exactl
 ## Our files
 
 - `fork.diff` and this README.
-- `package.json`: upstream's, under the name `@react-fiber/r3f`. Upstream's workspace depends on the
+- `package.json`: upstream's, under the name `@react-fiber/r3f`, private and without upstream's `unbuild`
+  scripts, since core bundles this core and nothing publishes it. Upstream's workspace depends on the
   package as `@react-three/fiber`, so the rename stays out of the diff.
 - `tsconfig.json` and `tsdown.config.ts`: the build of upstream's four entries (`index`, `legacy`,
   `webgpu`, `extension`) into `dist`, in place of upstream's `build.config.ts`, which isn't copied.

@@ -377,10 +377,9 @@ export interface UseLoader {
  * Loads assets with a loader and suspends until they are ready; wrap the caller in `<Suspense>`
  * @example
  * ```tsx
- * import { useLoader } from '@react-fiber/threejs-compat';
- * import { TextureLoader } from '@react-fiber/threejs-compat/three';
+ * import { AssetsLoader, useLoader } from '@react-fiber/core';
  *
- * const texture = useLoader(TextureLoader, '/crate.png');
+ * const texture = useLoader(AssetsLoader, '/crate.png');
  * ```
  * @category hooks
  * @standard
@@ -488,7 +487,7 @@ export interface Extend {
  * @example
  * ```tsx
  * import { Mesh3D } from '@pixi/3d';
- * import { extend } from '@react-fiber/threejs-compat';
+ * import { extend } from '@react-fiber/core';
  *
  * class Spinner extends Mesh3D {}
  * const SpinnerElement = extend(Spinner);
@@ -502,8 +501,8 @@ export const extend: Extend = coreExtend as unknown as Extend;
  * Renders children into another node or scene, optionally with their own state
  * @example
  * ```tsx
- * const [hud] = useState(() => new Scene());
- * return createPortal(<mesh />, hud, { events: { priority: 2 } });
+ * const [hud] = useState(() => new RootScene());
+ * return createPortal(<mesh3D />, hud, { events: { priority: 2 } });
  * ```
  * @category core
  * @standard
@@ -738,7 +737,7 @@ export interface TextureProps<Url extends string | string[] | Record<string, str
  * {@link useTexture} as a component: loads textures and renders `children` with them
  * @example
  * ```tsx
- * <Texture input="/crate.png">{(map) => <meshBasicMaterial map={map} />}</Texture>
+ * <Texture input="/crate.png">{(map) => <sprite2D texture={map} />}</Texture>
  * ```
  * @category hooks
  * @advanced

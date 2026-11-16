@@ -303,14 +303,15 @@ function CanvasImpl({
  * colour only. Every canvas gets its own renderer; `primary` and `share` are ignored.
  * @example
  * ```tsx
- * import { Canvas } from '@react-fiber/threejs-compat';
+ * import { Canvas } from '@react-fiber/core';
+ * import '@react-fiber/3d';
  *
  * <Canvas camera={{ position: [0, 0, 5] }} background="#202025">
- *   <ambientLight intensity={0.5} />
- *   <mesh>
- *     <boxGeometry />
- *     <meshStandardMaterial color="hotpink" />
- *   </mesh>
+ *   <ambientLight3D intensity={0.5} />
+ *   <mesh3D>
+ *     <cubeGeometry3D />
+ *     <material3D baseColor="hotpink" />
+ *   </mesh3D>
  * </Canvas>;
  * ```
  * @param props - r3f's canvas props

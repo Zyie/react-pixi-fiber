@@ -193,15 +193,16 @@ function destroyPixi(pixi: Renderer): void {
  * differs from the viewport's.
  * @example
  * ```tsx
- * import { Canvas, useThree } from '@react-fiber/threejs-compat';
+ * import { Canvas, useThree } from '@react-fiber/core';
  *
- * <Canvas renderer={{ preference: 'webgpu', shadows: true }}>
+ * <Canvas renderer={{ preference: 'webgpu', antialias: false }}>
  *   <Scene />
  * </Canvas>;
  *
- * // Inside the canvas
- * const renderer = useThree((state) => state.renderer);
- * renderer.toneMappingExposure = 1.5;
+ * // Inside the canvas: the pixi.js renderer it holds, and the @pixi/3d view it draws a scene with
+ * const { renderer, scene } = useThree();
+ * const view = renderer.getView(scene);
+ * console.log(renderer.pixi?.name, view?.camera);
  * ```
  * @category renderer
  * @standard

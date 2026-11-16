@@ -1,6 +1,7 @@
 {
   "name": "@react-fiber/r3f",
   "version": "10.0.0-alpha.6",
+  "private": true,
   "description": "A React renderer for Threejs",
   "keywords": [
     "react",
@@ -59,11 +60,6 @@
       "require": "./dist/extension.cjs"
     },
     "./package.json": "./package.json"
-  },
-  "scripts": {
-    "prebuild": "node -e \"require('fs').copyFileSync('../../readme.md', 'readme.md')\"",
-    "build": "unbuild",
-    "stub": "unbuild --stub"
   },
   "dependencies": {
     "@babel/runtime": "^7.28.6",
