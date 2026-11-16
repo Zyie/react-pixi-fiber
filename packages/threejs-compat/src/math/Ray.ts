@@ -12,7 +12,7 @@ const scratch = new Vector3();
  * `intersectBox`, `applyMatrix4`, ...) takes three's arguments too.
  * @example
  * ```ts
- * import { Ray, Vector3 } from 'react-pixi-fiber/three';
+ * import { Ray, Vector3 } from '@react-fiber/threejs-compat/three';
  *
  * const ray = new Ray(new Vector3(0, 0, 5)).lookAt(new Vector3(0, 0, 0));
  * ray.at(2, new Vector3()); // (0, 0, 3)

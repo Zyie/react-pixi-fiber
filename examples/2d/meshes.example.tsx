@@ -1,8 +1,8 @@
+import { Canvas, useFrame, useTexture } from '@react-fiber/core';
 // #region result
 import { Point } from 'pixi.js';
 import type { MeshPlane, MeshRope, RopeGeometry } from 'pixi.js';
 import { Suspense, useMemo, useRef } from 'react';
-import { Canvas, useFrame, useTexture } from 'react-pixi-fiber';
 // #endregion result
 
 import type { Example } from '../example';

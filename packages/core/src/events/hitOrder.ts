@@ -19,7 +19,7 @@ export const UNDER_3D = 2;
  * it (a 2D object's place from the front, a 3D hit's distance), outermost first. A layer drawn inside
  * another (a `<View3D>`, a `<RenderTexture2D>`) starts with the order of what holds it.
  */
-type DrawOrder = readonly number[];
+export type DrawOrder = readonly number[];
 
 const NO_LAYER: DrawOrder = [];
 const orders = new WeakMap<object, DrawOrder>();

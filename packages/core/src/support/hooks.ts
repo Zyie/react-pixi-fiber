@@ -1,14 +1,12 @@
-import { BaseMaterial3D, Container3D, Geometry3D } from '@pixi/3d';
-import { Container, Particle } from 'pixi.js';
+import type { Container3D } from '@pixi/3d';
+import type { Container, Particle } from 'pixi.js';
 
-import type { Intersection } from '../compat/Raycaster';
-import { IN_3D, compareHits, drawOrder, layerOrderOf, setHitOrder } from '../events/hitOrder';
-import { hitTestScreen } from '../two-d/hitTest';
-import { addToScene, removeFromScene } from '../two-d/screen';
-import { add2D, remove2D } from '../two-d/surface';
-import type { Intersection2D } from '../two-d/types';
+import { compareHits } from '../events/hitOrder';
 import type { DomEvent } from '../types/events';
+import type { Registered } from '../types/register';
 import type { RootState } from '../types/state';
+import type { Intersection2D } from '../types/twoD';
+import { hooksOf } from './registry';
 
 /**
  * An object of the scene graph: a pixi-3d node, a pixi.js 2D object, or a particle
@@ -22,7 +20,7 @@ export type SceneObject = Container3D | Container | Particle;
  * @category renderer
  * @advanced
  */
-export type SceneHit = Intersection | Intersection2D;
+export type SceneHit = Registered<'Intersection'> | Intersection2D;
 
 /**
  * How r3f's core reaches pixi's objects: the renderer hooks of the pixi support
@@ -31,34 +29,33 @@ export type SceneHit = Intersection | Intersection2D;
  */
 export interface PixiHooks {
   /**
-   * Adds a child, or moves it, before `before` when given. A 3D node goes in the children of a 3D node; a
-   * 2D object under a scene goes on its screen layer, under another 3D node in an anchor, and under a 2D
-   * container where its element is among its siblings.
+   * Adds a child, or moves it, before `before` when given, through the hooks of the package that owns
+   * the child
    * @param parent - The parent's object
    * @param child - The child's object
    * @param before - The sibling it goes before
    */
   add(parent: SceneObject, child: SceneObject, before?: SceneObject): void;
   /**
-   * Takes a child out of its parent
+   * Takes a child out of its parent, through the hooks of the package that owns the child
    * @param parent - The parent's object
    * @param child - The child's object
    */
   remove(parent: SceneObject, child: SceneObject): void;
   /**
-   * Whether an object is in the scene graph: a 3D node, a 2D object or a particle
+   * Whether an object is in the scene graph, as the package that owns it says
    * @param object - An element's object
    */
   isInteractive(object: object): boolean;
   /**
-   * `'geometry'` for a geometry and `'material'` for a material, which attach to a mesh unless their
-   * element says otherwise
+   * Where an object attaches to its parent when its element doesn't say, as the package that owns it
+   * says: `'geometry'` and `'material'` for a mesh's
    * @param object - An element's object
    */
   defaultAttach(object: object): string | undefined;
   /**
-   * The hits of a pointer event: on a 3D node and its descendants, cast with the root's raycaster, or on
-   * the 2D under the pointer in a 2D element
+   * The hits of a pointer event on an object and its descendants, from the package that owns it: the
+   * root's raycaster on a 3D node, the screen layer under the pointer on a 2D element
    * @param object - An element's object that has handlers
    * @param event - The DOM event
    * @param state - The state of its root or portal
@@ -72,54 +69,34 @@ export interface PixiHooks {
    */
   compareHits(a: SceneHit, b: SceneHit): number;
   /**
-   * Frees an object r3f removed, through its `dispose`; a scene is never freed
+   * Frees an object r3f removed, through the package that owns it, else its own `dispose`; a scene is
+   * never freed
    * @param object - The object
    */
   dispose(object: object): void;
 }
 
 /**
- * The renderer hooks of the pixi support, over what the compat layer and the 2D surface give pixi's
- * classes
+ * The renderer hooks of the pixi support: each asks the hooks of the package that owns the object
+ * (`ObjectHooks`, registered with pixi.js's `extensions`), and `compareHits` orders hits by draw order
  * @internal
  */
 export const pixiHooks: PixiHooks = {
   add(parent, child, before) {
-    if (parent instanceof Container) return add2D(parent, child);
-    if (!(parent instanceof Container3D)) return;
-    if (!(child instanceof Container3D)) return addToScene(parent, child);
-    const index = before instanceof Container3D ? parent.children.indexOf(before) : -1;
-    if (index === -1) {
-      parent.addChild(child);
-      return;
-    }
-    const current = parent.children.indexOf(child);
-    parent.addChildAt(child, current !== -1 && current < index ? index - 1 : index);
+    hooksOf(child)?.add?.(parent, child, before);
   },
   remove(parent, child) {
-    if (parent instanceof Container) remove2D(parent, child);
-    else if (parent instanceof Container3D) {
-      if (child instanceof Container3D) parent.removeChild(child);
-      else removeFromScene(parent, child);
-    }
+    hooksOf(child)?.remove?.(parent, child);
   },
-  isInteractive: (object) => object instanceof Container3D || object instanceof Container || object instanceof Particle,
-  defaultAttach(object) {
-    if (object instanceof Geometry3D) return 'geometry';
-    if (object instanceof BaseMaterial3D) return 'material';
-    return undefined;
-  },
-  hitTest(object, _event, state) {
-    if (object instanceof Container) return hitTestScreen(object, state);
-    if (!(object instanceof Container3D)) return [];
-    const hits = state.raycaster.intersectObject(object, true);
-    const layer = layerOrderOf(state.raycaster);
-    for (const hit of hits) setHitOrder(hit, drawOrder(layer, IN_3D, hit.distance));
-    return hits;
-  },
+  isInteractive: (object) => hooksOf(object)?.isInteractive?.(object) ?? false,
+  defaultAttach: (object) => hooksOf(object)?.defaultAttach?.(object),
+  hitTest: (object, event, state) => hooksOf(object)?.hitTest?.(object, event, state) ?? [],
   compareHits,
   dispose(object) {
     const disposable = object as { type?: string; dispose?(): void };
-    if (disposable.type !== 'Scene') disposable.dispose?.();
+    if (disposable.type === 'Scene') return;
+    const hooks = hooksOf(object);
+    if (hooks?.dispose) hooks.dispose(object);
+    else disposable.dispose?.();
   },
 };

@@ -1,5 +1,5 @@
+import { useTexture } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
-import { useTexture } from 'react-pixi-fiber';
 
 /** The last step of r3f's loading-textures tutorial: a finely divided sphere with a displacement map */
 function Displaced() {

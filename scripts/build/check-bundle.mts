@@ -1,14 +1,17 @@
 /**
- * Checks the built package: `npm run build`, then `npm run test:bundle`.
+ * Checks the built packages: `npm run build`, then `npm run test:bundle`.
  *
- * three must not be a runtime dependency of the library. It is a devDependency only so the vendored
- * r3f entries (`src/r3f/src/legacy.tsx`) can render the same scenes through three for parity. This
- * fails when any file in `dist`, of any entry (`react-pixi-fiber`, `react-pixi-fiber/three`,
- * `react-pixi-fiber/addons`), imports `three` or a `three/...` subpath, statically, dynamically or as a
- * declaration import, or when `package.json` lists three as a dependency or peer dependency.
+ * three must not be a runtime dependency of any package but r3f's fork. It is a devDependency only so
+ * r3f's own entries (`packages/r3f/src/legacy.tsx`) can render the same scenes through three for
+ * parity. For each of `@react-fiber/core`, `@react-fiber/2d`, `@react-fiber/3d` and
+ * `@react-fiber/threejs-compat`, this fails when a file in its `dist` imports `three` or a `three/...`
+ * subpath, statically, dynamically or as a declaration import, or when its `package.json` lists three
+ * as a dependency or peer dependency. It also fails when a file of those imports `@react-fiber/r3f`,
+ * which core bundles so every package shares one copy of r3f's core through core's entries.
  *
- * It then type-checks an app against the built declarations (`consumer/app.tsx`), strict and with
- * TypeScript's default `skipLibCheck: false`, and fails on any error, in the app or in `dist`.
+ * It then type-checks an app against the built declarations (`consumer/app.tsx`), found through
+ * `node_modules` and each package's `exports`, strict and with TypeScript's default
+ * `skipLibCheck: false`, and fails on any error, in the app or in `dist`.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -16,9 +19,9 @@ import path from 'node:path';
 import { typeCheck } from './declarations.mts';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..');
-const DIST = path.join(REPO_ROOT, 'dist');
-const THREE_IMPORT =
-  /(?:\bfrom\s*|\bimport\s*\(\s*|\brequire\s*\(\s*|\bimport\s+)(['"])(three|@types\/three)(?:\/[^'"]*)?\1/g;
+const PACKAGES = ['core', '2d', '3d', 'threejs-compat'];
+const FORBIDDEN_IMPORT =
+  /(?:\bfrom\s*|\bimport\s*\(\s*|\brequire\s*\(\s*|\bimport\s+)(['"])(three|@types\/three|@react-fiber\/r3f)(?:\/[^'"]*)?\1/g;
 
 /**
  * Every file under `dir`
@@ -30,35 +33,39 @@ function listFiles(dir: string): string[] {
     .flatMap((entry) => (entry.isDirectory() ? listFiles(path.join(dir, entry.name)) : [path.join(dir, entry.name)]));
 }
 
-if (!fs.existsSync(DIST)) {
-  console.error('dist is missing; run npm run build first');
-  process.exit(1);
-}
-
 const problems: string[] = [];
-const files = listFiles(DIST).filter((file) => /\.(?:[cm]?js|d\.[cm]?ts)$/.test(file));
+let checked = 0;
 
-for (const file of files) {
-  const source = fs.readFileSync(file, 'utf8');
-  for (const match of source.matchAll(THREE_IMPORT)) {
-    const line = source.slice(0, match.index).split('\n').length;
-    problems.push(`${path.relative(REPO_ROOT, file)}:${line} imports ${match[0]}`);
+for (const name of PACKAGES) {
+  const folder = path.join(REPO_ROOT, 'packages', name);
+  const dist = path.join(folder, 'dist');
+  if (!fs.existsSync(dist)) {
+    console.error(`packages/${name}/dist is missing; run npm run build first`);
+    process.exit(1);
+  }
+  const files = listFiles(dist).filter((file) => /\.(?:[cm]?js|d\.[cm]?ts)$/.test(file));
+  checked += files.length;
+  for (const file of files) {
+    const source = fs.readFileSync(file, 'utf8');
+    for (const match of source.matchAll(FORBIDDEN_IMPORT)) {
+      const line = source.slice(0, match.index).split('\n').length;
+      problems.push(`${path.relative(REPO_ROOT, file)}:${line} imports ${match[0]}`);
+    }
+  }
+  const pkg = JSON.parse(fs.readFileSync(path.join(folder, 'package.json'), 'utf8')) as Record<
+    string,
+    Record<string, string> | undefined
+  >;
+  for (const field of ['dependencies', 'peerDependencies', 'optionalDependencies']) {
+    if (pkg[field]?.three) problems.push(`packages/${name}/package.json lists three in ${field}`);
   }
 }
 
-const pkg = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'package.json'), 'utf8')) as Record<
-  string,
-  Record<string, string> | undefined
->;
-for (const field of ['dependencies', 'peerDependencies', 'optionalDependencies']) {
-  if (pkg[field]?.three) problems.push(`package.json lists three in ${field}`);
-}
-
 if (problems.length) {
-  console.error(`The built package depends on three.js:\n  ${problems.join('\n  ')}`);
+  console.error(`The built packages depend on three.js or on r3f's fork:\n  ${problems.join('\n  ')}`);
   process.exit(1);
 }
-console.log(`dist is free of three.js (${files.length} files)`);
+console.log(`dist of ${PACKAGES.join(', ')} is free of three.js and r3f's fork (${checked} files)`);
 
 const errors = typeCheck('scripts/build/consumer/tsconfig.json');
 

@@ -1,9 +1,9 @@
+import { useFrame } from '@react-fiber/threejs-compat';
+import { MathUtils } from '@react-fiber/threejs-compat/three';
+import type { Group } from '@react-fiber/threejs-compat/three';
 // #region phases
 import { useLayoutEffect, useRef } from 'react';
 import type { RefObject } from 'react';
-import { useFrame } from 'react-pixi-fiber';
-import { MathUtils } from 'react-pixi-fiber/three';
-import type { Group } from 'react-pixi-fiber/three';
 // #endregion phases
 
 import type { Example } from '../example';

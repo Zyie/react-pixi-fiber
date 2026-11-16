@@ -1,6 +1,7 @@
+import { useAsset } from '@react-fiber/2d';
+import { useTexture } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import type { Spritesheet } from 'pixi.js';
-import { useAsset, useTexture } from 'react-pixi-fiber';
 
 function Sprites() {
   const quadrants = useTexture('/textures/quadrants.png?sprites');

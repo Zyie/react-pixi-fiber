@@ -1,6 +1,6 @@
+import { useThree } from '@react-fiber/threejs-compat';
+import { MOUSE } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
-import { useThree } from 'react-pixi-fiber';
-import { MOUSE } from 'react-pixi-fiber/three';
 
 import { Arena } from './arena';
 

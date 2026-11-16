@@ -1,8 +1,8 @@
+import { Canvas } from '@react-fiber/threejs-compat';
+import type { ThreeEvent } from '@react-fiber/threejs-compat';
+import { BufferGeometry, Vector3 } from '@react-fiber/threejs-compat/three';
 // #region result
 import { useMemo, useState } from 'react';
-import { Canvas } from 'react-pixi-fiber';
-import type { ThreeEvent } from 'react-pixi-fiber';
-import { BufferGeometry, Vector3 } from 'react-pixi-fiber/three';
 // #endregion result
 
 import type { Example } from '../example';

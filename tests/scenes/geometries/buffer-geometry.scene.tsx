@@ -1,13 +1,13 @@
-import type { TestScene } from '@test-scene';
-import { useLayoutEffect, useMemo, useRef } from 'react';
-import type { ElementRef } from 'react';
 import {
   BoxGeometry,
   BufferAttribute,
   BufferGeometry,
   Float32BufferAttribute,
   TorusGeometry,
-} from 'react-pixi-fiber/three';
+} from '@react-fiber/threejs-compat/three';
+import type { TestScene } from '@test-scene';
+import { useLayoutEffect, useMemo, useRef } from 'react';
+import type { ElementRef } from 'react';
 
 /** A four-sided pyramid as raw positions and an index, with a colour per corner */
 const PYRAMID_POSITIONS = new Float32Array([

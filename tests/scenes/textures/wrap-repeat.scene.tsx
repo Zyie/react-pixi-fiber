@@ -1,7 +1,12 @@
+import { useLoader } from '@react-fiber/threejs-compat';
+import {
+  ClampToEdgeWrapping,
+  MirroredRepeatWrapping,
+  RepeatWrapping,
+  TextureLoader,
+} from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useMemo } from 'react';
-import { useLoader } from 'react-pixi-fiber';
-import { ClampToEdgeWrapping, MirroredRepeatWrapping, RepeatWrapping, TextureLoader } from 'react-pixi-fiber/three';
 
 function Tiles({ x, wrap }: { x: number; wrap: number }) {
   const source = useLoader(TextureLoader, '/textures/quadrants.png?wrap');

@@ -1,4 +1,5 @@
-import { useLoader } from '../r3f/src/core/hooks/useLoader';
+import { useLoader } from '@react-fiber/core';
+
 import { AssetsLoader } from './AssetsLoader';
 
 /**
@@ -7,7 +8,7 @@ import { AssetsLoader } from './AssetsLoader';
  * the caller in `<Suspense>`.
  * @example
  * ```tsx
- * import { useAsset } from 'react-pixi-fiber';
+ * import { useAsset } from '@react-fiber/2d';
  * import type { Spritesheet } from 'pixi.js';
  *
  * function Walker() {

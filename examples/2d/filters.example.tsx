@@ -1,9 +1,10 @@
+import { useAsset } from '@react-fiber/2d';
+import { Canvas, extend, once, useTexture } from '@react-fiber/core';
+import type { ThreeElement } from '@react-fiber/core';
 // #region result
 import { DropShadowFilter, GlowFilter } from 'pixi-filters';
 import type { Spritesheet } from 'pixi.js';
 import { Suspense, useMemo } from 'react';
-import { Canvas, extend, once, useAsset, useTexture } from 'react-pixi-fiber';
-import type { ThreeElement } from 'react-pixi-fiber';
 // #endregion result
 
 import type { Example } from '../example';
@@ -12,7 +13,7 @@ import type { Example } from '../example';
 // #region extend
 extend({ DropShadowFilter2D: DropShadowFilter, GlowFilter2D: GlowFilter });
 
-declare module 'react-pixi-fiber' {
+declare module '@react-fiber/core' {
   interface ThreeElements {
     dropShadowFilter2D: ThreeElement<typeof DropShadowFilter>;
     glowFilter2D: ThreeElement<typeof GlowFilter>;

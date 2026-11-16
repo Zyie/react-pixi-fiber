@@ -1,23 +1,25 @@
 import { Container3D } from '@pixi/3d';
+import { useFrame as coreUseFrame } from '@react-fiber/r3f/src/core/hooks/useFrame';
+import { useThree as coreUseThree } from '@react-fiber/r3f/src/core/hooks/useStore';
+import { createPortal as coreCreatePortal } from '@react-fiber/r3f/src/core/portal';
 import type { RenderTexture } from 'pixi.js';
 import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { JSX, ReactNode, Ref } from 'react';
 
-import { Scene } from '../../catalog/scene/Scene';
-import { useRenderTarget } from '../../environment/hooks/useRenderTarget';
-import type { RenderTargetOptions } from '../../environment/RenderTarget';
-import type { WebGLRenderTarget } from '../../environment/WebGLRenderTarget';
-import { IN_3D, drawOrder, layerOrderOf, setLayerOrder } from '../../events/hitOrder';
-import { useFrame as coreUseFrame } from '../../r3f/src/core/hooks/useFrame';
-import { createPortal as coreCreatePortal } from '../../r3f/src/core/portal';
-import type { Instance } from '../../types/elements';
-import type { DomEvent } from '../../types/events';
-import type { RootState, Size } from '../../types/state';
-import { ensureScreen } from '../screen';
+import { IN_3D, drawOrder, layerOrderOf, setLayerOrder } from '../events/hitOrder';
+import { useRenderTarget } from '../hooks/useRenderTarget';
+import { ensureScreen } from '../stage/screen';
+import { classesOf } from '../support/classes';
+import type { Instance } from '../types/elements';
+import type { R3FRenderTarget } from '../types/environment';
+import type { DomEvent } from '../types/events';
+import type { Registered } from '../types/register';
+import type { RootState, Size } from '../types/state';
 
 type Compute = (event: DomEvent, state: RootState, previous?: RootState) => void;
 
 const useFrame = coreUseFrame as unknown as (callback: (state: RootState) => void) => void;
+const useThree = coreUseThree as unknown as <T>(selector: (state: RootState) => T) => T;
 const createPortal = coreCreatePortal as unknown as (
   children: ReactNode,
   container: Container3D,
@@ -33,7 +35,7 @@ export interface RenderTexture2DHandle {
   /** The texture the 2D is drawn into, which the 3D object's material shows */
   readonly texture: RenderTexture;
   /** The render target the texture belongs to */
-  readonly target: WebGLRenderTarget;
+  readonly target: R3FRenderTarget;
   /**
    * Draws the 2D into the texture again, on the next frames
    * @param frames - How many frames to draw it on @default 1
@@ -59,7 +61,7 @@ export interface RenderTexture2DProps {
    */
   frames?: number;
   /** The render target's settings, such as `samples` for smooth edges */
-  options?: RenderTargetOptions;
+  options?: Registered<'RenderTargetOptions'>;
   /**
    * How pointer events reach the 2D, as r3f's `events.compute`; the default finds the pointer through
    * the texture coordinates of the 3D object's hit, as drei's `<RenderTexture>` does
@@ -120,6 +122,8 @@ export function RenderTexture2D({
   ref,
 }: RenderTexture2DProps): JSX.Element {
   const target = useRenderTarget(width, height, options);
+  const texture = target.texture as RenderTexture;
+  const { Scene } = useThree(classesOf);
   const [generation, setGeneration] = useState(0);
   const scene = useMemo(() => {
     const own = new Scene();
@@ -141,13 +145,13 @@ export function RenderTexture2D({
   useImperativeHandle(
     ref,
     () => ({
-      texture: target.texture,
+      texture,
       target,
       invalidate: (count = 1) => {
         remaining.current = Math.max(remaining.current, count);
       },
     }),
-    [target],
+    [target, texture],
   );
 
   useFrame(({ renderer, camera }) => {
@@ -161,7 +165,7 @@ export function RenderTexture2D({
 
   const uvCompute = useCallback<Compute>(
     (event, state, previous) => {
-      const object = objectOf(target.texture);
+      const object = objectOf(texture);
       if (!previous || !object) return;
       if (previous.raycaster.camera === undefined) {
         previous.events.compute?.(event, previous, previous.previousRoot?.getState());
@@ -172,7 +176,7 @@ export function RenderTexture2D({
       state.raycaster.setFromCamera(state.pointer, state.camera);
       setLayerOrder(state.raycaster, drawOrder(layerOrderOf(previous.raycaster), IN_3D, hit.distance));
     },
-    [target],
+    [texture],
   );
 
   return (
@@ -181,7 +185,7 @@ export function RenderTexture2D({
         size: { width, height, top: 0, left: 0 },
         events: { compute: compute ?? uvCompute },
       })}
-      <primitive object={target.texture} attach={attach} />
+      <primitive object={texture} attach={attach} />
     </>
   );
 }

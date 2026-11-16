@@ -1,8 +1,8 @@
+import { useLoader } from '@react-fiber/threejs-compat';
+import { RepeatWrapping, TextureLoader } from '@react-fiber/threejs-compat/three';
+import type { Texture } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useMemo } from 'react';
-import { useLoader } from 'react-pixi-fiber';
-import { RepeatWrapping, TextureLoader } from 'react-pixi-fiber/three';
-import type { Texture } from 'react-pixi-fiber/three';
 
 function Panel({ position, setup }: { position: [number, number, number]; setup: (texture: Texture) => void }) {
   const source = useLoader(TextureLoader, '/textures/checker.png?transform');

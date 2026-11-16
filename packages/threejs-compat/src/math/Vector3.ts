@@ -1,7 +1,12 @@
 import { Vector3 as PixiVector3 } from '@pixi/3d';
 import type { Camera3D, Matrix3, Matrix4, PointData3D } from '@pixi/3d';
+import {
+  cameraProjection,
+  cameraProjectionInverse,
+  cameraWorld,
+  cameraWorldInverse,
+} from '@react-fiber/core/extension';
 
-import { cameraProjection, cameraProjectionInverse, cameraWorld, cameraWorldInverse } from '../compat/cameraMatrices';
 import type { EulerLike } from './Quaternion';
 import { Quaternion } from './Quaternion';
 
@@ -31,7 +36,7 @@ export interface BufferAttributeLike {
  * the support.
  * @example
  * ```ts
- * import { Vector3 } from 'react-pixi-fiber/three';
+ * import { Vector3 } from '@react-fiber/threejs-compat/three';
  *
  * const target = new Vector3(1, 2, 3);
  * mesh.position.lerp(target, 0.1);

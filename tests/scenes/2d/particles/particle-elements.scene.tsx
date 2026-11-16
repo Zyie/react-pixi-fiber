@@ -1,8 +1,8 @@
+import { useFrame } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import { Texture } from 'pixi.js';
 import type { ParticleContainer } from 'pixi.js';
 import { useRef } from 'react';
-import { useFrame } from 'react-pixi-fiber';
 
 const COLORS = [0xe6194b, 0x3cb44b, 0xffe119, 0x4363d8, 0xf58231, 0x911eb4, 0x46f0f0, 0xf032e6];
 

@@ -1,7 +1,7 @@
+import { Canvas, useLoader } from '@react-fiber/threejs-compat';
+import { Loader } from '@react-fiber/threejs-compat/three';
 // #region result
 import { Suspense, useReducer } from 'react';
-import { Canvas, useLoader } from 'react-pixi-fiber';
-import { Loader } from 'react-pixi-fiber/three';
 // #endregion result
 
 import type { Example } from '../example';

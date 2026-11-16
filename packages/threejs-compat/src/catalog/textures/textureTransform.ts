@@ -1,6 +1,7 @@
 import { BaseMaterial3D } from '@pixi/3d';
+import { markMaterialTexture } from '@react-fiber/core/extension';
 import { Matrix } from 'pixi.js';
-import type { Texture as PixiTexture, TextureSource } from 'pixi.js';
+import type { Texture as PixiTexture } from 'pixi.js';
 
 import type { Texture } from './Texture';
 
@@ -19,7 +20,6 @@ interface MaterialSlots {
 
 /** Materials whose `uvTransform` a three texture set, so it is handed back when no such texture is left */
 const driven = new WeakSet<BaseMaterial3D>();
-const sampledSources = new WeakSet<TextureSource>();
 const scratch = new Matrix();
 
 let installed = false;
@@ -114,7 +114,7 @@ export function installTextureTracking(): void {
 
     setTextureSlot.call(this, index, value);
 
-    if (value) sampledSources.add(value.source);
+    if (value) markMaterialTexture(value.source);
     if (previous === value) return;
     if (isThreeTexture(previous) && !textures.includes(previous)) previous._users.delete(this);
     if (isThreeTexture(value)) value._users.add(this);
@@ -130,13 +130,6 @@ export function installTextureTracking(): void {
     destroy.apply(this, args);
   };
 }
-
-/**
- * Whether a material has ever held the source in one of its texture slots
- * @param source - A texture's source
- * @internal
- */
-export const isMaterialTexture = (source: TextureSource): boolean => sampledSources.has(source);
 
 /**
  * Updates the UV transform of every material that holds a texture

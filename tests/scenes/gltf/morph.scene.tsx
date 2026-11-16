@@ -1,9 +1,9 @@
+import { useFrame, useGraph, useLoader } from '@react-fiber/threejs-compat';
+import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
+import { AnimationMixer } from '@react-fiber/threejs-compat/three';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useLayoutEffect, useState } from 'react';
-import { useFrame, useGraph, useLoader } from 'react-pixi-fiber';
-import { GLTFLoader } from 'react-pixi-fiber/addons';
-import { AnimationMixer } from 'react-pixi-fiber/three';
-import type { Mesh } from 'react-pixi-fiber/three';
 
 const URL = '/models/morph.glb?morph';
 

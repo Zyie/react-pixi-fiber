@@ -1,7 +1,7 @@
 // #region result
-import { useLoader } from 'react-pixi-fiber';
-import { GLTFLoader } from 'react-pixi-fiber/addons';
-import type { Mesh } from 'react-pixi-fiber/three';
+import { useLoader } from '@react-fiber/threejs-compat';
+import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 // #endregion result
 
 import type { Example } from '../example';

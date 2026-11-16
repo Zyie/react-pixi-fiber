@@ -1,6 +1,6 @@
+import { Canvas, Environment } from '@react-fiber/threejs-compat';
 // #region result
 import { Suspense } from 'react';
-import { Canvas, Environment } from 'react-pixi-fiber';
 // #endregion result
 
 import type { Example } from '../example';

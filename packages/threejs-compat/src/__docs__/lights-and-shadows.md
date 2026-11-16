@@ -38,8 +38,8 @@ Directional and spot lights shine at their `target`, an `Object3D`. As in three,
 <!-- snippet: examples/lights-and-shadows/spot-light.example.tsx#spot -->
 
 ```tsx
+import type { Mesh, SpotLight } from '@react-fiber/threejs-compat/three';
 import { useLayoutEffect, useRef } from 'react';
-import type { Mesh, SpotLight } from 'react-pixi-fiber/three';
 
 function Spot() {
   const light = useRef<SpotLight>(null!);
@@ -68,7 +68,7 @@ Shadows take three steps, as in three: turn them on for the renderer, let a ligh
 <!-- snippet: examples/lights-and-shadows/shadows.example.tsx#canvas -->
 
 ```tsx
-import { Canvas } from 'react-pixi-fiber';
+import { Canvas } from '@react-fiber/threejs-compat';
 
 export function App() {
   return (
@@ -137,9 +137,9 @@ A spot light's shadow covers its whole cone, from 1 unit in front of the light t
 <!-- snippet: examples/lights-and-shadows/fog.example.tsx#fog -->
 
 ```tsx
+import { useFrame } from '@react-fiber/threejs-compat';
+import type { Fog } from '@react-fiber/threejs-compat/three';
 import { useRef } from 'react';
-import { useFrame } from 'react-pixi-fiber';
-import type { Fog } from 'react-pixi-fiber/three';
 
 function Haze() {
   const fog = useRef<Fog>(null!);

@@ -1,9 +1,9 @@
+import { Canvas, useLoader } from '@react-fiber/threejs-compat';
+import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
+import { Loader } from '@react-fiber/threejs-compat/three';
 // #region result
 import { Component, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Canvas, useLoader } from 'react-pixi-fiber';
-import { GLTFLoader } from 'react-pixi-fiber/addons';
-import { Loader } from 'react-pixi-fiber/three';
 // #endregion result
 
 import type { Example } from '../example';

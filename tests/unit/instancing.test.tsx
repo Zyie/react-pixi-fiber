@@ -1,8 +1,8 @@
+import { createRoot } from '@react-fiber/threejs-compat';
+import type { ReconcilerRoot } from '@react-fiber/threejs-compat';
+import { Color, MeshBasicMaterial } from '@react-fiber/threejs-compat/three';
 import { act } from 'react';
 import type { ElementRef, ReactNode, RefObject } from 'react';
-import { createRoot } from 'react-pixi-fiber';
-import type { ReconcilerRoot } from 'react-pixi-fiber';
-import { Color, MeshBasicMaterial } from 'react-pixi-fiber/three';
 import { afterEach, beforeAll, expect, it } from 'vitest';
 
 declare global {

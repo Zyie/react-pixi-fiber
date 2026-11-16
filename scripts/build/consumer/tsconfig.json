@@ -1,6 +1,7 @@
 {
-  // An app's view of the built package: the declarations in dist, type-checked with TypeScript's
-  // default skipLibCheck (false), so an error in them fails `npm run test:bundle`.
+  // An app's view of the built packages: their declarations in dist, found through node_modules and each
+  // package's exports as an app finds them, type-checked with TypeScript's default skipLibCheck (false),
+  // so an error in them fails `npm run test:bundle`.
   "compilerOptions": {
     "target": "es2022",
     "lib": ["ES2022"],
@@ -10,12 +11,7 @@
     "jsx": "react-jsx",
     "strict": true,
     "noEmit": true,
-    "skipLibCheck": false,
-    "paths": {
-      "react-pixi-fiber": ["../../../dist/index.d.ts"],
-      "react-pixi-fiber/three": ["../../../dist/three.d.ts"],
-      "react-pixi-fiber/addons": ["../../../dist/addons.d.ts"]
-    }
+    "skipLibCheck": false
   },
   "files": ["app.tsx"]
 }

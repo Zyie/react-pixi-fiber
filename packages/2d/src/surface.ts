@@ -1,7 +1,16 @@
 import {
+  THREE_IN_2D,
+  addInElementOrder,
+  clearCursorsUnder,
+  indexByElementOrder,
+  isLayer3D,
+  isNode3D,
+  warnOnce,
+} from '@react-fiber/core/extension';
+import type { Linked } from '@react-fiber/core/extension';
+import {
   AnimatedSprite,
   BlurFilter,
-  Color,
   Container,
   Filter,
   Graphics,
@@ -9,13 +18,7 @@ import {
   Particle,
   ParticleContainer,
 } from 'pixi.js';
-import type { CacheAsTextureOptions, ColorSource, MaskOptionsAndMask, RenderLayer } from 'pixi.js';
-
-import { toDisplayColor } from '../math/Color';
-import type { Color as ThreeColor } from '../math/Color';
-import { clearCursorsUnder } from './cursor';
-import { THREE_IN_2D, addInElementOrder, indexByElementOrder, isLayer3D, isNode3D, warnOnce } from './screen';
-import type { Linked } from './screen';
+import type { CacheAsTextureOptions, MaskOptionsAndMask, RenderLayer } from 'pixi.js';
 
 /** What draws into a graphics or a context, as the `draw` prop */
 type DrawCallback<T> = (target: T) => void;
@@ -63,7 +66,7 @@ function descriptorOf(prototype: object, key: string): PropertyDescriptor {
     const descriptor = Object.getOwnPropertyDescriptor(at, key);
     if (descriptor) return descriptor;
   }
-  throw new Error(`react-pixi-fiber: pixi.js has no ${key} to extend`);
+  throw new Error(`react-fiber: pixi.js has no ${key} to extend`);
 }
 
 /**
@@ -114,7 +117,7 @@ export function add2D(parent: Container, child: Linked<object>): void {
   if (isLayer3D(child)) return;
   if (child instanceof Particle) {
     if (parent instanceof ParticleContainer) addParticleInOrder(parent, child);
-    else warnOnce('react-pixi-fiber: a <particle2D> must be inside a <particleContainer2D>.');
+    else warnOnce('react-fiber: a <particle2D> must be inside a <particleContainer2D>.');
   } else if (child instanceof Container) addInElementOrder(parent, child);
   else if (isNode3D(child)) warnOnce(THREE_IN_2D);
 }
@@ -140,13 +143,6 @@ export function remove2D(parent: Container, child: object): void {
  */
 const isMaskOptions = (value: unknown): value is Partial<MaskOptionsAndMask> =>
   typeof value === 'object' && value !== null && !(value instanceof Container);
-
-/**
- * Whether a colour is a three `Color` from `react-pixi-fiber/three`, rather than one of pixi's
- * @param value - The colour
- */
-const isThreeColor = (value: unknown): value is ThreeColor =>
-  typeof value === 'object' && value !== null && (value as { isColor?: unknown }).isColor === true;
 
 /**
  * Runs a `draw` callback on a graphics or a context, after clearing it
@@ -180,8 +176,6 @@ function runDraw<T extends Graphics | GraphicsContext>(target: T, draw: DrawCall
  * - `Graphics` and `GraphicsContext` take a `draw` prop: a callback that draws into them after they are
  *   cleared, run again whenever a new function is passed.
  * - `Particle` is a child r3f adds to a `ParticleContainer` and removes from it.
- * - pixi's `Color` takes a three `Color` from `react-pixi-fiber/three`, in sRGB, so every 2D colour prop
- *   (`tint`, a fill, a filter's colour) takes what a material's `color` takes.
  * - `GraphicsContext` and `Filter` free themselves with `dispose`, as r3f calls it. A `BlurFilter` frees
  *   its two passes too, which its own `destroy` leaves bound to the renderer's uniform buffers.
  * @internal
@@ -193,7 +187,6 @@ export function install2DSurface(): void {
   const mask = descriptorOf(Container.prototype, 'mask');
   const cacheAsTexture = descriptorOf(Container.prototype, 'cacheAsTexture').value as Container['cacheAsTexture'];
   const playing = descriptorOf(AnimatedSprite.prototype, 'playing');
-  const colorValue = descriptorOf(Color.prototype, 'value');
 
   const applyFilters = (container: Container, list: readonly (Filter | undefined)[]): void => {
     filters.set!.call(
@@ -294,16 +287,6 @@ export function install2DSurface(): void {
         if (cache === false && !this.isCachedAsTexture) return;
         cacheAsTexture.call(this, cache);
       },
-    },
-  });
-
-  Object.defineProperty(Color.prototype, 'value', {
-    configurable: true,
-    get(this: Color) {
-      return colorValue.get!.call(this) as Color['value'];
-    },
-    set(this: Color, value: ColorSource | ThreeColor | null) {
-      colorValue.set!.call(this, isThreeColor(value) ? toDisplayColor(value) : value);
     },
   });
 

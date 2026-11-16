@@ -1,7 +1,7 @@
+import { Vector2 } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useRef } from 'react';
 import type { ElementRef } from 'react';
-import { Vector2 } from 'react-pixi-fiber/three';
 
 import { useCastOnFrame } from './hit-markers';
 import type { MarkerPoint } from './hit-markers';

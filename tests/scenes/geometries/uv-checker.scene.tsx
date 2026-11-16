@@ -1,6 +1,6 @@
+import { useTexture } from '@react-fiber/threejs-compat';
+import { DoubleSide, LinearFilter } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
-import { useTexture } from 'react-pixi-fiber';
-import { DoubleSide, LinearFilter } from 'react-pixi-fiber/three';
 
 import { GEOMETRIES, galleryPosition } from './gallery';
 

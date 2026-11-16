@@ -1,7 +1,7 @@
+import { useFrame } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
 import { useRef, useState } from 'react';
 import type { ElementRef } from 'react';
-import { useFrame } from 'react-pixi-fiber';
 
 /** A box that `useFrame` moves far out of view on the second frame */
 function Mover({ onFramed }: { onFramed: (inView: boolean) => void }) {

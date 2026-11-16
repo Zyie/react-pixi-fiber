@@ -3,7 +3,7 @@
 `<Canvas>` is where a scene starts, as in react-three-fiber. It fills its parent, measures it, creates a root on the canvas inside, and renders its children with pixi-3d.
 
 ```tsx
-import { Canvas } from 'react-pixi-fiber';
+import { Canvas } from '@react-fiber/threejs-compat';
 
 const App = () => (
   <Canvas>
@@ -53,8 +53,8 @@ The canvas creates a `PixiRenderer` on pixi.js's WebGL renderer, translucent and
 <!-- snippet: examples/canvas/tone-mapping.example.tsx#canvas -->
 
 ```tsx
-import { Canvas } from 'react-pixi-fiber';
-import { AgXToneMapping } from 'react-pixi-fiber/three';
+import { Canvas } from '@react-fiber/threejs-compat';
+import { AgXToneMapping } from '@react-fiber/threejs-compat/three';
 
 export function App() {
   return (
@@ -86,7 +86,7 @@ The renderer is `state.renderer` (and `state.gl`) inside the canvas, so a settin
 <!-- snippet: examples/canvas/orthographic.example.tsx#canvas -->
 
 ```tsx
-import { Canvas } from 'react-pixi-fiber';
+import { Canvas } from '@react-fiber/threejs-compat';
 
 export function App() {
   return (
@@ -128,11 +128,11 @@ function DefaultCamera(props: ThreeElements['perspectiveCamera']) {
 <!-- snippet: examples/canvas/fixed-timestep.example.tsx#simulation -->
 
 ```tsx
+import { useFrame } from '@react-fiber/threejs-compat';
+import { MathUtils } from '@react-fiber/threejs-compat/three';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 import { useLayoutEffect, useRef } from 'react';
 import type { RefObject } from 'react';
-import { useFrame } from 'react-pixi-fiber';
-import { MathUtils } from 'react-pixi-fiber/three';
-import type { Mesh } from 'react-pixi-fiber/three';
 
 function useSimulation(raw: RefObject<(Mesh | null)[]>, smooth: RefObject<(Mesh | null)[]>) {
   const sim = useRef({ previous: initialBodies(), current: initialBodies() });
@@ -173,11 +173,11 @@ A phase of your own goes between the built-in ones. A follow camera that must se
 <!-- snippet: examples/canvas/frame-phases.example.tsx#phases -->
 
 ```tsx
+import { useFrame } from '@react-fiber/threejs-compat';
+import { MathUtils } from '@react-fiber/threejs-compat/three';
+import type { Group } from '@react-fiber/threejs-compat/three';
 import { useLayoutEffect, useRef } from 'react';
 import type { RefObject } from 'react';
-import { useFrame } from 'react-pixi-fiber';
-import { MathUtils } from 'react-pixi-fiber/three';
-import type { Group } from 'react-pixi-fiber/three';
 
 function useFollowCamera(target: RefObject<Group>) {
   const physics = useRef({ previous: 0, current: 0 });
@@ -227,7 +227,7 @@ function useFollowCamera(target: RefObject<Group>) {
 `createRoot(canvas)` renders into a canvas you own, with the same options as `<Canvas>` passed to `configure`. You size it yourself:
 
 ```tsx
-import { createRoot, events } from 'react-pixi-fiber';
+import { createRoot, events } from '@react-fiber/threejs-compat';
 
 const root = createRoot(document.querySelector('canvas')!);
 const config = { events, camera: { position: [0, 0, 50] as [number, number, number] } };

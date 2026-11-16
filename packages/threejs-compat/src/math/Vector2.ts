@@ -11,7 +11,7 @@ const clamp = (value: number, min: number, max: number): number => Math.max(min,
  * pointer in one (`state.pointer`).
  * @example
  * ```ts
- * import { useThree } from 'react-pixi-fiber';
+ * import { useThree } from '@react-fiber/threejs-compat';
  *
  * const pointer = useThree((state) => state.pointer);
  * const fromCentre = pointer.length();

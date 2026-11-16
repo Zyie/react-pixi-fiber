@@ -1,7 +1,7 @@
+import { useGraph, useLoader } from '@react-fiber/threejs-compat';
+import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
-import { useGraph, useLoader } from 'react-pixi-fiber';
-import { GLTFLoader } from 'react-pixi-fiber/addons';
-import type { Mesh } from 'react-pixi-fiber/three';
 
 function Pieces() {
   const gltf = useLoader(GLTFLoader, '/models/box.glb?graph');

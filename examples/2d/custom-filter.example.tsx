@@ -1,8 +1,8 @@
+import { Canvas, extend, useFrame, useTexture } from '@react-fiber/core';
+import type { ThreeElement } from '@react-fiber/core';
 // #region result
 import { defaultFilterVert, Filter, GlProgram, GpuProgram, UniformGroup } from 'pixi.js';
 import { Suspense, useRef } from 'react';
-import { Canvas, extend, useFrame, useTexture } from 'react-pixi-fiber';
-import type { ThreeElement } from 'react-pixi-fiber';
 // #endregion result
 
 import type { Example } from '../example';
@@ -89,7 +89,7 @@ class WaveFilter extends Filter {
 
 extend({ WaveFilter2D: WaveFilter });
 
-declare module 'react-pixi-fiber' {
+declare module '@react-fiber/core' {
   interface ThreeElements {
     waveFilter2D: ThreeElement<typeof WaveFilter>;
   }

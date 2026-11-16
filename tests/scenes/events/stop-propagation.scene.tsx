@@ -1,6 +1,6 @@
+import type { ThreeEvent } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
 import { useState } from 'react';
-import type { ThreeEvent } from 'react-pixi-fiber';
 
 /** A plane that turns orange while hovered; with `stop`, it hides whatever is behind it from the pointer */
 function Plane({

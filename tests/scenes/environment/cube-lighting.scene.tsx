@@ -1,5 +1,5 @@
+import { Environment } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
-import { Environment } from 'react-pixi-fiber';
 
 import { CUBE_FACES } from './faces';
 import { Spheres } from './spheres';

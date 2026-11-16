@@ -1,14 +1,15 @@
 /**
  * Marks the members of the built declarations that give a pixi-3d member three's type.
  *
- * A catalog alias keeps three's types where pixi-3d's class types a member otherwise: a light's
+ * In `@react-fiber/threejs-compat`, a catalog alias keeps three's types where pixi-3d's class types a member otherwise: a light's
  * `color` is a three `Color` where pixi-3d's is a pixi `Color`, a material's `emissive` is a `Color`
  * where pixi-3d's holds its emissive controls. TypeScript can't type such an override, so the source
  * marks each one with `@ts-expect-error`, which the declaration build drops. Without a mark, each is
  * a TS2416 error in an app that type-checks its libraries, as TypeScript does by default
- * (`skipLibCheck: false`). After each build this type-checks the declarations
- * (`consumer/tsconfig.dist.json`) and writes `@ts-ignore` above every line TypeScript reports as
- * TS2416. Any other error fails the build. `npm run test:bundle` checks an app against the result.
+ * (`skipLibCheck: false`). After every package is built (`npm run build`), this type-checks the
+ * declarations of all of them (`consumer/tsconfig.dist.json`) and writes `@ts-ignore` above every line
+ * TypeScript reports as TS2416. Any other error fails the build. `npm run test:bundle` checks an app
+ * against the result.
  */
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';

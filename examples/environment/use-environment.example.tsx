@@ -1,7 +1,7 @@
+import { Canvas, useEnvironment, useThree } from '@react-fiber/threejs-compat';
+import type { EnvironmentTexture, Scene } from '@react-fiber/threejs-compat/three';
 // #region result
 import { Suspense, useLayoutEffect } from 'react';
-import { Canvas, useEnvironment, useThree } from 'react-pixi-fiber';
-import type { EnvironmentTexture, Scene } from 'react-pixi-fiber/three';
 // #endregion result
 
 import type { Example } from '../example';

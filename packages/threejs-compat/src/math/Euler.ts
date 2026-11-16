@@ -67,7 +67,7 @@ const notify = {
  * `ObservableVector3` too, so pixi-3d's own `rotation` code takes it.
  * @example
  * ```ts
- * import { Euler } from 'react-pixi-fiber/three';
+ * import { Euler } from '@react-fiber/threejs-compat/three';
  *
  * mesh.rotation.order = 'YXZ';
  * mesh.rotation.set(0, Math.PI / 4, 0);

@@ -10,7 +10,7 @@ const clamp = (value: number, min: number, max: number): number => Math.max(min,
  * takes three's arguments too.
  * @example
  * ```ts
- * import { Vector4 } from 'react-pixi-fiber/three';
+ * import { Vector4 } from '@react-fiber/threejs-compat/three';
  *
  * const rect = new Vector4(0, 0, 400, 300);
  * rect.width; // 400

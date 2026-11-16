@@ -1,7 +1,7 @@
+import { Color, SRGBColorSpace } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useLayoutEffect, useRef } from 'react';
 import type { ElementRef } from 'react';
-import { Color, SRGBColorSpace } from 'react-pixi-fiber/three';
 
 type Material = ElementRef<'meshStandardMaterial'>;
 

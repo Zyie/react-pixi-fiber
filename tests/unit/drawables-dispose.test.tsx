@@ -1,8 +1,15 @@
+import { createRoot } from '@react-fiber/threejs-compat';
+import type { ReconcilerRoot, RootState } from '@react-fiber/threejs-compat';
+import {
+  ArrowHelper,
+  BoxGeometry,
+  BufferAttribute,
+  BufferGeometry,
+  GridHelper,
+  Sprite,
+} from '@react-fiber/threejs-compat/three';
 import { act } from 'react';
 import type { ReactNode } from 'react';
-import { createRoot } from 'react-pixi-fiber';
-import type { ReconcilerRoot, RootState } from 'react-pixi-fiber';
-import { ArrowHelper, BoxGeometry, BufferAttribute, BufferGeometry, GridHelper, Sprite } from 'react-pixi-fiber/three';
 import { afterEach, beforeAll, expect, it } from 'vitest';
 
 let root: ReconcilerRoot<HTMLCanvasElement> | undefined;

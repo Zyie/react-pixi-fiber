@@ -1,7 +1,7 @@
+import { Color, Object3D } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useLayoutEffect, useRef } from 'react';
 import type { ElementRef } from 'react';
-import { Color, Object3D } from 'react-pixi-fiber/three';
 
 const COLUMNS = 6;
 const ROWS = 4;

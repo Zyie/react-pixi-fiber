@@ -1,7 +1,7 @@
+import { Canvas, RenderTexture2D, useThree } from '@react-fiber/core';
+import type { ThreeEvent2D } from '@react-fiber/core';
 // #region result
 import { useState } from 'react';
-import { Canvas, RenderTexture2D, useThree } from 'react-pixi-fiber';
-import type { ThreeEvent2D } from 'react-pixi-fiber';
 // #endregion result
 
 import type { Example } from '../example';

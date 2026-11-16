@@ -1,8 +1,8 @@
+import { View3D, useFrame } from '@react-fiber/core';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { Texture } from 'pixi.js';
 import { useRef } from 'react';
-import { View3D, useFrame } from 'react-pixi-fiber';
-import type { Mesh } from 'react-pixi-fiber/three';
 
 /** A lit box that `useFrame` turns, in whatever scene it is rendered into */
 function Spinner({ color }: { color: string }) {

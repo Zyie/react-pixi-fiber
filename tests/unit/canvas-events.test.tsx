@@ -1,7 +1,7 @@
+import { Canvas } from '@react-fiber/threejs-compat';
+import type { RootState } from '@react-fiber/threejs-compat';
 import { useRef } from 'react';
 import { createRoot as createDomRoot } from 'react-dom/client';
-import { Canvas } from 'react-pixi-fiber';
-import type { RootState } from 'react-pixi-fiber';
 import { expect, it, vi } from 'vitest';
 
 /**

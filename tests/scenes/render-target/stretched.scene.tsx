@@ -1,7 +1,7 @@
+import { createPortal, useFrame, useRenderTarget } from '@react-fiber/threejs-compat';
+import { Color, PerspectiveCamera, Scene } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useState } from 'react';
-import { createPortal, useFrame, useRenderTarget } from 'react-pixi-fiber';
-import { Color, PerspectiveCamera, Scene } from 'react-pixi-fiber/three';
 
 /** A square camera drawn into a wide target: three projects with the camera's aspect, so the picture stretches */
 function Wide() {

@@ -1,8 +1,8 @@
+import { useLoader } from '@react-fiber/threejs-compat';
+import { NearestFilter, RepeatWrapping, TextureLoader } from '@react-fiber/threejs-compat/three';
+import type { Texture } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useMemo } from 'react';
-import { useLoader } from 'react-pixi-fiber';
-import { NearestFilter, RepeatWrapping, TextureLoader } from 'react-pixi-fiber/three';
-import type { Texture } from 'react-pixi-fiber/three';
 
 function Panel({
   position,

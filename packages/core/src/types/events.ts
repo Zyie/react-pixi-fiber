@@ -1,19 +1,18 @@
 import type { Container3D, Ray } from '@pixi/3d';
 
-import type { OrthographicCamera } from '../catalog/scene/OrthographicCamera';
-import type { PerspectiveCamera } from '../catalog/scene/PerspectiveCamera';
-import type { Intersection as RaycastIntersection } from '../compat/Raycaster';
-import type { Vector2 as ThreeVector2 } from '../math/Vector2';
-import type { Vector3 as ThreeVector3 } from '../math/Vector3';
+import type { Registered, RegisteredInstance } from './register';
 import type { RootState } from './state';
 import type { Properties } from './utils';
+
+/** A raycaster's hit, as the package that gives the root its raycaster registers it */
+type RaycastIntersection = Registered<'Intersection'>;
 
 /**
  * The cameras a root draws from, as three's `PerspectiveCamera | OrthographicCamera`
  * @category types
  * @standard
  */
-export type Camera = (PerspectiveCamera | OrthographicCamera) & {
+export type Camera = Registered<'Camera'> & {
   /** When `true`, r3f leaves the projection alone on resize */
   manual?: boolean;
 };
@@ -70,9 +69,9 @@ export interface IntersectionEvent<TSourceEvent> extends Intersection {
   /** Every hit under the pointer, nearest first */
   intersections: Intersection[];
   /** The pointer unprojected onto the camera's near plane */
-  unprojectedPoint: ThreeVector3;
+  unprojectedPoint: RegisteredInstance<'Vector3'>;
   /** Normalised pointer coordinates, -1 to 1 */
-  pointer: ThreeVector2;
+  pointer: RegisteredInstance<'Vector2'>;
   /** `pointerId` of the native event */
   pointerId: number;
   /** Distance in pixels between the pointer-down and this event */

@@ -1,7 +1,7 @@
+import { useAsset } from '@react-fiber/2d';
 import type { TestScene } from '@test-scene';
 import { Assets } from 'pixi.js';
 import type { Texture, VideoSource } from 'pixi.js';
-import { useAsset } from 'react-pixi-fiber';
 
 Assets.add([
   { alias: 'steps-first', src: '/video/steps.webm?first', data: { autoPlay: false, muted: true } },

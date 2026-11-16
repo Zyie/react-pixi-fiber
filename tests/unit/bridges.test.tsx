@@ -1,11 +1,12 @@
 import type { View3D as PixiView3D } from '@pixi/3d';
+import { Anchor2D, RenderTexture2D, View3D, createRoot } from '@react-fiber/threejs-compat';
+import type { ReconcilerRoot, RenderTexture2DHandle, RootState } from '@react-fiber/threejs-compat';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 import { AlphaFilter, Texture } from 'pixi.js';
 import type { Container, Sprite } from 'pixi.js';
 import { act } from 'react';
 import type { ReactNode, RefObject } from 'react';
-import { Anchor2D, RenderTexture2D, View3D, createRoot } from 'react-pixi-fiber';
-import type { ReconcilerRoot, RenderTexture2DHandle, RootState } from 'react-pixi-fiber';
-import type { Mesh } from 'react-pixi-fiber/three';
+import '@react-fiber/2d';
 import { afterEach, beforeAll, expect, it } from 'vitest';
 
 declare global {

@@ -1,22 +1,19 @@
 import { View3D as PixiView3D } from '@pixi/3d';
 import type { Camera3D, Container3D } from '@pixi/3d';
-import { Rectangle } from 'pixi.js';
-import type { Container } from 'pixi.js';
+import { useThree as coreUseThree } from '@react-fiber/r3f/src/core/hooks/useStore';
+import { createPortal as coreCreatePortal } from '@react-fiber/r3f/src/core/portal';
+import { applyProps as coreApplyProps, updateCamera as coreUpdateCamera } from '@react-fiber/r3f/src/core/utils';
+import { Container, Rectangle } from 'pixi.js';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { JSX, ReactNode, Ref } from 'react';
 
-import { OrthographicCamera } from '../../catalog/scene/OrthographicCamera';
-import { PerspectiveCamera } from '../../catalog/scene/PerspectiveCamera';
-import { Scene } from '../../catalog/scene/Scene';
-import { useThree as coreUseThree } from '../../r3f/src/core/hooks/useStore';
-import { createPortal as coreCreatePortal } from '../../r3f/src/core/portal';
-import { applyProps as coreApplyProps, updateCamera as coreUpdateCamera } from '../../r3f/src/core/utils';
-import type { CameraProps } from '../../types/canvas';
-import type { ThreeElement } from '../../types/elements';
-import type { DomEvent } from '../../types/events';
-import type { RootState, Size } from '../../types/state';
-import { computeEmbedded } from '../hitTest';
-import { VIEW_IN_LAYER_Z_INDEX, ensureScreen, layerOf, releaseScreen } from '../screen';
+import { computeEmbedded } from '../stage/hitTest';
+import { VIEW_IN_LAYER_Z_INDEX, ensureScreen, layerOf, releaseScreen } from '../stage/screen';
+import { classesOf } from '../support/classes';
+import type { CameraProps } from '../types/canvas';
+import type { ThreeElement } from '../types/elements';
+import type { DomEvent } from '../types/events';
+import type { RootState, Size } from '../types/state';
 
 const useThree = coreUseThree as unknown as <T>(selector: (state: RootState) => T) => T;
 const applyProps = coreApplyProps as unknown as (object: object, props: object) => void;
@@ -60,7 +57,8 @@ export interface View3DProps extends Omit<
 
 /** What a {@link View3D} makes and frees: its scene, its screen layer, its pixi-3d view and its camera */
 interface Embedded {
-  readonly scene: Scene;
+  readonly holder: Container;
+  readonly scene: Container3D;
   readonly screen: Container;
   readonly view: PixiView3D;
   readonly camera: Camera3D;
@@ -143,8 +141,8 @@ export function View3D({
   ...props
 }: View3DProps): JSX.Element {
   const renderer = useThree((state) => state.renderer);
+  const { Scene, PerspectiveCamera, OrthographicCamera } = useThree(classesOf);
   const [generation, setGeneration] = useState(0);
-  const holder = useRef<Container | null>(null);
   const size = useRef({ width, height });
   size.current.width = width;
   size.current.height = height;
@@ -160,14 +158,14 @@ export function View3D({
         : new PerspectiveCamera(50, width / height, 0.1, 1000));
     if (!passedCamera) {
       camera.position.z = 5;
-      (camera as PerspectiveCamera).lookAt(0, 0, 0);
+      (camera as { lookAt(x: number, y: number, z: number): void }).lookAt(0, 0, 0);
     }
     const view = new PixiView3D({ root: scene, camera, autoResize: false, width, height });
     view.zIndex = VIEW_IN_LAYER_Z_INDEX;
     layerOf(screen)!.addChildAt(view, 0);
     const hitArea = new Rectangle(0, 0, width, height);
     screen.hitArea = hitArea;
-    return { scene, screen, view, camera, ownCamera: !passedCamera, hitArea };
+    return { holder: new Container(), scene, screen, view, camera, ownCamera: !passedCamera, hitArea };
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- `generation` makes new parts after an unmount freed them; the size is set below
   }, [passedCamera, orthographic, generation]);
 
@@ -189,18 +187,19 @@ export function View3D({
   }, [embedded, width, height]);
 
   useLayoutEffect(() => {
-    if (embedded.view.destroyed || !holder.current) return;
-    renderer.embedView(embedded.view, embedded.scene, holder.current);
+    if (embedded.view.destroyed) return;
+    renderer.embedView(embedded.view, embedded.scene, embedded.holder);
     return () => renderer.releaseEmbeddedView(embedded.view);
   }, [renderer, embedded]);
 
   useEffect(() => {
     if (embedded.view.destroyed) setGeneration((count) => count + 1);
     return () => {
-      const { scene, view } = embedded;
+      const { holder, scene, view } = embedded;
       view.destroy();
       releaseScreen(scene);
       scene.destroy();
+      holder.destroy();
     };
   }, [embedded]);
 
@@ -212,7 +211,6 @@ export function View3D({
 
   const setHolder = useCallback(
     (container: Container | null) => {
-      holder.current = container;
       if (typeof ref === 'function') ref(container);
       else if (ref) ref.current = container;
     },
@@ -220,7 +218,7 @@ export function View3D({
   );
 
   return (
-    <container2D ref={setHolder} {...props}>
+    <primitive object={embedded.holder} ref={setHolder} {...(props as Record<string, unknown>)}>
       <primitive object={embedded.screen} />
       {createPortal(
         <>
@@ -230,6 +228,6 @@ export function View3D({
         embedded.scene,
         { camera: embedded.camera, size: { width, height, top: 0, left: 0 }, events: { compute } },
       )}
-    </container2D>
+    </primitive>
   );
 }

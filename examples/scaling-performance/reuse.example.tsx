@@ -1,6 +1,6 @@
 // #region result
-import { Canvas } from 'react-pixi-fiber';
-import { MeshStandardMaterial, SphereGeometry } from 'react-pixi-fiber/three';
+import { Canvas } from '@react-fiber/threejs-compat';
+import { MeshStandardMaterial, SphereGeometry } from '@react-fiber/threejs-compat/three';
 // #endregion result
 
 import type { Example } from '../example';

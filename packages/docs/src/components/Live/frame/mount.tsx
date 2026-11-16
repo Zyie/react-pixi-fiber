@@ -1,3 +1,4 @@
+import { Canvas } from '@react-fiber/threejs-compat';
 /**
  * Mounts an example in the live frame, as the visual tests mount it: the example's `render()` inside a
  * `<Canvas>` that fills the frame, or, when `render()` returns a `<Canvas>` of its own, that one. Either
@@ -8,7 +9,6 @@
 import { cloneElement, createElement, isValidElement } from 'react';
 import type { ComponentType, ReactElement, ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Canvas } from 'react-pixi-fiber';
 
 import type { Renderer } from '../types';
 

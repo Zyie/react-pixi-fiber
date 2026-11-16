@@ -13,6 +13,13 @@ import {
   Sprite3D,
 } from '@pixi/3d';
 import type { PointData3D, QuaternionData } from '@pixi/3d';
+import {
+  addToScene,
+  cameraProjection,
+  cameraProjectionInverse,
+  cameraWorldInverse,
+  removeFromScene,
+} from '@react-fiber/core/extension';
 import { Container, DEG_TO_RAD, FederatedEvent } from 'pixi.js';
 
 import { installTextureTracking } from '../catalog/textures/textureTransform';
@@ -22,8 +29,6 @@ import { MATRIX4_MEMBERS, Matrix4 } from '../math/Matrix4';
 import { QUATERNION_MEMBERS, Quaternion, setQuaternionFromEuler } from '../math/Quaternion';
 import type { EulerLike } from '../math/Quaternion';
 import { VECTOR3_MEMBERS, Vector3 } from '../math/Vector3';
-import { addToScene, removeFromScene } from '../two-d/screen';
-import { cameraProjection, cameraProjectionInverse, cameraWorldInverse } from './cameraMatrices';
 import { installMaterialSurface } from './materialSurface';
 import { placeholderGeometry, placeholderMaterial } from './placeholders';
 import { installRaycasting } from './Raycaster';

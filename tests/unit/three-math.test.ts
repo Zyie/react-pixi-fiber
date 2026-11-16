@@ -11,12 +11,11 @@ import {
   Ray,
   Sphere,
   Vector3,
-} from 'react-pixi-fiber/three';
-import type { EulerOrder } from 'react-pixi-fiber/three';
+} from '@react-fiber/threejs-compat/three';
+import type { EulerOrder } from '@react-fiber/threejs-compat/three';
 import * as THREE from 'three';
 import { beforeAll, describe, expect, it } from 'vitest';
-
-import { installObject3DSurface } from '~/compat/installObject3DSurface';
+import { installObject3DSurface } from '~threejs-compat/compat/installObject3DSurface';
 
 // Numbers have no picture: each case runs the same calls on react-pixi-fiber/three and on three.js
 // itself and expects the same result. Matrices are float32 on pixi-3d, so they match to about 1e-6.

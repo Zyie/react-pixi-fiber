@@ -1,7 +1,7 @@
+import { BackSide, DoubleSide, FrontSide, Raycaster, Vector3 } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useRef } from 'react';
 import type { ElementRef } from 'react';
-import { BackSide, DoubleSide, FrontSide, Raycaster, Vector3 } from 'react-pixi-fiber/three';
 
 import { HitMarkers, useCastOnFrame } from './hit-markers';
 

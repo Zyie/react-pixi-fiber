@@ -1,8 +1,8 @@
+import { useFrame, useThree } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import { Texture } from 'pixi.js';
 import type { Sprite } from 'pixi.js';
 import { useRef } from 'react';
-import { useFrame, useThree } from 'react-pixi-fiber';
 
 /** A square in the bottom-right corner of the canvas, placed from `useThree`'s size */
 function Corner() {

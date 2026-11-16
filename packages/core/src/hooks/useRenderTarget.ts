@@ -1,13 +1,16 @@
+import { useThree as coreUseThree } from '@react-fiber/r3f/src/core/hooks/useStore';
 /*!
  * Adapted from react-three-fiber's packages/fiber/src/core/hooks/useRenderTarget.tsx
  * MIT License, Copyright (c) 2019-2025 Poimandres
  */
 import { useEffect, useMemo, useState } from 'react';
 
-import { useThree as coreUseThree } from '../../r3f/src/core/hooks/useStore';
-import type { RootState } from '../../types/state';
-import type { RenderTargetOptions } from '../RenderTarget';
-import type { WebGLRenderTarget } from '../WebGLRenderTarget';
+import type { R3FRenderTarget } from '../types/environment';
+import type { Registered } from '../types/register';
+import type { RootState } from '../types/state';
+
+/** The options the root's render target class takes */
+type RenderTargetOptions = Registered<'RenderTargetOptions'>;
 
 const useThree = coreUseThree as unknown as <T>(selector: (state: RootState) => T) => T;
 
@@ -18,11 +21,11 @@ const useThree = coreUseThree as unknown as <T>(selector: (state: RootState) => 
  */
 export interface UseRenderTarget {
   /** A target the size of the canvas, which follows it */
-  (options?: RenderTargetOptions): WebGLRenderTarget;
+  (options?: RenderTargetOptions): R3FRenderTarget;
   /** A square target */
-  (size: number, options?: RenderTargetOptions): WebGLRenderTarget;
+  (size: number, options?: RenderTargetOptions): R3FRenderTarget;
   /** A target of a given size */
-  (width: number, height: number, options?: RenderTargetOptions): WebGLRenderTarget;
+  (width: number, height: number, options?: RenderTargetOptions): R3FRenderTarget;
 }
 
 /**
@@ -51,7 +54,7 @@ export const useRenderTarget: UseRenderTarget = (
   widthOrOptions?: number | RenderTargetOptions,
   heightOrOptions?: number | RenderTargetOptions,
   options?: RenderTargetOptions,
-): WebGLRenderTarget => {
+): R3FRenderTarget => {
   const support = useThree((state) => state.internal.support);
   const size = useThree((state) => state.size);
   const [generation, setGeneration] = useState(0);
@@ -75,7 +78,7 @@ export const useRenderTarget: UseRenderTarget = (
   const w = width ?? size.width;
   const h = height ?? size.height;
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- the size is set on the target below, so a resize keeps its texture; `generation` makes a new one after a dispose
-  const target = useMemo(() => new support.RenderTarget(w, h, opts), [support, opts, generation]);
+  const target = useMemo(() => new support.RenderTarget!(w, h, opts) as R3FRenderTarget, [support, opts, generation]);
   target.setSize(w, h);
 
   useEffect(() => {

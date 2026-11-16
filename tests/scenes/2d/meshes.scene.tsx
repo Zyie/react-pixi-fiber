@@ -1,7 +1,7 @@
+import { useTexture } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import { MeshGeometry, Point } from 'pixi.js';
 import { useMemo } from 'react';
-import { useTexture } from 'react-pixi-fiber';
 
 function Meshes() {
   const texture = useTexture('/textures/quadrants.png?meshes');

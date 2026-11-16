@@ -1,12 +1,11 @@
-import { Container3D, Matrix4 } from '@pixi/3d';
+import { Container3D, Matrix4, Vector3 } from '@pixi/3d';
 import type { Camera3D, View3D } from '@pixi/3d';
 import { Container, Point } from 'pixi.js';
 import type { ContainerOptions, DestroyOptions, PointData } from 'pixi.js';
 
-import { cameraProjection, cameraWorld, cameraWorldInverse } from '../compat/cameraMatrices';
-import { Raycaster } from '../compat/Raycaster';
-import type { Intersection } from '../compat/Raycaster';
-import { Vector3 } from '../math/Vector3';
+import { cameraProjection, cameraWorld, cameraWorldInverse } from '../renderer/cameraMatrices';
+import { loadedClasses } from '../support/classes';
+import type { Hit3D, RaycasterLike } from '../types/register';
 
 /**
  * A 3D object an {@link Anchor2D} follows or is hidden behind: the object, or a ref to it
@@ -33,8 +32,8 @@ const cameraPosition = new Vector3();
 const worldPoint = new Vector3();
 const direction = new Vector3();
 const screenPoint = new Point();
-const occlusion = new Raycaster();
-const occlusionHits: Intersection[] = [];
+let occlusion: RaycasterLike | null = null;
+const occlusionHits: Hit3D[] = [];
 
 /**
  * The object a target names, or `null` while a ref is empty
@@ -233,6 +232,7 @@ export class Anchor2D extends Container {
    */
   private _isOccluded(node: Container3D, depth: number): boolean {
     direction.copyFrom(worldPoint).subtract(cameraPosition).normalize();
+    occlusion ??= new (loadedClasses().Raycaster)();
     occlusion.set(cameraPosition, direction);
     occlusion.far = depth * (1 - 1e-4);
     const { occlude } = this;

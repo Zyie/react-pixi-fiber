@@ -1,6 +1,6 @@
+import { CanvasTexture, DataTexture } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useMemo } from 'react';
-import { CanvasTexture, DataTexture } from 'react-pixi-fiber/three';
 
 /** A 4 by 2 texture from bytes: its first row is red, green, blue, white, its second black to grey */
 function DataPanel() {

@@ -5,7 +5,6 @@ import * as environment from '../environment';
 import * as events from '../events';
 import * as loaders from '../loaders';
 import * as math from '../math';
-import * as twoD from '../two-d';
 import * as constants from './constants';
 import * as drawables from './drawables';
 import * as geometries from './geometries';
@@ -18,9 +17,8 @@ import * as textures from './textures';
 
 /**
  * Classes under three's names: the JSX aliases (`<mesh>`, `<boxGeometry>`, ...) and the math classes
- * r3f's core builds by name (`Vector3`, `Raycaster`, `Frustum`, ...), and pixi.js's 2D classes under
- * their element names (`Sprite2D` for `<sprite2D>`). Each feature area's module (`src/catalog/<area>`,
- * `src/math`, `src/events`, `src/loaders`, `src/two-d`, ...) adds to it by exporting a class.
+ * r3f's core builds by name (`Vector3`, `Raycaster`, `Frustum`, ...). Each feature area's module
+ * (`src/catalog/<area>`, `src/math`, `src/events`, `src/loaders`, ...) adds to it by exporting a class.
  * @category catalog
  * @advanced
  */
@@ -36,8 +34,7 @@ export type AliasCatalog = typeof math &
   typeof loaders &
   typeof animation &
   typeof events &
-  typeof environment &
-  typeof twoD;
+  typeof environment;
 
 /**
  * Everything a root on this renderer resolves JSX names and core classes from: pixi-3d's exports
@@ -70,7 +67,6 @@ export const aliases: AliasCatalog = {
   ...animation,
   ...events,
   ...environment,
-  ...twoD,
 };
 
 /**

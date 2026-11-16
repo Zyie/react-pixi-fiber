@@ -1,5 +1,5 @@
+import { useThree } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
-import { useThree } from 'react-pixi-fiber';
 
 /** Four corner marks and a centred bar, placed from the canvas's size */
 function Hud() {

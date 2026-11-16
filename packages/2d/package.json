@@ -1,0 +1,29 @@
+{
+  "name": "@react-fiber/2d",
+  "version": "0.0.0",
+  "description": "pixi.js 2D elements for @react-fiber/core: <sprite2D>, <graphics2D>, <text2D> and every other display object, filter and particle",
+  "license": "MIT",
+  "author": "PixiJS",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@react-fiber/core": "0.0.0"
+  },
+  "peerDependencies": {
+    "@pixi/3d": "^0.1.0",
+    "pixi.js": "^8.23.0",
+    "react": ">=19.0 <19.4",
+    "react-dom": ">=19.0 <19.4"
+  },
+  "peerDependenciesMeta": {
+    "react-dom": {
+      "optional": true
+    }
+  }
+}

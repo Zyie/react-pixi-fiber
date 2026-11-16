@@ -8,7 +8,7 @@ export default defineConfig({
   },
   plugins: ['eslint', 'typescript', 'import', 'unicorn', 'vitest', 'react', 'jsdoc'],
   // A docs test fixture is a tree of a repo's files, whose imports lead nowhere on purpose
-  ignorePatterns: ['.repos/**', 'dist/**', 'src/r3f/**', 'docs/**/__tests__/fixtures/**'],
+  ignorePatterns: ['.repos/**', '**/dist/**', 'packages/r3f/**', 'packages/docs/**/__tests__/fixtures/**'],
   rules: {
     'import/no-empty-named-blocks': 'error',
     'import/no-duplicates': 'error',
@@ -25,7 +25,7 @@ export default defineConfig({
   },
   overrides: [
     {
-      files: ['scripts/**/*', 'examples/**/*', 'docs/scripts/**/*', 'docs/plugins/**/*'],
+      files: ['scripts/**/*', 'examples/**/*', 'packages/docs/scripts/**/*', 'packages/docs/plugins/**/*'],
       rules: {
         'no-console': 'off',
       },

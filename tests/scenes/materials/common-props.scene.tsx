@@ -1,6 +1,6 @@
+import { useTexture } from '@react-fiber/threejs-compat';
+import { AdditiveBlending, BackSide, DoubleSide, FrontSide, LinearFilter } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
-import { useTexture } from 'react-pixi-fiber';
-import { AdditiveBlending, BackSide, DoubleSide, FrontSide, LinearFilter } from 'react-pixi-fiber/three';
 
 const SIDES = [FrontSide, BackSide, DoubleSide];
 

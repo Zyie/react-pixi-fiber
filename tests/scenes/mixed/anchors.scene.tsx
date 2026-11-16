@@ -1,9 +1,9 @@
+import { useFrame } from '@react-fiber/core';
+import type { ThreeElements } from '@react-fiber/core';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { Texture } from 'pixi.js';
 import { useRef } from 'react';
-import { useFrame } from 'react-pixi-fiber';
-import type { ThreeElements } from 'react-pixi-fiber';
-import type { Mesh } from 'react-pixi-fiber/three';
 
 /** A tag drawn over a 3D object: a dark rounded box with white text, its bottom middle on the point */
 function Tag({ text, ...props }: { text: string } & Omit<ThreeElements['anchor2D'], 'children'>) {

@@ -1,3 +1,5 @@
+import { useStore, useThree } from '@react-fiber/core';
+import type { RootState } from '@react-fiber/core';
 /*!
  * Adapted from react-three-fiber's packages/fiber/src/core/hooks/useTextures.tsx
  * MIT License, Copyright (c) 2019-2025 Poimandres
@@ -5,9 +7,6 @@
 import { warn } from 'pixi.js';
 import type { Texture as PixiTexture } from 'pixi.js';
 import { useMemo } from 'react';
-
-import { useStore, useThree } from '../r3f/src/core/hooks/useStore';
-import type { RootState, RootStore } from '../types/state';
 
 /**
  * A registry read: one key, a list of keys, or a record of names to keys
@@ -115,7 +114,7 @@ export function useTextures(): UseTexturesReturn;
  */
 export function useTextures<T>(selector: (registry: UseTexturesReturn) => T): T;
 export function useTextures<T>(selector?: (registry: UseTexturesReturn) => T): UseTexturesReturn | T {
-  const store = useStore() as unknown as RootStore;
+  const store = useStore();
 
   const registry = useMemo<UseTexturesReturn>(() => {
     const { getState, setState } = store;

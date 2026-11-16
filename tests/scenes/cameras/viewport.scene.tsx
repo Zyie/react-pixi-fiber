@@ -1,5 +1,5 @@
+import { useThree } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
-import { useThree } from 'react-pixi-fiber';
 
 /** Four boxes in the corners of the viewport at the origin's depth, placed from `useThree`'s viewport */
 function Corners() {

@@ -1,11 +1,11 @@
 // #region result
-import { Canvas, extend, useThree } from 'react-pixi-fiber';
-import type { ThreeElement } from 'react-pixi-fiber';
-import { MapControls } from 'react-pixi-fiber/addons';
+import { Canvas, extend, useThree } from '@react-fiber/threejs-compat';
+import type { ThreeElement } from '@react-fiber/threejs-compat';
+import { MapControls } from '@react-fiber/threejs-compat/addons';
 
 extend({ MapControls });
 
-declare module 'react-pixi-fiber' {
+declare module '@react-fiber/threejs-compat' {
   interface ThreeElements {
     mapControls: ThreeElement<typeof MapControls>;
   }

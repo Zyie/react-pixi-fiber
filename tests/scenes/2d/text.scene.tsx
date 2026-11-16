@@ -1,5 +1,5 @@
+import { useAsset } from '@react-fiber/2d';
 import type { TestScene } from '@test-scene';
-import { useAsset } from 'react-pixi-fiber';
 
 function Texts() {
   useAsset('/fonts/blocks.fnt');

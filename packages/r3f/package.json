@@ -1,5 +1,5 @@
 {
-  "name": "@react-three/fiber",
+  "name": "@react-fiber/r3f",
   "version": "10.0.0-alpha.6",
   "description": "A React renderer for Threejs",
   "keywords": [

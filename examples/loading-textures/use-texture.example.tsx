@@ -1,5 +1,5 @@
 // #region result
-import { useTexture } from 'react-pixi-fiber';
+import { useTexture } from '@react-fiber/threejs-compat';
 // #endregion result
 
 import type { Example } from '../example';

@@ -1,8 +1,8 @@
+import { Canvas, useFrame } from '@react-fiber/threejs-compat';
+import type { ThreeElements } from '@react-fiber/threejs-compat';
+import { BoxGeometry, Group, Mesh, MeshBasicMaterial } from '@react-fiber/threejs-compat/three';
 // #region result
 import { useMemo, useRef, useState } from 'react';
-import { Canvas, useFrame } from 'react-pixi-fiber';
-import type { ThreeElements } from 'react-pixi-fiber';
-import { BoxGeometry, Group, Mesh, MeshBasicMaterial } from 'react-pixi-fiber/three';
 // #endregion result
 
 import type { Example } from '../example';

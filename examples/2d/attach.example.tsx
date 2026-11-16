@@ -1,5 +1,5 @@
 // #region result
-import { Canvas, useTexture } from 'react-pixi-fiber';
+import { Canvas, useTexture } from '@react-fiber/core';
 // #endregion result
 
 import type { Example } from '../example';

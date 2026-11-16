@@ -2,14 +2,13 @@ import { View3D } from '@pixi/3d';
 import { EventBoundary, Point } from 'pixi.js';
 import type { Container, PointData } from 'pixi.js';
 
-import { castCount } from '../compat/Raycaster';
 import { OVER_3D, UNDER_3D, drawOrder, layerOrderOf, setHitOrder, setLayerOrder } from '../events/hitOrder';
-import { Vector3 } from '../math/Vector3';
+import { classesOf } from '../support/classes';
 import type { DomEvent } from '../types/events';
 import type { RootState } from '../types/state';
+import type { Intersection2D } from '../types/twoD';
 import { layerOf, sceneOfScreen } from './screen';
 import type { Linked } from './screen';
-import type { Intersection2D } from './types';
 
 /**
  * pixi's `EventBoundary`, for its hit test: `hitPruneFn` leaves out a subtree whose `hitArea` or mask
@@ -53,8 +52,18 @@ interface ScreenHits {
 }
 
 let boundary: ScreenBoundary | null = null;
+let casts = 0;
 const hitsOf = new WeakMap<Container, ScreenHits>();
 const scratch = new Point();
+
+/**
+ * Counts a raycast, which a raycaster calls each time it is set: a screen layer's hit test keeps what it
+ * found until the root's raycaster is set again, which every pointer event does first
+ * @internal
+ */
+export function noteCast(): void {
+  casts++;
+}
 
 /**
  * Whether a container takes events by itself: it has an r3f handler, or pixi's `eventMode` makes it
@@ -107,7 +116,7 @@ function walk(container: Linked<Container>, hits: ScreenHits, active: boolean): 
  */
 export function screenHits(screen: Container, x: number, y: number): ScreenHits {
   let hits = hitsOf.get(screen);
-  const cast = castCount();
+  const cast = casts;
   if (hits && hits.cast === cast && hits.location.x === x && hits.location.y === y) return hits;
   if (!hits) {
     hits = { cast, location: new Point(), order: new Map(), behindFrom: Infinity, layer: layerOf(screen) };
@@ -182,6 +191,7 @@ export function hitTestScreen(container: Container, state: RootState): Intersect
   const global = hits.location;
   const layer = layerOrderOf(state.raycaster);
   const found: Intersection2D[] = [];
+  const { Vector3 } = classesOf(state);
   for (const [hitObject, order] of hits.order) {
     if (!isWithin(hitObject, container)) continue;
     const object = sceneOfScreen(hitObject) ? (hitObject.parent ?? hitObject) : hitObject;

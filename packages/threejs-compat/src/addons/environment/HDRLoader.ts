@@ -16,8 +16,8 @@ import { Loader } from '../../loaders/Loader';
  * the texels are always half floats.
  * @example
  * ```tsx
- * import { useLoader } from 'react-pixi-fiber';
- * import { HDRLoader } from 'react-pixi-fiber/addons';
+ * import { useLoader } from '@react-fiber/threejs-compat';
+ * import { HDRLoader } from '@react-fiber/threejs-compat/addons';
  *
  * const sky = useLoader(HDRLoader, '/sky.hdr');
  * ```

@@ -1,6 +1,6 @@
 // #region result
-import { useTexture, useTextures } from 'react-pixi-fiber';
-import { SRGBColorSpace } from 'react-pixi-fiber/three';
+import { useTexture, useTextures } from '@react-fiber/threejs-compat';
+import { SRGBColorSpace } from '@react-fiber/threejs-compat/three';
 // #endregion result
 
 import type { Example } from '../example';

@@ -1,7 +1,7 @@
+import { useFrame } from '@react-fiber/threejs-compat';
+import { PerspectiveCamera } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useMemo } from 'react';
-import { useFrame } from 'react-pixi-fiber';
-import { PerspectiveCamera } from 'react-pixi-fiber/three';
 
 /** Where each quarter sits, from the bottom-left corner, what it clears to and where its camera stands */
 const QUARTERS: { x: number; y: number; clear: string; eye: [number, number, number] }[] = [

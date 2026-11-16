@@ -23,8 +23,8 @@ const panCurrent = new Vector3();
  * dolly and orbit. Panning keeps the point under the pointer under it, as three's does.
  * @example
  * ```tsx
- * import { extend } from 'react-pixi-fiber';
- * import { MapControls } from 'react-pixi-fiber/addons';
+ * import { extend } from '@react-fiber/threejs-compat';
+ * import { MapControls } from '@react-fiber/threejs-compat/addons';
  *
  * extend({ MapControls });
  *

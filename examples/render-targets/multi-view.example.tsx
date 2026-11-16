@@ -1,9 +1,9 @@
+import { Canvas, createPortal, useFrame, useThree } from '@react-fiber/threejs-compat';
+import type { Vector2 } from '@react-fiber/threejs-compat';
+import { Color, OrthographicCamera, PerspectiveCamera, Scene } from '@react-fiber/threejs-compat/three';
 // #region result
 import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Canvas, createPortal, useFrame, useThree } from 'react-pixi-fiber';
-import type { Vector2 } from 'react-pixi-fiber';
-import { Color, OrthographicCamera, PerspectiveCamera, Scene } from 'react-pixi-fiber/three';
 // #endregion result
 
 import type { Example } from '../example';

@@ -15,7 +15,7 @@ const normalMatrix = new PixiMatrix3();
  * matrix.
  * @example
  * ```ts
- * import { Plane, Vector3 } from 'react-pixi-fiber/three';
+ * import { Plane, Vector3 } from '@react-fiber/threejs-compat/three';
  *
  * const ground = new Plane(new Vector3(0, 1, 0), 0);
  * ground.distanceToPoint(new Vector3(0, 2, 0)); // 2

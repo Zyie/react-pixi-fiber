@@ -5,7 +5,7 @@
  * `useFrame`'s `delta` and `state.elapsed` follow r3f's clock, which `advance` drives.
  * @example
  * ```ts
- * import { Clock } from 'react-pixi-fiber/three';
+ * import { Clock } from '@react-fiber/threejs-compat/three';
  *
  * const clock = new Clock();
  * const delta = clock.getDelta();

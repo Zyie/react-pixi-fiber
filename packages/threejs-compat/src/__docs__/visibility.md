@@ -13,9 +13,9 @@ react-three-fiber v10 tells an object when its visibility changes. Three handler
 <!-- snippet: examples/visibility/visibility-events.example.tsx#events -->
 
 ```tsx
+import { useFrame } from '@react-fiber/threejs-compat';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 import { useRef, useState } from 'react';
-import { useFrame } from 'react-pixi-fiber';
-import type { Mesh } from 'react-pixi-fiber/three';
 
 function OrbitingSphere({ onFramed }: { onFramed: (inView: boolean) => void }) {
   const mesh = useRef<Mesh>(null!);

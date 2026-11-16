@@ -1,6 +1,6 @@
+import { useThree } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
 import { useLayoutEffect, useState } from 'react';
-import { useThree } from 'react-pixi-fiber';
 
 /** A box that turns its colour on once clicked */
 function Box({ x, color }: { x: number; color: string }) {

@@ -1,7 +1,7 @@
+import { Portal, useThree } from '@react-fiber/threejs-compat';
+import type { Group } from '@react-fiber/threejs-compat/three';
 // #region hud
 import { useEffect, useRef } from 'react';
-import { Portal, useThree } from 'react-pixi-fiber';
-import type { Group } from 'react-pixi-fiber/three';
 // #endregion hud
 
 import type { Example } from '../example';

@@ -1,8 +1,8 @@
+import { Canvas, useFrame } from '@react-fiber/core';
+import type { ThreeEvent } from '@react-fiber/core';
+import type { Group } from '@react-fiber/threejs-compat/three';
 // #region result
 import { useRef, useState } from 'react';
-import { Canvas, useFrame } from 'react-pixi-fiber';
-import type { ThreeEvent } from 'react-pixi-fiber';
-import type { Group } from 'react-pixi-fiber/three';
 // #endregion result
 
 import type { Example } from '../example';

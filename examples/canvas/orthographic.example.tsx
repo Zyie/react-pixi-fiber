@@ -1,5 +1,5 @@
 // #region canvas
-import { Canvas } from 'react-pixi-fiber';
+import { Canvas } from '@react-fiber/threejs-compat';
 // #endregion canvas
 
 import type { Example } from '../example';

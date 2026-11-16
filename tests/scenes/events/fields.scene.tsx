@@ -1,7 +1,7 @@
+import type { ThreeEvent } from '@react-fiber/threejs-compat';
+import { useThree } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
 import { useState } from 'react';
-import type { ThreeEvent } from 'react-pixi-fiber';
-import { useThree } from 'react-pixi-fiber';
 
 import { Checks } from './event-log';
 

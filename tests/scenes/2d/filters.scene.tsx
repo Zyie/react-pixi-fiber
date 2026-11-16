@@ -1,5 +1,5 @@
+import { useTexture } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
-import { useTexture } from 'react-pixi-fiber';
 
 /** A colour matrix that keeps each pixel's luminance in all three channels */
 const GREYSCALE = [0.3, 0.59, 0.11, 0, 0, 0.3, 0.59, 0.11, 0, 0, 0.3, 0.59, 0.11, 0, 0, 0, 0, 0, 1, 0] as const;

@@ -1,5 +1,5 @@
 // #region box
-import { useFrame } from 'react-pixi-fiber';
+import { useFrame } from '@react-fiber/threejs-compat';
 // #endregion box
 
 import type { Example } from '../example';

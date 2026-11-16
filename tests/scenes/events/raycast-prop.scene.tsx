@@ -1,8 +1,8 @@
+import { Sphere, Vector3 } from '@react-fiber/threejs-compat/three';
+import type { Intersection, Raycaster } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useState } from 'react';
 import type { ElementRef } from 'react';
-import { Sphere, Vector3 } from 'react-pixi-fiber/three';
-import type { Intersection, Raycaster } from 'react-pixi-fiber/three';
 
 const bounds = new Sphere();
 const hit = new Vector3();

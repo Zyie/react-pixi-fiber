@@ -7,8 +7,8 @@ This guide sets up a scene and introduces the core concepts, following react-thr
 Import `<Canvas>` from `react-pixi-fiber` and put it in your React tree.
 
 ```tsx
+import { Canvas } from '@react-fiber/threejs-compat';
 import { createRoot } from 'react-dom/client';
-import { Canvas } from 'react-pixi-fiber';
 
 function App() {
   return (
@@ -124,7 +124,7 @@ Put together, the scene is a box lit red from the front, with a faint ambient li
 <!-- snippet: examples/your-first-scene/first-scene.example.tsx#result -->
 
 ```tsx
-import { Canvas } from 'react-pixi-fiber';
+import { Canvas } from '@react-fiber/threejs-compat';
 
 function Scene() {
   return (

@@ -1,5 +1,6 @@
 import { Matrix4, Mesh3D, Sphere } from '@pixi/3d';
 import type { BaseMaterial3D, Camera3D, Container3D, Geometry3D, PointData3D } from '@pixi/3d';
+import { cameraProjectionInverse, cameraWorld, noteCast } from '@react-fiber/core/extension';
 import type { Attribute, PointData } from 'pixi.js';
 
 import { BackSide, DoubleSide, FrontSide } from '../catalog/constants';
@@ -7,7 +8,6 @@ import { BufferGeometry } from '../catalog/geometries/BufferGeometry';
 import { Ray } from '../math/Ray';
 import { Vector2 } from '../math/Vector2';
 import { Vector3 } from '../math/Vector3';
-import { cameraProjectionInverse, cameraWorld } from './cameraMatrices';
 
 /**
  * The triangle a ray hit, as three's `Face`
@@ -79,15 +79,6 @@ export interface RaycasterParameters {
 
 const byDistance = (a: Intersection, b: Intersection): number => a.distance - b.distance;
 
-let casts = 0;
-
-/**
- * How many times any raycaster has been pointed, by `set` or `setFromCamera`. Every pointer event points
- * the root's raycaster first, so the screen layer's hit test keeps what it found until this changes.
- * @internal
- */
-export const castCount = (): number => casts;
-
 /**
  * three's `Raycaster` over pixi-3d's scene graph
  *
@@ -104,7 +95,7 @@ export const castCount = (): number => casts;
  * no `layers` and every object is tested.
  * @example
  * ```ts
- * import { Raycaster, Vector2 } from 'react-pixi-fiber/three';
+ * import { Raycaster, Vector2 } from '@react-fiber/threejs-compat/three';
  *
  * const raycaster = new Raycaster();
  * raycaster.setFromCamera(new Vector2(0, 0), camera);
@@ -150,7 +141,7 @@ export class Raycaster {
    * @param direction - Which way it points; normalised
    */
   public set(origin: PointData3D, direction: PointData3D): void {
-    casts++;
+    noteCast();
     this.ray.origin.copyFrom(origin);
     this.ray.direction.copyFrom(direction).normalize();
   }
@@ -165,7 +156,7 @@ export class Raycaster {
     const projectionInverse = cameraProjectionInverse(camera);
     const world = cameraWorld(camera);
     const { origin, direction } = this.ray;
-    casts++;
+    noteCast();
     this.camera = camera;
     if (camera.mode === 'orthographic') {
       origin

@@ -5,7 +5,7 @@
  * are left out.
  * @example
  * ```tsx
- * import type { ReactThreeFiber } from 'react-pixi-fiber';
+ * import type { ReactThreeFiber } from '@react-fiber/threejs-compat';
  *
  * interface BoxProps {
  *   position?: ReactThreeFiber.Vector3;
@@ -15,7 +15,7 @@
  * @category types
  * @advanced
  */
-import type { ThreeElements as EntryElements, ThreeExports as EntryExports } from '../index';
+import type { ThreeElements as EntryElements, ThreeExports as EntryExports } from '..';
 import type * as Elements from './elements';
 import type * as Props from './math';
 import type { ConstructorRepresentation } from './utils';

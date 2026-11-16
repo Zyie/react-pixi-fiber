@@ -1,5 +1,5 @@
+import { Layer3D } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
-import { Layer3D } from 'react-pixi-fiber';
 
 const GREYSCALE = [0.3, 0.59, 0.11, 0, 0, 0.3, 0.59, 0.11, 0, 0, 0.3, 0.59, 0.11, 0, 0, 0, 0, 0, 1, 0] as const;
 

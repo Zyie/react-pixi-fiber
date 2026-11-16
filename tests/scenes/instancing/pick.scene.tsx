@@ -1,8 +1,8 @@
+import type { ThreeEvent } from '@react-fiber/threejs-compat';
+import { Color, Matrix4 } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useLayoutEffect, useRef } from 'react';
 import type { ElementRef } from 'react';
-import type { ThreeEvent } from 'react-pixi-fiber';
-import { Color, Matrix4 } from 'react-pixi-fiber/three';
 
 const COUNT = 5;
 const grey = new Color('#3a3f4b');

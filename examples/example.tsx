@@ -1,5 +1,6 @@
+import { Canvas } from '@react-fiber/threejs-compat';
 import { createRoot } from 'react-dom/client';
-import { Canvas } from 'react-pixi-fiber';
+import '@react-fiber/2d';
 
 import { canvasProps } from '../tests/harness/scene-runner';
 import type { RendererType, TestScene } from '../tests/harness/scene-runner';

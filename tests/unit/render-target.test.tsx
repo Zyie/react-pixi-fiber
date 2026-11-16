@@ -1,7 +1,5 @@
-import { act, useEffect } from 'react';
-import type { ReactNode } from 'react';
-import { createRoot, useRenderTarget } from 'react-pixi-fiber';
-import type { ReconcilerRoot, RootState } from 'react-pixi-fiber';
+import { createRoot, useRenderTarget } from '@react-fiber/threejs-compat';
+import type { ReconcilerRoot, RootState } from '@react-fiber/threejs-compat';
 import {
   Color,
   MeshBasicMaterial,
@@ -9,7 +7,9 @@ import {
   Scene,
   WebGLCubeRenderTarget,
   WebGLRenderTarget,
-} from 'react-pixi-fiber/three';
+} from '@react-fiber/threejs-compat/three';
+import { act, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { afterEach, beforeAll, expect, it } from 'vitest';
 
 let root: ReconcilerRoot<HTMLCanvasElement> | undefined;

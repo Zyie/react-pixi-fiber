@@ -1,7 +1,7 @@
+import { useFrame } from '@react-fiber/threejs-compat';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 // #region events
 import { useRef, useState } from 'react';
-import { useFrame } from 'react-pixi-fiber';
-import type { Mesh } from 'react-pixi-fiber/three';
 // #endregion events
 
 import type { Example } from '../example';

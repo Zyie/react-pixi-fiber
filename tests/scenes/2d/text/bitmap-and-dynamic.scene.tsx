@@ -1,8 +1,9 @@
+import { useAsset } from '@react-fiber/2d';
+import { useFrame } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import { BitmapFont } from 'pixi.js';
 import type { BitmapText, Text } from 'pixi.js';
 import { useRef, useState } from 'react';
-import { useAsset, useFrame } from 'react-pixi-fiber';
 
 BitmapFont.install({
   name: 'Digits',

@@ -28,10 +28,10 @@ Both families sit on the same forked r3f core, so a hook a scene imports is the 
 Each `tests/scenes/**/*.scene.tsx` exports a `scene`. Its `render()` returns what an r3f `<Canvas>` would hold: three.js element names and hooks from `react-pixi-fiber`.
 
 ```tsx
+import { useFrame } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
 import { useRef } from 'react';
 import type { ElementRef } from 'react';
-import { useFrame } from 'react-pixi-fiber';
 
 function Spinner() {
   const mesh = useRef<ElementRef<'mesh'>>(null);
@@ -60,7 +60,7 @@ export const scene: TestScene = {
 };
 ```
 
-A scene imports `react`, `react-pixi-fiber`, `react-pixi-fiber/three`, `react-pixi-fiber/addons` and `@test-scene`, and nothing from `three` or `@pixi/3d` directly: either would tie it to one renderer, and it runs on both. Classes, math and constants come from `react-pixi-fiber/three` (`import { Color, Vector3 } from 'react-pixi-fiber/three'`), which is `three` itself on the three.js side, and addons from `react-pixi-fiber/addons`. A scene names only what both sides have: r3f's API, three's element names and the classes `react-pixi-fiber/three` shares with `three`. The library's own extras, such as `PixiRenderer` or pixi-3d's element names (`<cubeGeometry>`, `<material3D>`), exist only on pixi-3d, so a scene that uses them skips three.js and sets `parity: false`, as `tests/scenes/core/native-names.scene.tsx` does.
+A scene imports `react`, `react-pixi-fiber`, `react-pixi-fiber/three`, `react-pixi-fiber/addons` and `@test-scene`, and nothing from `three` or `@pixi/3d` directly: either would tie it to one renderer, and it runs on both. Classes, math and constants come from `react-pixi-fiber/three` (`import { Color, Vector3 } from '@react-fiber/threejs-compat/three'`), which is `three` itself on the three.js side, and addons from `react-pixi-fiber/addons`. A scene names only what both sides have: r3f's API, three's element names and the classes `react-pixi-fiber/three` shares with `three`. The library's own extras, such as `PixiRenderer` or pixi-3d's element names (`<cubeGeometry>`, `<material3D>`), exist only on pixi-3d, so a scene that uses them skips three.js and sets `parity: false`, as `tests/scenes/core/native-names.scene.tsx` does.
 
 ### 2D and mixed scenes
 
@@ -133,7 +133,7 @@ An example is the code a docs page quotes, in the shape of a scene. Each `exampl
 
 ```tsx
 // #region result
-import { Canvas } from 'react-pixi-fiber';
+import { Canvas } from '@react-fiber/threejs-compat';
 // #endregion result
 
 import type { Example } from '../example';

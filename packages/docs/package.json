@@ -1,5 +1,5 @@
 {
-  "name": "react-pixi-fiber-docs",
+  "name": "@react-fiber/docs",
   "private": true,
   "scripts": {
     "dev": "node scripts/site.mts dev",

@@ -5,7 +5,7 @@ import { RenderTarget } from './RenderTarget';
  * on either pixi backend
  * @example
  * ```ts
- * import { WebGLRenderTarget } from 'react-pixi-fiber/three';
+ * import { WebGLRenderTarget } from '@react-fiber/threejs-compat/three';
  *
  * const target = new WebGLRenderTarget(512, 512, { samples: 4 });
  * ```

@@ -1,0 +1,8 @@
+{
+  // Ours, not upstream's: r3f's own tsconfig sits at its monorepo's root, with the `#types` path this gives.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noUnusedLocals": false
+  },
+  "include": ["src", "types"]
+}

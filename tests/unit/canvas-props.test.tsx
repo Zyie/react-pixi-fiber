@@ -1,8 +1,8 @@
+import { Canvas, useFrame } from '@react-fiber/threejs-compat';
+import type { RootState } from '@react-fiber/threejs-compat';
+import { LinearSRGBColorSpace, NeutralToneMapping } from '@react-fiber/threejs-compat/three';
 import type { ComponentProps } from 'react';
 import { createRoot as createDomRoot } from 'react-dom/client';
-import { Canvas, useFrame } from 'react-pixi-fiber';
-import type { RootState } from 'react-pixi-fiber';
-import { LinearSRGBColorSpace, NeutralToneMapping } from 'react-pixi-fiber/three';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
 // These run the real requestAnimationFrame loop and Canvas's own measuring, outside act(), as an app runs.

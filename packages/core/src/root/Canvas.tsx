@@ -1,3 +1,15 @@
+import { notifyRootExtensionsHmr } from '@react-fiber/r3f/src/core/extensions';
+import { useStore } from '@react-fiber/r3f/src/core/hooks/useStore';
+import { _roots } from '@react-fiber/r3f/src/core/root';
+import {
+  Block,
+  ErrorBoundary,
+  isRef,
+  useBridge,
+  useIsomorphicLayoutEffect,
+  useMutableCallback,
+} from '@react-fiber/r3f/src/core/utils';
+import { useGate } from '@react-fiber/r3f/src/core/utils/react';
 /*!
  * Adapted from react-three-fiber's packages/fiber/src/web/Canvas.tsx
  * MIT License, Copyright (c) 2019-2025 Poimandres
@@ -8,20 +20,7 @@ import useMeasure from 'react-use-measure';
 
 import type { DomEvent, SetBlock } from '#types';
 
-import type { Scene } from '../catalog/scene/Scene';
 import { createPointerEvents } from '../events/pointerEvents';
-import { notifyRootExtensionsHmr } from '../r3f/src/core/extensions';
-import { useStore } from '../r3f/src/core/hooks/useStore';
-import { _roots } from '../r3f/src/core/root';
-import {
-  Block,
-  ErrorBoundary,
-  isRef,
-  useBridge,
-  useIsomorphicLayoutEffect,
-  useMutableCallback,
-} from '../r3f/src/core/utils';
-import { useGate } from '../r3f/src/core/utils/react';
 import type { CanvasProps, ReconcilerRoot } from '../types/canvas';
 import type { RootState } from '../types/state';
 import { createRoot } from './createRoot';
@@ -36,7 +35,7 @@ function Background({ color }: { color: CanvasProps['background'] }): null {
   useIsomorphicLayoutEffect(() => {
     if (color === undefined) return;
     const { scene, invalidate } = store.getState();
-    const target = scene as unknown as Scene;
+    const target = scene as unknown as { background: unknown };
     const previous = target.background;
     target.background = color;
     invalidate();
@@ -297,7 +296,7 @@ function CanvasImpl({
  * colour only. Every canvas gets its own renderer; `primary` and `share` are ignored.
  * @example
  * ```tsx
- * import { Canvas } from 'react-pixi-fiber';
+ * import { Canvas } from '@react-fiber/threejs-compat';
  *
  * <Canvas camera={{ position: [0, 0, 5] }} background="#202025">
  *   <ambientLight intensity={0.5} />

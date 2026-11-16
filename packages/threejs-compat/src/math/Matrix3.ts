@@ -11,7 +11,7 @@ const pixiToArray = PixiMatrix3.prototype.toArray;
  * order, `multiply`, `getNormalMatrix`, `setUvTransform`, ...) takes three's arguments too.
  * @example
  * ```ts
- * import { Matrix3 } from 'react-pixi-fiber/three';
+ * import { Matrix3 } from '@react-fiber/threejs-compat/three';
  *
  * const normalMatrix = new Matrix3().getNormalMatrix(mesh.matrixWorld);
  * ```

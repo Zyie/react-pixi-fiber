@@ -1,7 +1,8 @@
+import { createRoot, events } from '@react-fiber/threejs-compat';
+import type { PixiRenderer, ReconcilerRoot, RenderProps, RootState, RootStore } from '@react-fiber/threejs-compat';
 import { Component, Suspense, useLayoutEffect } from 'react';
 import type { ReactNode } from 'react';
-import { createRoot, events } from 'react-pixi-fiber';
-import type { PixiRenderer, ReconcilerRoot, RenderProps, RootState, RootStore } from 'react-pixi-fiber';
+import '@react-fiber/2d';
 
 import { FRAME_STEP, PIXI_ONLY, SCENE_BACKGROUND, SCENE_HEIGHT, SCENE_WIDTH, isPixiOnlyKey } from './scene-constants';
 import { createSceneClock, nextTask, syntheticPointers } from './scene-input';

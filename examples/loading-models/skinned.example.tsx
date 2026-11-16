@@ -1,9 +1,9 @@
+import { useFrame, useLoader } from '@react-fiber/threejs-compat';
+import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
+import { AnimationMixer } from '@react-fiber/threejs-compat/three';
+import type { Group, SkinnedMesh } from '@react-fiber/threejs-compat/three';
 // #region result
 import { useEffect, useRef, useState } from 'react';
-import { useFrame, useLoader } from 'react-pixi-fiber';
-import { GLTFLoader } from 'react-pixi-fiber/addons';
-import { AnimationMixer } from 'react-pixi-fiber/three';
-import type { Group, SkinnedMesh } from 'react-pixi-fiber/three';
 // #endregion result
 
 import type { Example } from '../example';

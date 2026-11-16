@@ -1,5 +1,5 @@
-import { GLTFLoader } from 'react-pixi-fiber/addons';
-import type { GLTF } from 'react-pixi-fiber/addons';
+import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
+import type { GLTF } from '@react-fiber/threejs-compat/addons';
 import {
   AnimationClip,
   AnimationMixer,
@@ -11,13 +11,12 @@ import {
   Object3D,
   QuaternionKeyframeTrack,
   VectorKeyframeTrack,
-} from 'react-pixi-fiber/three';
-import type { AnimationAction, SkinnedMesh } from 'react-pixi-fiber/three';
+} from '@react-fiber/threejs-compat/three';
+import type { AnimationAction, SkinnedMesh } from '@react-fiber/threejs-compat/three';
 import * as THREE from 'three';
 import { GLTFLoader as ThreeGLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { beforeAll, describe, expect, it } from 'vitest';
-
-import { installObject3DSurface } from '~/compat/installObject3DSurface';
+import { installObject3DSurface } from '~threejs-compat/compat/installObject3DSurface';
 
 // A glTF's shape and an animation's numbers have no picture to compare: each test runs the same file
 // or the same clips through react-pixi-fiber and through three.js itself and expects the same result.

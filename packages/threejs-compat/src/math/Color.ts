@@ -218,7 +218,7 @@ const displayChannels: [number, number, number] = [1, 1, 1];
  * `color="hotpink"` and `color-r={1}` all work.
  * @example
  * ```ts
- * import { Color } from 'react-pixi-fiber/three';
+ * import { Color } from '@react-fiber/threejs-compat/three';
  *
  * const from = new Color('royalblue');
  * material.color.lerp(from, 0.1);

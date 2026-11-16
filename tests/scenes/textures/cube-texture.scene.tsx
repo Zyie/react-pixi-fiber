@@ -1,6 +1,6 @@
+import { useLoader } from '@react-fiber/threejs-compat';
+import { CubeTextureLoader } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
-import { useLoader } from 'react-pixi-fiber';
-import { CubeTextureLoader } from 'react-pixi-fiber/three';
 
 const FACES = ['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png'].map((face) => `${face}?cube-texture`);
 

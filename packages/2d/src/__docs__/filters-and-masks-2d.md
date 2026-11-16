@@ -30,7 +30,7 @@ A filter class from another package, such as [pixi-filters](https://github.com/p
 ```tsx
 extend({ DropShadowFilter2D: DropShadowFilter, GlowFilter2D: GlowFilter });
 
-declare module 'react-pixi-fiber' {
+declare module '@react-fiber/core' {
   interface ThreeElements {
     dropShadowFilter2D: ThreeElement<typeof DropShadowFilter>;
     glowFilter2D: ThreeElement<typeof GlowFilter>;

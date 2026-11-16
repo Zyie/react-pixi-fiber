@@ -1,6 +1,4 @@
-import type { TestScene } from '@test-scene';
-import { useLayoutEffect, useRef, useState } from 'react';
-import { useFrame } from 'react-pixi-fiber';
+import { useFrame } from '@react-fiber/threejs-compat';
 import {
   AnimationClip,
   AnimationMixer,
@@ -9,8 +7,10 @@ import {
   LoopPingPong,
   QuaternionKeyframeTrack,
   VectorKeyframeTrack,
-} from 'react-pixi-fiber/three';
-import type { Group } from 'react-pixi-fiber/three';
+} from '@react-fiber/threejs-compat/three';
+import type { Group } from '@react-fiber/threejs-compat/three';
+import type { TestScene } from '@test-scene';
+import { useLayoutEffect, useRef, useState } from 'react';
 
 const quarterTurnY = [0, Math.sin(Math.PI / 4), 0, Math.cos(Math.PI / 4)];
 const eighthTurnZ = [0, 0, Math.sin(Math.PI / 8), Math.cos(Math.PI / 8)];

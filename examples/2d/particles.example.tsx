@@ -1,8 +1,8 @@
+import { Canvas, useFrame } from '@react-fiber/core';
 // #region result
 import { Texture } from 'pixi.js';
 import type { ParticleContainer } from 'pixi.js';
 import { useRef } from 'react';
-import { Canvas, useFrame } from 'react-pixi-fiber';
 // #endregion result
 
 import type { Example } from '../example';

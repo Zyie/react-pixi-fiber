@@ -1,6 +1,6 @@
+import { useLoader } from '@react-fiber/threejs-compat';
+import { TextureLoader } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
-import { useLoader } from 'react-pixi-fiber';
-import { TextureLoader } from 'react-pixi-fiber/three';
 
 function Pair() {
   const [quadrants, checker] = useLoader(

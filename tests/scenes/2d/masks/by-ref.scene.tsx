@@ -1,7 +1,7 @@
+import { useTexture } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import type { Graphics, Sprite } from 'pixi.js';
 import { useState } from 'react';
-import { useTexture } from 'react-pixi-fiber';
 
 const SIZE = 110;
 

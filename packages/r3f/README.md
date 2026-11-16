@@ -8,7 +8,7 @@ so three.js apps behave as they did, and r3f's own test suite passes unchanged.
 
 react-pixi-fiber runs pixi.js 2D and `@pixi/3d` on this core with a support of its own.
 
-The whole change is [`fork.diff`](./fork.diff): <!-- diff-size -->12 files changed, 201 lines added, 102 lines removed<!-- /diff-size -->.
+The whole change is [`fork.diff`](./fork.diff): <!-- diff-size -->13 files changed, 202 lines added, 103 lines removed<!-- /diff-size -->.
 `npm run diff:r3f` writes it, and `npm run test:lint` fails when it is stale.
 
 ## The interface

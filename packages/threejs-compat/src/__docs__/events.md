@@ -191,8 +191,8 @@ function Box() {
 The `events` prop of `<Canvas>` sets up the event layer for the whole root:
 
 ```tsx
-import { Canvas, events } from 'react-pixi-fiber';
-import type { EventManager, RootStore } from 'react-pixi-fiber';
+import { Canvas, events } from '@react-fiber/threejs-compat';
+import type { EventManager, RootStore } from '@react-fiber/threejs-compat';
 
 const eventManagerFactory = (store: RootStore): EventManager<HTMLElement> => ({
   // The default configuration
@@ -358,7 +358,7 @@ const onPointerOut = () => {
 `useThree((state) => state.raycaster)` is three's `Raycaster`, from `react-pixi-fiber/three`, and works on its own too:
 
 ```tsx
-import { Raycaster, Vector2, Vector3 } from 'react-pixi-fiber/three';
+import { Raycaster, Vector2, Vector3 } from '@react-fiber/threejs-compat/three';
 
 const raycaster = new Raycaster();
 

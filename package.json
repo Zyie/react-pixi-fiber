@@ -2,26 +2,16 @@
   "name": "react-pixi-fiber",
   "version": "0.0.0",
   "private": true,
-  "description": "A React renderer for pixi.js 2D and pixi-3d with react-three-fiber v10's API for both",
+  "description": "React renderers for pixi.js 2D and @pixi/3d with react-three-fiber v10's API, as npm workspaces under packages/",
   "license": "MIT",
   "author": "PixiJS",
   "workspaces": [
-    "docs"
-  ],
-  "files": [
-    "dist"
+    "packages/*"
   ],
   "type": "module",
-  "sideEffects": false,
-  "exports": {
-    ".": "./dist/index.js",
-    "./addons": "./dist/addons.js",
-    "./three": "./dist/three.js",
-    "./package.json": "./package.json"
-  },
   "scripts": {
     "prepare": "husky",
-    "build": "tsdown",
+    "build": "tsdown && node scripts/build/declarations.mts",
     "watch": "tsdown --watch",
     "sync:repos": "node scripts/repos/sync.mts",
     "diff:r3f": "node scripts/r3f/fork.mts --write",
@@ -33,39 +23,31 @@
     "test:three": "vitest run --project three --browser.headless",
     "test:update": "vitest run --project three --project scenes --browser.headless --update=true",
     "test:unit": "vitest run --project unit --browser.headless",
-    "test:types": "tsc --noEmit -p tsconfig.json",
-    "test:lint": "oxlint --deny-warnings --ignore-pattern=docs/** && oxfmt --check && node scripts/r3f/fork.mts --check",
+    "test:types": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p packages/core && tsc --noEmit -p packages/2d && tsc --noEmit -p packages/3d && tsc --noEmit -p packages/threejs-compat",
+    "test:lint": "oxlint --deny-warnings --ignore-pattern=packages/docs/** && oxfmt --check && node scripts/r3f/fork.mts --check",
     "lint": "oxlint --fix && oxfmt --write",
-    "docs:dev": "node docs/scripts/site.mts dev",
-    "docs:build": "node docs/scripts/site.mts build",
-    "docs:serve": "node docs/scripts/site.mts serve",
-    "test:docs": "node docs/scripts/typedoc/check.mts && oxlint --deny-warnings docs && tsc --noEmit -p docs/tsconfig.json && node --test docs/scripts/typedoc/__tests__/*.test.mts docs/plugins/*/__tests__/*.test.mts docs/scripts/__tests__/*.test.mts docs/scripts/generators/*/__tests__/*.test.mts docs/src/components/*/__tests__/*.test.mts",
-    "test:site": "node docs/scripts/site.mts build --name test && node docs/scripts/crawl.mts --name test"
-  },
-  "dependencies": {
-    "@pmndrs/scheduler": "^0.3.0",
-    "@types/react-reconciler": "0.33.0",
-    "dequal": "^2.0.3",
-    "its-fine": "^2.1.1",
-    "react-reconciler": "^0.34.0",
-    "react-use-measure": "^2.1.7",
-    "scheduler": "^0.28.0",
-    "suspend-react": "^0.1.3",
-    "use-sync-external-store": "^1.6.0",
-    "zustand": "^5.0.10"
+    "docs:dev": "node packages/docs/scripts/site.mts dev",
+    "docs:build": "node packages/docs/scripts/site.mts build",
+    "docs:serve": "node packages/docs/scripts/site.mts serve",
+    "test:docs": "node packages/docs/scripts/typedoc/check.mts && oxlint --deny-warnings packages/docs && tsc --noEmit -p packages/docs/tsconfig.json && node --test packages/docs/scripts/typedoc/__tests__/*.test.mts packages/docs/plugins/*/__tests__/*.test.mts packages/docs/scripts/__tests__/*.test.mts packages/docs/scripts/generators/*/__tests__/*.test.mts packages/docs/src/components/*/__tests__/*.test.mts",
+    "test:site": "node packages/docs/scripts/site.mts build --name test && node packages/docs/scripts/crawl.mts --name test"
   },
   "devDependencies": {
     "@pixi/3d": "0.1.0",
+    "@pmndrs/scheduler": "^0.3.0",
     "@types/node": "^26.3.0",
     "@types/pngjs": "^6.0.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@types/react-reconciler": "0.33.0",
     "@types/scheduler": "^0.28.0",
     "@types/three": "^0.187.0",
     "@types/web": "^0.0.356",
     "@vitest/browser-playwright": "^5.1.0",
     "@webgpu/types": "^0.1.72",
+    "dequal": "^2.0.3",
     "husky": "^9.1.7",
+    "its-fine": "^2.1.1",
     "lint-staged": "^17.3.0",
     "meshoptimizer": "^1.2.0",
     "oxfmt": "^0.76.0",
@@ -78,24 +60,22 @@
     "pngjs": "^7.0.0",
     "react": "~19.3.1",
     "react-dom": "~19.3.1",
+    "react-reconciler": "^0.34.0",
+    "react-use-measure": "^2.1.7",
+    "scheduler": "^0.28.0",
+    "suspend-react": "^0.1.3",
     "three": "^0.187.0",
     "tsdown": "^0.23.5",
     "typescript": "^7.0.2",
+    "use-sync-external-store": "^1.6.0",
     "vite": "^8.3.6",
-    "vitest": "^5.1.0"
-  },
-  "peerDependencies": {
-    "@pixi/3d": "^0.1.0",
-    "pixi.js": "^8.23.0",
-    "react": ">=19.0 <19.4",
-    "react-dom": ">=19.0 <19.4"
-  },
-  "peerDependenciesMeta": {
-    "react-dom": {
-      "optional": true
-    }
+    "vitest": "^5.1.0",
+    "zustand": "^5.0.10"
   },
   "overrides": {
+    "@react-fiber/r3f": {
+      "@types/three": "$@types/three"
+    },
     "pixi-filters": {
       "pixi.js": "$pixi.js"
     }

@@ -1,6 +1,6 @@
+import { useFrame } from '@react-fiber/threejs-compat';
+import type { RootState } from '@react-fiber/threejs-compat';
 import { useRef, useState } from 'react';
-import { useFrame } from 'react-pixi-fiber';
-import type { RootState } from 'react-pixi-fiber';
 
 /** Where a hit is, as a marker draws it */
 export type MarkerPoint = [number, number, number];

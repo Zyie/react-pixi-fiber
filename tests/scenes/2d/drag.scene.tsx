@@ -1,7 +1,7 @@
+import type { ThreeEvent2D } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import { Texture } from 'pixi.js';
 import { useRef, useState } from 'react';
-import type { ThreeEvent2D } from 'react-pixi-fiber';
 
 /** A square dragged by its centre; with `capture`, it holds the pointer while the button is down */
 function Draggable({ x, capture, color }: { x: number; capture: boolean; color: number }) {

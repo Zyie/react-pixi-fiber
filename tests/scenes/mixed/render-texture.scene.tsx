@@ -1,6 +1,6 @@
+import { RenderTexture2D, useThree } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import { useState } from 'react';
-import { RenderTexture2D, useThree } from 'react-pixi-fiber';
 
 /** A 2D panel the size of the texture it is drawn into, with a button that turns green when clicked */
 function Panel() {

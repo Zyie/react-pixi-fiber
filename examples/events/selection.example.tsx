@@ -1,6 +1,6 @@
+import { Canvas } from '@react-fiber/threejs-compat';
 // #region result
 import { useState } from 'react';
-import { Canvas } from 'react-pixi-fiber';
 // #endregion result
 
 import type { Example } from '../example';

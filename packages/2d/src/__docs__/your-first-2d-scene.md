@@ -18,10 +18,10 @@ Then render a Canvas into it, with a white frame, a line of text and a blue squa
 <!-- snippet: examples/2d/first-2d-scene.example.tsx#result -->
 
 ```tsx
+import { Canvas, useFrame } from '@react-fiber/core';
 import { Texture } from 'pixi.js';
 import type { Sprite } from 'pixi.js';
 import { useRef } from 'react';
-import { Canvas, useFrame } from 'react-pixi-fiber';
 
 function Spinner() {
   const sprite = useRef<Sprite>(null);

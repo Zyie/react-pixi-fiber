@@ -14,7 +14,7 @@ const scratchMatrix = new PixiMatrix4();
  * its descendants in world space from each mesh's geometry bounds, as three's does without `precise`.
  * @example
  * ```ts
- * import { Box3, Vector3 } from 'react-pixi-fiber/three';
+ * import { Box3, Vector3 } from '@react-fiber/threejs-compat/three';
  *
  * const size = new Box3().setFromObject(model).getSize(new Vector3());
  * ```

@@ -110,8 +110,8 @@ const documentOf = (element: ControlsElement | null): Document | null =>
  * or `autoRotate` is on. It keeps `object.up`, as three's does.
  * @example
  * ```tsx
- * import { extend, useFrame, useThree } from 'react-pixi-fiber';
- * import { OrbitControls } from 'react-pixi-fiber/addons';
+ * import { extend, useFrame, useThree } from '@react-fiber/threejs-compat';
+ * import { OrbitControls } from '@react-fiber/threejs-compat/addons';
  *
  * extend({ OrbitControls });
  *

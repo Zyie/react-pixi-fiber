@@ -1,7 +1,7 @@
+import { useFrame, useThree } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
 import { useRef, useState } from 'react';
 import type { ElementRef } from 'react';
-import { useFrame, useThree } from 'react-pixi-fiber';
 
 /**
  * A box at the origin, and a camera to its left, facing it, that the scene isn't drawn from. On the third

@@ -1,7 +1,7 @@
+import { useFrame } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
 import { useRef, useState } from 'react';
 import type { ElementRef } from 'react';
-import { useFrame } from 'react-pixi-fiber';
 
 type Change = 'hide' | 'move' | 'none';
 

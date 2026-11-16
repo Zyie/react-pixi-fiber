@@ -1,8 +1,8 @@
+import { View3D } from '@react-fiber/core';
+import type { ThreeEvent2D } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import type { Container } from 'pixi.js';
 import { useRef, useState } from 'react';
-import { View3D } from 'react-pixi-fiber';
-import type { ThreeEvent2D } from 'react-pixi-fiber';
 
 const MESH = '#3cb44b';
 const VIEW = '#4363d8';

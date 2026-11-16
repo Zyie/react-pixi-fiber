@@ -1,5 +1,13 @@
 {
   // The built declarations on their own, which `scripts/build/declarations.mts` checks after each build.
   "extends": "./tsconfig.json",
-  "files": ["../../../dist/index.d.ts", "../../../dist/three.d.ts", "../../../dist/addons.d.ts"]
+  "files": [
+    "../../../packages/core/dist/index.d.ts",
+    "../../../packages/core/dist/extension.d.ts",
+    "../../../packages/2d/dist/index.d.ts",
+    "../../../packages/3d/dist/index.d.ts",
+    "../../../packages/threejs-compat/dist/index.d.ts",
+    "../../../packages/threejs-compat/dist/three.d.ts",
+    "../../../packages/threejs-compat/dist/addons.d.ts"
+  ]
 }

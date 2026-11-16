@@ -1,7 +1,7 @@
+import { Vector3 } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useLayoutEffect, useRef } from 'react';
 import type { ElementRef } from 'react';
-import { Vector3 } from 'react-pixi-fiber/three';
 
 type Group = ElementRef<'group'>;
 

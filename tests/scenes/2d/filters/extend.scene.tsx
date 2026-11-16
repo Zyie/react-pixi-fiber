@@ -1,10 +1,11 @@
+import { useAsset } from '@react-fiber/2d';
+import { extend, useFrame, useTexture } from '@react-fiber/core';
+import type { ThreeElement } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import { BevelFilter, DropShadowFilter, GlowFilter, OutlineFilter } from 'pixi-filters';
 import { defaultFilterVert, Filter, GlProgram, GpuProgram, UniformGroup } from 'pixi.js';
 import type { AnimatedSprite, Spritesheet } from 'pixi.js';
 import { useRef } from 'react';
-import { extend, useAsset, useFrame, useTexture } from 'react-pixi-fiber';
-import type { ThreeElement } from 'react-pixi-fiber';
 
 /** The WGSL every filter here starts from: pixi's filter globals and vertex stage */
 const WGSL_HEADER = `
@@ -119,7 +120,7 @@ extend({
   WaveFilter2D: WaveFilter,
 });
 
-declare module 'react-pixi-fiber' {
+declare module '@react-fiber/core' {
   interface ThreeElements {
     bevelFilter2D: ThreeElement<typeof BevelFilter>;
     dropShadowFilter2D: ThreeElement<typeof DropShadowFilter>;

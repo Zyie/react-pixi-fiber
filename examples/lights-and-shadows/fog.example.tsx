@@ -1,7 +1,7 @@
+import { useFrame } from '@react-fiber/threejs-compat';
+import type { Fog } from '@react-fiber/threejs-compat/three';
 // #region fog
 import { useRef } from 'react';
-import { useFrame } from 'react-pixi-fiber';
-import type { Fog } from 'react-pixi-fiber/three';
 // #endregion fog
 
 import type { Example } from '../example';

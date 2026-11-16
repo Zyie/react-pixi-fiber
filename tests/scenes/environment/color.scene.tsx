@@ -1,5 +1,5 @@
+import { Environment } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
-import { Environment } from 'react-pixi-fiber';
 
 /** `<Environment color>` only sets a plain background: teal behind an unlit-by-environment orange box */
 export const scene: TestScene = {

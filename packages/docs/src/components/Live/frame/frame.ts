@@ -1,3 +1,4 @@
+import { DefaultLoadingManager } from '@react-fiber/threejs-compat/three';
 /**
  * The module a live example's frame runs before the program: it reports the console and errors to the
  * page, tells the page once pixi has drawn a frame and with which renderer, registers the runtime's
@@ -6,7 +7,6 @@
  * react-pixi-fiber, pixi.js and React.
  */
 import { AbstractRenderer, Assets, Ticker } from 'pixi.js';
-import { DefaultLoadingManager } from 'react-pixi-fiber/three';
 
 import { CHANNEL } from '../types';
 import type { ConsoleLevel, FrameEvent, RunError, RunMessage } from '../types';

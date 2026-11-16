@@ -1,13 +1,12 @@
+import { createRoot, useLoader, useTexture, useTextures } from '@react-fiber/threejs-compat';
+import type { ObjectMap, ReconcilerRoot, RootStore, UseTexturesReturn } from '@react-fiber/threejs-compat';
+import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
+import { Group, Loader, Mesh, MeshBasicMaterial, PlaneGeometry, Texture } from '@react-fiber/threejs-compat/three';
 import { Texture as PixiTexture } from 'pixi.js';
 import { act, Suspense } from 'react';
 import type { ReactNode } from 'react';
-import { createRoot, useLoader, useTexture, useTextures } from 'react-pixi-fiber';
-import type { ObjectMap, ReconcilerRoot, RootStore, UseTexturesReturn } from 'react-pixi-fiber';
-import { GLTFLoader } from 'react-pixi-fiber/addons';
-import { Group, Loader, Mesh, MeshBasicMaterial, PlaneGeometry, Texture } from 'react-pixi-fiber/three';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-
-import { installObject3DSurface } from '~/compat/installObject3DSurface';
+import { installObject3DSurface } from '~threejs-compat/compat/installObject3DSurface';
 
 // What useLoader, useTextures and the textures do that no picture shows: caching, cache keys, aborts,
 // progress, the registry's reference counts, and what freeing a texture releases. Ported from r3f's

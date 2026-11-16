@@ -1,5 +1,5 @@
+import { Environment } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
-import { Environment } from 'react-pixi-fiber';
 
 /**
  * `backgroundBlurriness={0.4}`: the equirectangular sky drawn behind the scene, blurred, with the sun a

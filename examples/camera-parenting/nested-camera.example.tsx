@@ -1,8 +1,8 @@
+import { Portal, useFrame, useThree } from '@react-fiber/threejs-compat';
+import { Vector3 } from '@react-fiber/threejs-compat/three';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 // #region rig
 import { useRef } from 'react';
-import { Portal, useFrame, useThree } from 'react-pixi-fiber';
-import { Vector3 } from 'react-pixi-fiber/three';
-import type { Mesh } from 'react-pixi-fiber/three';
 // #endregion rig
 
 import type { Example } from '../example';

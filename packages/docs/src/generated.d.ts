@@ -24,7 +24,7 @@ declare module '@site/static/example-sources/index.json' {
  * The library, which the live runtime bundles from the repo's `src`. The frame reads only its `Canvas`;
  * the docs don't type-check `src` itself.
  */
-declare module 'react-pixi-fiber' {
+declare module '@react-fiber/threejs-compat' {
   import type { ComponentType, ReactNode } from 'react';
 
   export const Canvas: ComponentType<{ renderer?: object; camera?: unknown; children?: ReactNode }>;
@@ -34,7 +34,7 @@ declare module 'react-pixi-fiber' {
  * The library's three entry, which the live runtime bundles from the repo's `src`. The frame reads only
  * its `DefaultLoadingManager`, to serve the runtime's assets to three's loaders.
  */
-declare module 'react-pixi-fiber/three' {
+declare module '@react-fiber/threejs-compat/three' {
   export const DefaultLoadingManager: {
     setURLModifier(transform?: (url: string) => string): unknown;
   };

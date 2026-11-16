@@ -1,8 +1,8 @@
+import type { ThreeEvent } from '@react-fiber/threejs-compat';
+import { createPortal } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
 import { useState } from 'react';
 import type { ElementRef } from 'react';
-import type { ThreeEvent } from 'react-pixi-fiber';
-import { createPortal } from 'react-pixi-fiber';
 
 /** A plate that turns its colour on once the pointer is over it, and hides what is behind it from the pointer */
 function Plate({

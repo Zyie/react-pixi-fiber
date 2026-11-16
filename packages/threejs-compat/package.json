@@ -1,0 +1,32 @@
+{
+  "name": "@react-fiber/threejs-compat",
+  "version": "0.0.0",
+  "description": "three.js's names and API over @pixi/3d, so an r3f app runs on pixi by swapping its imports",
+  "license": "MIT",
+  "author": "PixiJS",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js",
+    "./addons": "./dist/addons.js",
+    "./three": "./dist/three.js",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@react-fiber/3d": "0.0.0",
+    "@react-fiber/core": "0.0.0"
+  },
+  "peerDependencies": {
+    "@pixi/3d": "^0.1.0",
+    "pixi.js": "^8.23.0",
+    "react": ">=19.0 <19.4",
+    "react-dom": ">=19.0 <19.4"
+  },
+  "peerDependenciesMeta": {
+    "react-dom": {
+      "optional": true
+    }
+  }
+}

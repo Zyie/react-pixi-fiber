@@ -15,7 +15,7 @@ const v2 = new Vector3();
  * ...) takes three's arguments too. A negative radius marks it empty, as in three.
  * @example
  * ```ts
- * import { Sphere, Vector3 } from 'react-pixi-fiber/three';
+ * import { Sphere, Vector3 } from '@react-fiber/threejs-compat/three';
  *
  * const bounds = new Sphere().setFromPoints([new Vector3(-1, 0, 0), new Vector3(1, 0, 0)]);
  * bounds.radius; // 1

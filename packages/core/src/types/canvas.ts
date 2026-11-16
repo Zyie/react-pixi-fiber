@@ -2,15 +2,18 @@ import type { ColorSource } from 'pixi.js';
 import type * as React from 'react';
 import type { Options as ResizeOptions } from 'react-use-measure';
 
-import type { OrthographicCamera } from '../catalog/scene/OrthographicCamera';
-import type { PerspectiveCamera } from '../catalog/scene/PerspectiveCamera';
-import type { Scene } from '../catalog/scene/Scene';
-import type { Raycaster } from '../compat/Raycaster';
 import type { PixiRenderer, PixiRendererParameters } from '../renderer/PixiRenderer';
 import type { ThreeElement } from './elements';
 import type { ComputeFunction, EventManager } from './events';
+import type { Registered, RegisteredInstance } from './register';
 import type { Dpr, Frameloop, Performance, RootState, RootStore, Size } from './state';
 import type { Properties } from './utils';
+
+/** The root's renderer, as the package that gives it registers it */
+type Renderer = RegisteredInstance<'Renderer'>;
+
+/** The root's raycaster, as the package that gives it registers it */
+type Raycaster = RegisteredInstance<'Raycaster'>;
 
 /**
  * What `<Canvas background>` takes: a colour. r3f's also takes an environment preset or image URLs,
@@ -54,9 +57,9 @@ export interface RendererSettings {
  */
 export type RendererProps =
   | boolean
-  | PixiRenderer
-  | ((defaults: PixiRendererParameters) => PixiRenderer | Promise<PixiRenderer>)
-  | (Partial<Omit<PixiRendererParameters, 'canvas'> & Properties<PixiRenderer>> & RendererSettings);
+  | Renderer
+  | ((defaults: PixiRendererParameters) => Renderer | Promise<Renderer>)
+  | (Partial<Omit<PixiRendererParameters, 'canvas'> & Properties<Renderer>> & RendererSettings);
 
 /**
  * The `camera` prop: a camera, or props for the default one
@@ -64,9 +67,9 @@ export type RendererProps =
  * @standard
  */
 export type CameraProps = (
-  | PerspectiveCamera
-  | OrthographicCamera
-  | Partial<ThreeElement<typeof PerspectiveCamera> & ThreeElement<typeof OrthographicCamera>>
+  | Registered<'Camera'>
+  // oxlint-disable-next-line typescript/no-duplicate-type-constituents -- the two classes are one until a package registers its own
+  | Partial<ThreeElement<Registered<'PerspectiveCamera'>> & ThreeElement<Registered<'OrthographicCamera'>>>
 ) & {
   /** When `true`, r3f leaves the projection alone on resize */
   manual?: boolean;
@@ -101,9 +104,11 @@ export interface RenderProps<_TCanvas extends HTMLCanvasElement | OffscreenCanva
   /** The pixel ratio, or a range the device's is clamped to @default [1, 2] */
   dpr?: Dpr;
   /** Raycaster settings */
-  raycaster?: Partial<Omit<Raycaster, 'params'>> & { params?: Partial<Raycaster['params']> };
+  raycaster?: Partial<Omit<Raycaster, 'params'>> & {
+    params?: Raycaster extends { params: infer P } ? Partial<P> : never;
+  };
   /** A scene, or props for the default one */
-  scene?: Scene | Partial<Scene>;
+  scene?: RegisteredInstance<'Scene'> | Partial<RegisteredInstance<'Scene'>>;
   /** A camera, or props for the default one */
   camera?: CameraProps;
   /** The event layer; `events` from this package */

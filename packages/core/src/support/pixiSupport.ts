@@ -1,27 +1,28 @@
-import { catalog } from '../catalog/catalog';
-import type { PixiCatalog } from '../catalog/catalog';
-import { installObject3DSurface } from '../compat/installObject3DSurface';
-import { WebGLCubeRenderTarget } from '../environment/WebGLCubeRenderTarget';
-import { WebGLRenderTarget } from '../environment/WebGLRenderTarget';
-import { registerRootExtension } from '../r3f/src/core/extensions';
+import { registerRootExtension } from '@react-fiber/r3f/src/core/extensions';
+import { extensions } from 'pixi.js';
+
+import { Anchor2D } from '../bridges/Anchor2D';
 import { PixiRenderer } from '../renderer/PixiRenderer';
-import { releaseFrame2D, setupFrame2D } from '../two-d/frame';
-import { ensureScreen, releaseScreen } from '../two-d/screen';
-import { install2DSurface } from '../two-d/surface';
+import { ensureScreen, releaseScreen } from '../stage/screen';
+import type { Registered } from '../types/register';
 import type { RootState, RootStore } from '../types/state';
 import { pixiHooks } from './hooks';
 import type { PixiHooks } from './hooks';
+import { FiberExtensionType, catalog, installParts, supportPart } from './registry';
+
+extensions.add({ type: FiberExtensionType.Catalog, name: 'core', priority: -1, ref: { Anchor2D } });
 
 /**
- * pixi-3d and pixi.js 2D as an r3f renderer support: what r3f's core loads when a root is configured
+ * pixi.js as an r3f renderer support: what r3f's core loads when a root is configured
  *
  * The same contract as r3f's `support/webgpu.ts`: the classes core builds its own objects from, the
  * namespace JSX names resolve in, the renderer class, the render target classes `useRenderTarget` and
  * `<Environment>` make, and the hooks core calls where it reaches into the objects it draws (adding a
- * child, hit testing, ordering hits, freeing). `kind` is `'pixi'`. Core's only branch on it tests for
- * `'webgl'`, so a pixi root takes the path that awaits the renderer's async `init()`, and the
- * WebGL-only occlusion gate stays off. pixi.js can't share a renderer between canvases, so there is no
- * canvas target.
+ * child, hit testing, ordering hits, freeing). The packages on core fill it through pixi.js's
+ * `extensions` (`FiberExtensionType`): their classes, their object hooks, and the renderer and targets
+ * they give. `kind` is `'pixi'`. Core's only branch on it tests for `'webgl'`, so a pixi root takes
+ * the path that awaits the renderer's async `init()`, and the WebGL-only occlusion gate stays off.
+ * pixi.js can't share a renderer between canvases, so there is no canvas target.
  * @category renderer
  * @advanced
  */
@@ -29,15 +30,15 @@ export interface PixiSupport extends PixiHooks {
   /** Always `'pixi'` */
   kind: 'pixi';
   /** The classes core builds the default raycaster, scene and camera from: the catalog */
-  three: PixiCatalog;
-  /** The namespace JSX names resolve in: pixi-3d's classes plus the three-named ones */
-  catalog: PixiCatalog;
+  three: Registered<'Catalog'>;
+  /** The namespace JSX names resolve in: every registered package's classes */
+  catalog: Registered<'Catalog'>;
   /** The renderer r3f constructs */
-  Renderer: typeof PixiRenderer;
+  Renderer: Registered<'Renderer'>;
   /** The target `useRenderTarget` makes */
-  RenderTarget: typeof WebGLRenderTarget;
+  RenderTarget: Registered<'RenderTarget'> | undefined;
   /** The cube target `<Environment>` makes for its children */
-  CubeRenderTarget: typeof WebGLCubeRenderTarget;
+  CubeRenderTarget: (new (size: number, options?: object) => object) | undefined;
   /** Not available: pixi.js can't share a renderer between canvases */
   CanvasTarget: undefined;
   /** Not available: pixi-3d has no occlusion queries */
@@ -45,48 +46,41 @@ export interface PixiSupport extends PixiHooks {
 }
 
 /**
- * The pixi-3d renderer support
- * @category renderer
- * @advanced
- */
-export const pixiSupport: PixiSupport = {
-  ...pixiHooks,
-  kind: 'pixi',
-  three: catalog,
-  catalog,
-  Renderer: PixiRenderer,
-  RenderTarget: WebGLRenderTarget,
-  CubeRenderTarget: WebGLCubeRenderTarget,
-  CanvasTarget: undefined,
-  occlusion: undefined,
-};
-
-/**
- * Gives each root's scene its screen layer, as `state.screen`, and the root its 2D frame jobs, and frees
- * both when the root unmounts
+ * Gives each root's scene its screen layer, as `state.screen`, and frees it when the root unmounts
  */
 const screenExtension = {
-  name: 'react-pixi-fiber:screen',
-  setup: (store: RootStore): Partial<RootState> => {
-    setupFrame2D(store);
-    return { screen: ensureScreen(store.getState().scene) };
-  },
-  dispose: (store: RootStore): void => {
-    releaseFrame2D(store);
-    releaseScreen(store.getState().scene);
-  },
+  name: 'react-fiber:screen',
+  setup: (store: RootStore): Partial<RootState> => ({ screen: ensureScreen(store.getState().scene) }),
+  dispose: (store: RootStore): void => releaseScreen(store.getState().scene),
 };
 
 /**
- * Loads the support for a root: installs the three.js members on pixi-3d's classes and r3f's on
- * pixi.js's 2D classes, once, and gives every root a screen layer for its 2D, then hands the support
- * over. r3f's core calls it during a root's first `configure()`, before any element is created, so
- * importing this package changes nothing until a root exists.
+ * The renderer support every root loads, from the packages registered so far
+ * @returns The support
+ */
+function createSupport(): PixiSupport {
+  return {
+    ...pixiHooks,
+    kind: 'pixi',
+    three: catalog as Registered<'Catalog'>,
+    catalog: catalog as Registered<'Catalog'>,
+    Renderer: (supportPart('Renderer') ?? PixiRenderer) as unknown as Registered<'Renderer'>,
+    RenderTarget: supportPart('RenderTarget'),
+    CubeRenderTarget: supportPart('CubeRenderTarget'),
+    CanvasTarget: undefined,
+    occlusion: undefined,
+  };
+}
+
+/**
+ * Loads the support for a root: runs what each registered package installs, once, gives every root a
+ * screen layer for its 2D, then hands the support over. r3f's core calls it during a root's first
+ * `configure()`, before any element is created, so importing a package changes nothing until a root
+ * exists.
  * @internal
  */
 export function loadPixiSupport(): PixiSupport {
-  installObject3DSurface();
-  install2DSurface();
+  installParts();
   (registerRootExtension as unknown as (extension: typeof screenExtension) => void)(screenExtension);
-  return pixiSupport;
+  return createSupport();
 }

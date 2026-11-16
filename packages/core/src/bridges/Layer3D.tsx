@@ -1,11 +1,11 @@
+import { useThree as coreUseThree } from '@react-fiber/r3f/src/core/hooks/useStore';
 import type { Container } from 'pixi.js';
 import { useLayoutEffect } from 'react';
 import type { JSX, ReactNode, Ref } from 'react';
 
-import { useThree as coreUseThree } from '../../r3f/src/core/hooks/useStore';
-import type { ThreeElement } from '../../types/elements';
-import type { RootState } from '../../types/state';
-import { VIEW_Z_INDEX, ensureScreen, layerOf } from '../screen';
+import { VIEW_Z_INDEX, ensureScreen, layerOf } from '../stage/screen';
+import type { ThreeElement } from '../types/elements';
+import type { RootState } from '../types/state';
 
 const useThree = coreUseThree as unknown as <T>(selector: (state: RootState) => T) => T;
 

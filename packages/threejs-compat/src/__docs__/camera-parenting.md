@@ -18,9 +18,9 @@ Add to the camera in an effect, and remove in its cleanup. `<Portal container={c
 <!-- snippet: examples/camera-parenting/hud.example.tsx#hud -->
 
 ```tsx
+import { Portal, useThree } from '@react-fiber/threejs-compat';
+import type { Group } from '@react-fiber/threejs-compat/three';
 import { useEffect, useRef } from 'react';
-import { Portal, useThree } from 'react-pixi-fiber';
-import type { Group } from 'react-pixi-fiber/three';
 
 function HUD() {
   const { camera } = useThree();
@@ -64,7 +64,7 @@ Lights work in a portal too. As in three, a spot light's target stays outside th
 <!-- snippet: examples/camera-parenting/headlights.example.tsx#headlights -->
 
 ```tsx
-import { Portal, useThree } from 'react-pixi-fiber';
+import { Portal, useThree } from '@react-fiber/threejs-compat';
 
 function CameraHeadlights() {
   const { camera } = useThree();
@@ -85,10 +85,10 @@ Move a camera along a path each frame, and anything portalled into it moves alon
 <!-- snippet: examples/camera-parenting/nested-camera.example.tsx#rig -->
 
 ```tsx
+import { Portal, useFrame, useThree } from '@react-fiber/threejs-compat';
+import { Vector3 } from '@react-fiber/threejs-compat/three';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 import { useRef } from 'react';
-import { Portal, useFrame, useThree } from 'react-pixi-fiber';
-import { Vector3 } from 'react-pixi-fiber/three';
-import type { Mesh } from 'react-pixi-fiber/three';
 
 function CameraRig() {
   const { camera } = useThree();

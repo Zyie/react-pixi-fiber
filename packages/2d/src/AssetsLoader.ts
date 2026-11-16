@@ -8,7 +8,8 @@ import { Assets } from 'pixi.js';
  * React only, so call `Assets.unload` to free it. {@link useAsset} is the same with the result typed.
  * @example
  * ```tsx
- * import { AssetsLoader, useLoader } from 'react-pixi-fiber';
+ * import { useLoader } from '@react-fiber/core';
+ * import { AssetsLoader } from '@react-fiber/2d';
  * import type { Spritesheet } from 'pixi.js';
  *
  * const sheet = useLoader(AssetsLoader, '/sprites/sheet.json') as Spritesheet;

@@ -1,7 +1,7 @@
+import { useFrame } from '@react-fiber/threejs-compat';
+import { DynamicDrawUsage, PlaneGeometry } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useMemo } from 'react';
-import { useFrame } from 'react-pixi-fiber';
-import { DynamicDrawUsage, PlaneGeometry } from 'react-pixi-fiber/three';
 
 /**
  * A plane whose vertices ripple: each frame writes new heights into its position attribute and sets

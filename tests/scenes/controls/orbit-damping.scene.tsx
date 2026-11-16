@@ -1,7 +1,7 @@
+import { useFrame, useThree } from '@react-fiber/threejs-compat';
+import type { OrbitControls } from '@react-fiber/threejs-compat/addons';
 import type { TestScene } from '@test-scene';
 import { useRef } from 'react';
-import { useFrame, useThree } from 'react-pixi-fiber';
-import type { OrbitControls } from 'react-pixi-fiber/addons';
 
 import { Arena } from './arena';
 

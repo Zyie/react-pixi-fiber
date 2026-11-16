@@ -1,5 +1,5 @@
 // #region headlights
-import { Portal, useThree } from 'react-pixi-fiber';
+import { Portal, useThree } from '@react-fiber/threejs-compat';
 // #endregion headlights
 
 import type { Example } from '../example';

@@ -1,7 +1,7 @@
+import { createRoot } from '@react-fiber/threejs-compat';
+import type { ReconcilerRoot, RootState } from '@react-fiber/threejs-compat';
 import { act } from 'react';
 import type { ElementRef, ReactNode, RefObject } from 'react';
-import { createRoot } from 'react-pixi-fiber';
-import type { ReconcilerRoot, RootState } from 'react-pixi-fiber';
 import { afterEach, beforeAll, expect, it } from 'vitest';
 
 declare global {

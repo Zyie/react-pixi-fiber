@@ -1,7 +1,7 @@
+import { setRenderOverride, useStore } from '@react-fiber/threejs-compat';
+import { PerspectiveCamera } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useLayoutEffect, useMemo } from 'react';
-import { setRenderOverride, useStore } from 'react-pixi-fiber';
-import { PerspectiveCamera } from 'react-pixi-fiber/three';
 
 /** Replaces the root's render with one from a camera above the scene, through `setRenderOverride` */
 function TopView() {

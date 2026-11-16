@@ -54,8 +54,8 @@ Every geometry of three r187 that a typical scene uses is in the catalog, built 
 <!-- snippet: examples/objects/geometries.example.tsx#result -->
 
 ```tsx
-import { Canvas } from 'react-pixi-fiber';
-import { Vector2 } from 'react-pixi-fiber/three';
+import { Canvas } from '@react-fiber/threejs-compat';
+import { Vector2 } from '@react-fiber/threejs-compat/three';
 
 const profile = [new Vector2(0.05, -0.7), new Vector2(0.55, -0.5), new Vector2(0.3, 0.1), new Vector2(0.45, 0.6)];
 
@@ -111,8 +111,8 @@ Each keeps three's `parameters`, and each is a `BufferGeometry`, so `geometry.at
 <!-- snippet: examples/objects/custom-geometry.example.tsx#result -->
 
 ```tsx
+import { Canvas } from '@react-fiber/threejs-compat';
 import { useMemo } from 'react';
-import { Canvas } from 'react-pixi-fiber';
 
 function Fan({ blades = 12 }) {
   const [positions, colors] = useMemo(() => {
@@ -169,7 +169,7 @@ The catalog's materials take three's parameters and fields: `meshBasicMaterial`,
 <!-- snippet: examples/objects/materials.example.tsx#result -->
 
 ```tsx
-import { Canvas } from 'react-pixi-fiber';
+import { Canvas } from '@react-fiber/threejs-compat';
 
 const materials = [
   <meshBasicMaterial key="basic" color="#ef8354" />,
@@ -225,10 +225,10 @@ pixi-3d builds each of the physical material's features into the shader when the
 <!-- snippet: examples/objects/points-and-lines.example.tsx#result -->
 
 ```tsx
+import { Canvas, useFrame } from '@react-fiber/threejs-compat';
+import { BoxGeometry, BufferGeometry, Vector3 } from '@react-fiber/threejs-compat/three';
+import type { Points } from '@react-fiber/threejs-compat/three';
 import { useMemo, useRef } from 'react';
-import { Canvas, useFrame } from 'react-pixi-fiber';
-import { BoxGeometry, BufferGeometry, Vector3 } from 'react-pixi-fiber/three';
-import type { Points } from 'react-pixi-fiber/three';
 
 function Starfield({ count = 400 }) {
   const points = useRef<Points>(null!);

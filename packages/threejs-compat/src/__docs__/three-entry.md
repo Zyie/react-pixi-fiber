@@ -3,9 +3,9 @@
 r3f apps import from two places: `@react-three/fiber` for the React side, and `three` for classes, math and constants. `react-pixi-fiber` takes the place of the first. `react-pixi-fiber/three` takes the place of the second: three's API, under three's names, over pixi-3d.
 
 ```tsx
-import { useFrame } from 'react-pixi-fiber';
-import { Color, MathUtils, Vector3 } from 'react-pixi-fiber/three';
-import type { Mesh } from 'react-pixi-fiber/three';
+import { useFrame } from '@react-fiber/threejs-compat';
+import { Color, MathUtils, Vector3 } from '@react-fiber/threejs-compat/three';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 ```
 
 ## What it covers
@@ -60,7 +60,7 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   resolve: {
-    alias: [{ find: /^three$/, replacement: 'react-pixi-fiber/three' }],
+    alias: [{ find: /^three$/, replacement: '@react-fiber/threejs-compat/three' }],
   },
 });
 ```

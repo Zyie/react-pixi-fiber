@@ -1,7 +1,7 @@
+import { Color } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { Texture } from 'pixi.js';
 import { useMemo } from 'react';
-import { Color } from 'react-pixi-fiber/three';
 
 function Colored() {
   const lime = useMemo(() => new Color('limegreen'), []);

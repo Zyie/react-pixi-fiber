@@ -22,7 +22,7 @@ const pixiToArray = PixiMatrix4.prototype.toArray;
  * members once a root has loaded the support.
  * @example
  * ```ts
- * import { Matrix4, Quaternion, Vector3 } from 'react-pixi-fiber/three';
+ * import { Matrix4, Quaternion, Vector3 } from '@react-fiber/threejs-compat/three';
  *
  * const m = new Matrix4().compose(new Vector3(0, 1, 0), new Quaternion(), new Vector3(1, 1, 1));
  * mesh.matrix.copy(m);

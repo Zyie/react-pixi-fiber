@@ -1,16 +1,15 @@
+import { createPointerEvents as coreEvents } from '@react-fiber/r3f/src/core/events';
 import { Point } from 'pixi.js';
 import type { Container } from 'pixi.js';
 
-import { Vector2 } from '../math/Vector2';
-import { createPointerEvents as coreEvents } from '../r3f/src/core/events';
-import { showCursorOf } from '../two-d/cursor';
-import { cursorSourceAt } from '../two-d/hitTest';
-import { layerOf, screenOf } from '../two-d/screen';
+import { showCursorOf } from '../stage/cursor';
+import { cursorSourceAt } from '../stage/hitTest';
+import { layerOf, screenOf } from '../stage/screen';
 import type { DomEvent, EventManager } from '../types/events';
 import type { RootState, RootStore } from '../types/state';
 
 const layerPoint = new Point();
-const rayPointer = new Vector2();
+const rayPointer = new Point();
 
 /**
  * r3f's pointer event layer, with `onDoubleClick` delivered and the canvas's cursor following the 2D

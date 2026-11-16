@@ -1,8 +1,8 @@
+import { Canvas, useFrame } from '@react-fiber/threejs-compat';
+import type { RootState } from '@react-fiber/threejs-compat';
 import { useRef } from 'react';
 import type { ElementRef } from 'react';
 import { createRoot as createDomRoot } from 'react-dom/client';
-import { Canvas, useFrame } from 'react-pixi-fiber';
-import type { RootState } from 'react-pixi-fiber';
 import { expect, it, vi } from 'vitest';
 
 // The scenes drive their own frames; this is the one place the real requestAnimationFrame loop runs,

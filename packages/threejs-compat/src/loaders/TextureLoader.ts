@@ -22,8 +22,8 @@ export function toBitmap(image: HTMLImageElement): Promise<ImageBitmap | HTMLIma
  * setting `wrapS` or `repeat` on one leaves another load of the same image alone.
  * @example
  * ```tsx
- * import { useLoader } from 'react-pixi-fiber';
- * import { TextureLoader } from 'react-pixi-fiber/three';
+ * import { useLoader } from '@react-fiber/threejs-compat';
+ * import { TextureLoader } from '@react-fiber/threejs-compat/three';
  *
  * const texture = useLoader(TextureLoader, '/crate.png');
  * ```

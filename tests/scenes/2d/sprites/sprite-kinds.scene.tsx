@@ -1,7 +1,8 @@
+import { useAsset } from '@react-fiber/2d';
+import { useFrame, useTexture } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import type { Spritesheet, TilingSprite } from 'pixi.js';
 import { useMemo, useRef } from 'react';
-import { useAsset, useFrame, useTexture } from 'react-pixi-fiber';
 
 /** A tiling sprite whose tiles `useFrame` scrolls 2 pixels right and 1 down a frame */
 function Scrolling() {

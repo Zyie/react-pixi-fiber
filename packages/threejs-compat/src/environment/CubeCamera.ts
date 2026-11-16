@@ -1,8 +1,8 @@
 import type { Container3D } from '@pixi/3d';
+import type { PixiRenderer } from '@react-fiber/core';
 
 import { Object3D } from '../catalog/objects/Object3D';
 import { PerspectiveCamera } from '../catalog/scene/PerspectiveCamera';
-import type { PixiRenderer } from '../renderer/PixiRenderer';
 import type { WebGLCubeRenderTarget } from './WebGLCubeRenderTarget';
 
 /** Where each face camera looks and which way is up on it, in the order of the cube's faces */

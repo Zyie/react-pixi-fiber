@@ -1,6 +1,6 @@
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 // #region box
 import { useRef } from 'react';
-import type { Mesh } from 'react-pixi-fiber/three';
 // #endregion box
 
 import type { Example } from '../example';

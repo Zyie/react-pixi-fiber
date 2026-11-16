@@ -1,8 +1,8 @@
+import { useTexture } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import { FillGradient, Matrix } from 'pixi.js';
 import type { Graphics } from 'pixi.js';
 import { useMemo } from 'react';
-import { useTexture } from 'react-pixi-fiber';
 
 function Shapes() {
   const texture = useTexture('/textures/quadrants.png?graphics-fills');

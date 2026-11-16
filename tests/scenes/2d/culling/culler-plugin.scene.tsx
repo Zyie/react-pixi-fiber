@@ -1,8 +1,8 @@
+import { useFrame } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import { CullerPlugin, extensions, Rectangle, Texture } from 'pixi.js';
 import type { Sprite } from 'pixi.js';
 import { useLayoutEffect, useRef, useState } from 'react';
-import { useFrame } from 'react-pixi-fiber';
 
 const OUTSIDE_AREA = new Rectangle(-500, 0, 10, 10);
 

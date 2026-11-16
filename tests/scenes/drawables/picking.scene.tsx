@@ -1,7 +1,7 @@
+import { useThree } from '@react-fiber/threejs-compat';
+import { BufferGeometry, Vector3 } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useLayoutEffect, useMemo, useState } from 'react';
-import { useThree } from 'react-pixi-fiber';
-import { BufferGeometry, Vector3 } from 'react-pixi-fiber/three';
 
 /** A drawable that turns hot pink once clicked */
 function useClicked(): [string, () => void] {

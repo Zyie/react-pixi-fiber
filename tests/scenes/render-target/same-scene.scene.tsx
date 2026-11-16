@@ -1,7 +1,7 @@
+import { useFrame, useRenderTarget } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
 import { useRef } from 'react';
 import type { ElementRef } from 'react';
-import { useFrame, useRenderTarget } from 'react-pixi-fiber';
 
 /**
  * r3f's basic render target sample: the root's own scene and camera drawn into a target with

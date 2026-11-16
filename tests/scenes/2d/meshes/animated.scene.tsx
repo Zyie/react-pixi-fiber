@@ -1,8 +1,8 @@
+import { useFrame, useTexture } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import { Point } from 'pixi.js';
 import type { MeshPlane, MeshRope, PerspectiveMesh, RopeGeometry } from 'pixi.js';
 import { useMemo, useRef } from 'react';
-import { useFrame, useTexture } from 'react-pixi-fiber';
 
 /** A rope whose points `useFrame` moves along a travelling sine wave; the rope follows them */
 function Snake() {

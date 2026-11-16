@@ -88,7 +88,7 @@ const isSRGB = (space: ColorSpace): boolean => space === SRGBColorSpace;
  * three's `ColorManagement`, for sRGB and linear sRGB
  * @example
  * ```ts
- * import { Color, ColorManagement } from 'react-pixi-fiber/three';
+ * import { Color, ColorManagement } from '@react-fiber/threejs-compat/three';
  *
  * ColorManagement.enabled = false;
  * new Color('#808080').r; // 0.5, as written

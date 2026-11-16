@@ -21,10 +21,9 @@ import type {
   TextStyleOptions,
 } from 'pixi.js';
 
-import type { Intersection as RaycastIntersection } from '../compat/Raycaster';
-import type { Color as ThreeColor } from '../math/Color';
-import type { IntersectionEvent } from '../types/events';
-import type { Properties } from '../types/utils';
+import type { IntersectionEvent } from './events';
+import type { Registered, RegisteredInstance } from './register';
+import type { Properties } from './utils';
 
 /**
  * A hit on a 2D element: r3f's intersection, with the 2D object and the pointer in 2D's spaces
@@ -34,7 +33,7 @@ import type { Properties } from '../types/utils';
  * @category events
  * @standard
  */
-export interface Intersection2D extends Omit<RaycastIntersection, 'object'> {
+export interface Intersection2D extends Omit<Registered<'Intersection'>, 'object'> {
   /** The 2D object under the pointer */
   object: Container;
   /**
@@ -149,7 +148,8 @@ export interface ContainerProps2D {
  * @category types
  * @advanced
  */
-export type SetterProps2D<P> = (P extends { tint: number } ? { tint: ColorSource | ThreeColor } : {}) &
+// oxlint-disable-next-line typescript/no-redundant-type-constituents -- no colour class until a package registers one
+export type SetterProps2D<P> = (P extends { tint: number } ? { tint: ColorSource | RegisteredInstance<'Color'> } : {}) &
   (P extends Container ? ContainerProps2D : {}) &
   (P extends { text: string; style: object }
     ? {

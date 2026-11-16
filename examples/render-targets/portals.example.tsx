@@ -1,10 +1,10 @@
+import { Canvas, createPortal, useFrame, useRenderTarget, useThree } from '@react-fiber/threejs-compat';
+import type { ComputeFunction, ThreeElements } from '@react-fiber/threejs-compat';
+import { PerspectiveCamera, Scene } from '@react-fiber/threejs-compat/three';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 // #region result
 import { useCallback, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Canvas, createPortal, useFrame, useRenderTarget, useThree } from 'react-pixi-fiber';
-import type { ComputeFunction, ThreeElements } from 'react-pixi-fiber';
-import { PerspectiveCamera, Scene } from 'react-pixi-fiber/three';
-import type { Mesh } from 'react-pixi-fiber/three';
 // #endregion result
 
 import type { Example } from '../example';

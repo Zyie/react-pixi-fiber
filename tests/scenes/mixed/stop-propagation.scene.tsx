@@ -1,6 +1,6 @@
+import type { ThreeEvent2D } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import { useState } from 'react';
-import type { ThreeEvent2D } from 'react-pixi-fiber';
 
 /** A box that turns orange once the pointer has been over it */
 function Box({ x }: { x: number }) {

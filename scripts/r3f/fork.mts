@@ -1,10 +1,11 @@
 /**
- * Keeps `src/r3f/fork.diff` the diff of `src/r3f`, our fork of react-three-fiber's fiber package,
+ * Keeps `packages/r3f/fork.diff` the diff of `packages/r3f` (`@react-fiber/r3f`), our fork of
+ * react-three-fiber's fiber package,
  * against the upstream commit `scripts/repos/manifest.mts` pins, read from `.repos/react-three-fiber`
  * (`npm run sync:repos`).
  *
  * - `node scripts/r3f/fork.mts --write` (`npm run diff:r3f`) writes the diff, and the size line of
- *   `src/r3f/README.md` between its `diff-size` markers.
+ *   `packages/r3f/README.md` between its `diff-size` markers.
  * - `node scripts/r3f/fork.mts --check` fails when either is stale or one of our own files is missing.
  *   `npm run test:lint` runs it.
  *
@@ -12,7 +13,9 @@
  * added and deleted files, with paths relative to `packages/fiber`, so `git apply` takes it in an
  * upstream checkout of that folder. Our own files in the tree are listed in `EXTRAS` and left out: the
  * react-reconciler shims sit at the relative path r3f's core imports (upstream generates that folder at
- * install time), the README is written for r3f's maintainers, and the diff is this script's.
+ * install time), the README is written for r3f's maintainers, the diff is this script's, and the
+ * package builds with a tsconfig.json and a tsdown.config.ts of ours, where upstream's build reads its
+ * monorepo's tsconfig and its own unbuild config.
  */
 import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -23,7 +26,7 @@ import { referenceRepos } from '../repos/manifest.mts';
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..');
 const UPSTREAM = '.repos/react-three-fiber';
 const UPSTREAM_PACKAGE = `${UPSTREAM}/packages/fiber`;
-const FORK = 'src/r3f';
+const FORK = 'packages/r3f';
 const DIFF = `${FORK}/fork.diff`;
 const README = `${FORK}/README.md`;
 const SIZE_MARKERS = ['<!-- diff-size -->', '<!-- /diff-size -->'] as const;
@@ -31,10 +34,12 @@ const SIZE_MARKERS = ['<!-- diff-size -->', '<!-- /diff-size -->'] as const;
 /** What the fork copies from `packages/fiber`: whole folders, and single files */
 const COPIED = ['src', 'types', 'package.json'];
 
-/** Files in `src/r3f` that are ours, relative to it */
+/** Files in `packages/r3f` that are ours, relative to it */
 const EXTRAS = new Set([
   'README.md',
   'fork.diff',
+  'tsconfig.json',
+  'tsdown.config.ts',
   'react-reconciler/index.js',
   'react-reconciler/index.d.ts',
   'react-reconciler/constants.js',
@@ -108,7 +113,7 @@ function forkDiff(commit: string): string {
   };
   const changed = [...new Set([...upstream, ...fork])].sort().filter((file) => !same(file));
   const header = [
-    `# src/r3f against react-three-fiber packages/fiber at ${commit}`,
+    `# packages/r3f against react-three-fiber packages/fiber at ${commit}`,
     '# Written by npm run diff:r3f; apply in packages/fiber with git apply.',
     '',
   ].join('\n');
@@ -163,8 +168,8 @@ const problems = [
   ...[...EXTRAS].filter((file) => file !== 'fork.diff' && !read(`${FORK}/${file}`)).map((file) => `missing: ${file}`),
 ];
 if (problems.length) {
-  console.error(`src/r3f:\n  ${problems.join('\n  ')}`);
+  console.error(`packages/r3f:\n  ${problems.join('\n  ')}`);
   console.error('Run npm run diff:r3f to write the diff and its size.');
   process.exit(1);
 }
-console.log(`src/r3f: ${sizeOf(diff)} against upstream`);
+console.log(`packages/r3f: ${sizeOf(diff)} against upstream`);

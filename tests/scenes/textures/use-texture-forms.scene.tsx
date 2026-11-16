@@ -1,5 +1,5 @@
+import { useTexture } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
-import { useTexture } from 'react-pixi-fiber';
 
 function FromArray() {
   const [quadrants, checker] = useTexture(['/textures/quadrants.png?forms', '/textures/checker.png?forms']);

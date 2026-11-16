@@ -1,7 +1,7 @@
+import { createPortal, useFrame, useRenderTarget } from '@react-fiber/threejs-compat';
+import { Color, PerspectiveCamera, Scene } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useState } from 'react';
-import { createPortal, useFrame, useRenderTarget } from 'react-pixi-fiber';
-import { Color, PerspectiveCamera, Scene } from 'react-pixi-fiber/three';
 
 /**
  * r3f's render target pattern: a scene of its own, filled through a portal, drawn into a target in

@@ -1,7 +1,7 @@
+import { Matrix4 } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useLayoutEffect, useRef } from 'react';
 import type { ElementRef } from 'react';
-import { Matrix4 } from 'react-pixi-fiber/three';
 
 /** Three boxes from one instanced mesh, standing on a floor; `cast` turns `castShadow` on */
 function Boxes({ cast, z }: { cast: boolean; z: number }) {

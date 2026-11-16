@@ -1,7 +1,7 @@
+import { Canvas, createPortal } from '@react-fiber/threejs-compat';
 // #region result
 import { useState } from 'react';
 import type { ElementRef } from 'react';
-import { Canvas, createPortal } from 'react-pixi-fiber';
 // #endregion result
 
 import type { Example } from '../example';

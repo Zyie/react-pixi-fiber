@@ -1,9 +1,8 @@
-import { getScheduler } from '@pmndrs/scheduler';
+import { getScheduler } from '@react-fiber/core';
+import type { RootState, RootStore } from '@react-fiber/core';
+import type { Linked } from '@react-fiber/core/extension';
 import { Application, Culler, CullerPlugin, Rectangle } from 'pixi.js';
-import type { Ticker, AnimatedSprite } from 'pixi.js';
-
-import type { RootStore } from '../types/state';
-import type { Linked } from './screen';
+import type { AnimatedSprite, Ticker } from 'pixi.js';
 
 /** The 2D work a root does each frame, and how to stop it */
 interface RootFrame2D {
@@ -102,6 +101,16 @@ export function releaseFrame2D(store: RootStore): void {
   frames.get(store)?.release();
   frames.delete(store);
 }
+
+/**
+ * Gives each root its 2D frame jobs, and stops them when the root unmounts
+ * @internal
+ */
+export const frameExtension = {
+  name: 'react-fiber:frame2D',
+  setup: (store: RootStore): Partial<RootState> | void => setupFrame2D(store),
+  dispose: (store: RootStore): void => releaseFrame2D(store),
+};
 
 /**
  * Moves an element's animated sprite from pixi's shared ticker onto its root's clock, so `play()`,

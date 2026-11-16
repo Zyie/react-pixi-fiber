@@ -1,9 +1,10 @@
 /**
- * react-pixi-fiber: a React renderer for pixi.js 2D and pixi-3d, with react-three-fiber v10's API for both
+ * `@react-fiber/core`: react-three-fiber v10's API on pixi.js, which the 2D and 3D packages plug into
  *
- * The values are r3f's own core, unchanged (vendored in `src/r3f`), re-exported with types that
- * name pixi-3d and pixi.js instead of three. An r3f app should only have to swap its import, and 2D
- * elements (`<sprite2D>`, `<graphics2D>`, `<text2D>`, ...) join the same tree, hooks and events.
+ * The values are r3f's own core (`@react-fiber/r3f`, a fork whose core calls renderer hooks),
+ * re-exported with types that name pixi-3d and pixi.js instead of three, or the classes a package
+ * registers (`Register`). `@react-fiber/2d` adds pixi.js's 2D elements (`<sprite2D>`, ...),
+ * `@react-fiber/threejs-compat` three's names and API, and both join the same tree, hooks and events.
  */
 import type { Container3D } from '@pixi/3d';
 import { getScheduler as pmndrsGetScheduler, Scheduler as PmndrsScheduler } from '@pmndrs/scheduler';
@@ -17,52 +18,46 @@ import type {
   FrameTimingState as PmndrsFrameTimingState,
   UseFrameOptions as PmndrsUseFrameOptions,
 } from '@pmndrs/scheduler';
-import type { Texture as PixiTexture } from 'pixi.js';
-import * as React from 'react';
-import type Reconciler from 'react-reconciler';
-
-import type { PixiCatalog } from './catalog/catalog';
-import type { OrthographicCamera } from './catalog/scene/OrthographicCamera';
-import type { Texture as ThreeTexture } from './catalog/textures/Texture';
-import type { PresetsType } from './environment/hooks/useEnvironment';
-import { createPointerEvents as createPointerEventLayer } from './events/pointerEvents';
-import type { Frustum } from './math/Frustum';
-import { presetsObj as corePresetsObj } from './r3f/src/core/components/Environment/environment-assets';
+import { presetsObj as corePresetsObj } from '@react-fiber/r3f/src/core/components/Environment/environment-assets';
 import {
   createEvents as coreCreateEvents,
   removeInteractivity as coreRemoveInteractivity,
   swapInteractivity as coreSwapInteractivity,
-} from './r3f/src/core/events';
+} from '@react-fiber/r3f/src/core/events';
 import {
   registerRootExtension as coreRegisterRootExtension,
   setRenderOverride as coreSetRenderOverride,
-} from './r3f/src/core/extensions';
-import { useGraph as coreUseGraph, useInstanceHandle as coreUseInstanceHandle } from './r3f/src/core/hooks';
-import { useFrame as coreUseFrame } from './r3f/src/core/hooks/useFrame';
-import { useLoader as coreUseLoader } from './r3f/src/core/hooks/useLoader';
-import { useStore as coreUseStore, useThree as coreUseThree } from './r3f/src/core/hooks/useStore';
+} from '@react-fiber/r3f/src/core/extensions';
+import { useGraph as coreUseGraph, useInstanceHandle as coreUseInstanceHandle } from '@react-fiber/r3f/src/core/hooks';
+import { useFrame as coreUseFrame } from '@react-fiber/r3f/src/core/hooks/useFrame';
+import { useLoader as coreUseLoader } from '@react-fiber/r3f/src/core/hooks/useLoader';
+import { useStore as coreUseStore, useThree as coreUseThree } from '@react-fiber/r3f/src/core/hooks/useStore';
 import {
   IsObject as coreIsObject,
   Texture as coreTexture,
   useTexture as coreUseTexture,
-} from './r3f/src/core/hooks/useTexture';
+} from '@react-fiber/r3f/src/core/hooks/useTexture';
 import {
   addAfterEffect as coreAddAfterEffect,
   addEffect as coreAddEffect,
   addTail as coreAddTail,
   advance as coreAdvance,
   invalidate as coreInvalidate,
-} from './r3f/src/core/loop';
-import { Portal as corePortal, createPortal as coreCreatePortal } from './r3f/src/core/portal';
+} from '@react-fiber/r3f/src/core/loop';
+import { Portal as corePortal, createPortal as coreCreatePortal } from '@react-fiber/r3f/src/core/portal';
 import {
   extend as coreExtend,
   flushSync as coreFlushSync,
   reconciler as coreReconciler,
-} from './r3f/src/core/reconciler';
-import { isRenderer as coreIsRenderer } from './r3f/src/core/renderer';
-import { _roots as coreRoots, unmountComponentAtNode as coreUnmount } from './r3f/src/core/root';
-import { context as coreContext, createStore as coreCreateStore } from './r3f/src/core/store';
-import { getThree as coreGetThree, hasThree as coreHasThree, whenThree as coreWhenThree } from './r3f/src/core/three';
+} from '@react-fiber/r3f/src/core/reconciler';
+import { isRenderer as coreIsRenderer } from '@react-fiber/r3f/src/core/renderer';
+import { _roots as coreRoots, unmountComponentAtNode as coreUnmount } from '@react-fiber/r3f/src/core/root';
+import { context as coreContext, createStore as coreCreateStore } from '@react-fiber/r3f/src/core/store';
+import {
+  getThree as coreGetThree,
+  hasThree as coreHasThree,
+  whenThree as coreWhenThree,
+} from '@react-fiber/r3f/src/core/three';
 import {
   Block as coreBlock,
   ErrorBoundary as coreErrorBoundary,
@@ -104,66 +99,50 @@ import {
   useBridge as coreUseBridge,
   useIsomorphicLayoutEffect as coreUseIsomorphicLayoutEffect,
   useMutableCallback as coreUseMutableCallback,
-} from './r3f/src/core/utils';
+} from '@react-fiber/r3f/src/core/utils';
+import type { Texture as PixiTexture } from 'pixi.js';
+import * as React from 'react';
+import type Reconciler from 'react-reconciler';
+
+import type { Anchor2D } from './bridges/Anchor2D';
+import { createPointerEvents as createPointerEventLayer } from './events/pointerEvents';
 import type { InjectState, Root } from './types/canvas';
 import type { HostConfig, Instance, ThreeElement, ThreeElementsOf } from './types/elements';
+import type { PresetsType } from './types/environment';
 import type { Camera, DomEvent, EventManager } from './types/events';
 import type { Extensions, InputLike, LoaderLike, LoaderResult, ObjectMap } from './types/loader';
 import type { Color } from './types/math';
 import type * as ReactThreeFiber from './types/namespace';
+import type { Registered, RegisteredInstance } from './types/register';
 import type { Dpr, RootState, RootStore, Size } from './types/state';
 import type { Act, Bridge, ConstructorRepresentation, EquConfig, UnblockProps } from './types/utils';
 
 export { Canvas } from './root/Canvas';
 export { createRoot } from './root/createRoot';
 
-export { aliases, catalog, type AliasCatalog, type PixiCatalog } from './catalog/catalog';
-export {
-  Environment,
-  EnvironmentCube,
-  EnvironmentMap,
-  EnvironmentPortal,
-  type EnvironmentProps,
-} from './environment/components/Environment';
-export {
-  useEnvironment,
-  type EnvironmentLoader,
-  type EnvironmentLoaderProps,
-  type PresetsType,
-  type UseEnvironment,
-} from './environment/hooks/useEnvironment';
-export { useRenderTarget, type UseRenderTarget } from './environment/hooks/useRenderTarget';
-export type { RenderTargetOptions } from './environment/RenderTarget';
-export type { R3FRenderTarget } from './types/environment';
-export type { CameraMembers, Object3DMembers } from './compat/installObject3DSurface';
-export type { ThreeMatrix4Members, ThreeQuaternionMembers, ThreeVector3Members } from './compat/threeMembers';
-export type { MaterialMembers } from './compat/materialSurface';
+export { useRenderTarget, type UseRenderTarget } from './hooks/useRenderTarget';
+export type { PresetsType, R3FRenderTarget } from './types/environment';
+export type {
+  Hit3D,
+  RaycasterLike,
+  Register,
+  RegisterDefaults,
+  Registered,
+  RegisteredInstance,
+} from './types/register';
 export {
   PixiRenderer,
   type PixiRenderTarget,
   type PixiRendererParameters,
   type PixiShadowMap,
 } from './renderer/PixiRenderer';
-export { pixiSupport, type PixiSupport } from './support/pixiSupport';
+export type { PixiSupport } from './support/pixiSupport';
 export type { PixiHooks, SceneHit, SceneObject } from './support/hooks';
-export { AssetsLoader } from './two-d/AssetsLoader';
-export { useAsset } from './two-d/useAsset';
-export type * from './two-d/types';
-export { Anchor2D, type AnchorCenter, type AnchorTarget } from './two-d/Anchor2D';
-export { Layer3D, type Layer3DProps } from './two-d/bridges/Layer3D';
-export {
-  RenderTexture2D,
-  type RenderTexture2DHandle,
-  type RenderTexture2DProps,
-} from './two-d/bridges/RenderTexture2D';
-export { View3D, type View3DProps } from './two-d/bridges/View3D';
-export {
-  useTextures,
-  type DisposeOptions,
-  type TextureInput,
-  type TextureResult,
-  type UseTexturesReturn,
-} from './loaders/useTextures';
+export type * from './types/twoD';
+export { Anchor2D, type AnchorCenter, type AnchorTarget } from './bridges/Anchor2D';
+export { Layer3D, type Layer3DProps } from './bridges/Layer3D';
+export { RenderTexture2D, type RenderTexture2DHandle, type RenderTexture2DProps } from './bridges/RenderTexture2D';
+export { View3D, type View3DProps } from './bridges/View3D';
 export type * from './types/canvas';
 export type * from './types/elements';
 export type * from './types/events';
@@ -388,8 +367,8 @@ export interface UseLoader {
  * Loads assets with a loader and suspends until they are ready; wrap the caller in `<Suspense>`
  * @example
  * ```tsx
- * import { useLoader } from 'react-pixi-fiber';
- * import { TextureLoader } from 'react-pixi-fiber/three';
+ * import { useLoader } from '@react-fiber/threejs-compat';
+ * import { TextureLoader } from '@react-fiber/threejs-compat/three';
  *
  * const texture = useLoader(TextureLoader, '/crate.png');
  * ```
@@ -408,6 +387,9 @@ export type MappedTextures<Url> = Url extends string
   : Url extends string[]
     ? ThreeTexture[]
     : { [K in keyof Url]: ThreeTexture };
+
+/** The texture class `useTexture` loads with, as a package registers it */
+type ThreeTexture = RegisteredInstance<'Texture'>;
 
 /**
  * r3f's name for {@link MappedTextures}
@@ -446,7 +428,7 @@ export interface UseTexture {
 }
 
 /**
- * Loads three {@link ThreeTexture | textures} by URL with `TextureLoader` and suspends until they
+ * Loads textures by URL with the root's `TextureLoader` (three's with `@react-fiber/threejs-compat`) and suspends until they
  * are ready: one URL, a list, or a record whose result spreads into a material
  * @example
  * ```tsx
@@ -496,7 +478,7 @@ export interface Extend {
  * @example
  * ```tsx
  * import { Mesh3D } from '@pixi/3d';
- * import { extend } from 'react-pixi-fiber';
+ * import { extend } from '@react-fiber/threejs-compat';
  *
  * class Spinner extends Mesh3D {}
  * const SpinnerElement = extend(Spinner);
@@ -674,7 +656,7 @@ export const context: React.Context<RootStore> = coreContext as unknown as React
  * @category core
  * @advanced
  */
-export const getThree: () => PixiCatalog = coreGetThree as unknown as () => PixiCatalog;
+export const getThree: () => Registered<'Catalog'> = coreGetThree as unknown as () => Registered<'Catalog'>;
 
 /**
  * Whether a root has loaded the catalog yet
@@ -688,7 +670,9 @@ export const hasThree: () => boolean = coreHasThree;
  * @category core
  * @advanced
  */
-export const whenThree: () => Promise<PixiCatalog> = coreWhenThree as unknown as () => Promise<PixiCatalog>;
+export const whenThree: () => Promise<Registered<'Catalog'>> = coreWhenThree as unknown as () => Promise<
+  Registered<'Catalog'>
+>;
 
 /**
  * A package's per-root setup, run after a root's renderer exists and before `onCreated`
@@ -946,8 +930,10 @@ export const is: {
  * @category core
  * @advanced
  */
-export const isOrthographicCamera: (camera: Camera) => camera is OrthographicCamera & Camera =
-  coreIsOrthographicCamera as unknown as (camera: Camera) => camera is OrthographicCamera & Camera;
+export const isOrthographicCamera: (camera: Camera) => camera is RegisteredInstance<'OrthographicCamera'> & Camera =
+  coreIsOrthographicCamera as unknown as (
+    camera: Camera,
+  ) => camera is RegisteredInstance<'OrthographicCamera'> & Camera;
 
 /**
  * Whether a value is a React ref object
@@ -1157,6 +1143,9 @@ export const updateFrustum: (camera: Camera, frustum?: Frustum) => Frustum = cor
   frustum?: Frustum,
 ) => Frustum;
 
+/** The frustum class of the root, as a package registers it */
+type Frustum = RegisteredInstance<'Frustum'>;
+
 /**
  * The key a {@link fromRef} marker keeps its ref under
  * @category core
@@ -1219,20 +1208,20 @@ export const presetsObj: Readonly<Record<PresetsType, string>> = corePresetsObj;
 export type { ReactThreeFiber };
 
 /**
- * The classes elements resolve to, r3f's `ThreeExports`: pixi-3d's exports and the catalog's
- * three-named classes
+ * The classes elements resolve to, r3f's `ThreeExports`: every registered package's
  * @category types
  * @advanced
  */
-export type ThreeExports = PixiCatalog;
+export type ThreeExports = Registered<'Catalog'>;
 
 /**
- * Every element a scene can use: pixi-3d's classes (`<mesh3D>`, `<cubeGeometry>`) and three's names
- * (`<mesh>`, `<boxGeometry>`). Augment it to type elements added with `extend`.
+ * Every element a scene can use: `<primitive>` and `<anchor2D>` from core, and each package's own,
+ * which it adds by augmenting this interface (`<sprite2D>` from `@react-fiber/2d`, `<mesh>` from
+ * `@react-fiber/threejs-compat`). Augment it to type elements added with `extend`.
  * @category types
  * @standard
  */
-export interface ThreeElements extends ThreeElementsOf<PixiCatalog> {}
+export interface ThreeElements extends ThreeElementsOf<{ Anchor2D: typeof Anchor2D }> {}
 
 declare module 'react' {
   namespace JSX {

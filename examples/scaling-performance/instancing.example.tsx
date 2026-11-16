@@ -1,8 +1,8 @@
+import { Canvas } from '@react-fiber/threejs-compat';
+import { MathUtils, Object3D } from '@react-fiber/threejs-compat/three';
+import type { InstancedMesh } from '@react-fiber/threejs-compat/three';
 // #region result
 import { useEffect, useRef } from 'react';
-import { Canvas } from 'react-pixi-fiber';
-import { MathUtils, Object3D } from 'react-pixi-fiber/three';
-import type { InstancedMesh } from 'react-pixi-fiber/three';
 // #endregion result
 
 import type { Example } from '../example';

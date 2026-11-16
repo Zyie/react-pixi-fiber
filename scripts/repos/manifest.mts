@@ -13,7 +13,7 @@ export interface ReferenceRepo {
 
 /** Every repository in `.repos/`; `npm run sync:repos` deletes folders that aren't listed here */
 export const referenceRepos: ReferenceRepo[] = [
-  // The commit src/r3f forks; `scripts/r3f/fork.mts` diffs the fork against it
+  // The commit packages/r3f forks; `scripts/r3f/fork.mts` diffs the fork against it
   {
     name: 'react-three-fiber',
     repository: 'https://github.com/pmndrs/react-three-fiber.git',

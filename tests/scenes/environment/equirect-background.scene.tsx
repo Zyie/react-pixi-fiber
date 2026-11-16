@@ -1,5 +1,5 @@
+import { Environment } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
-import { Environment } from 'react-pixi-fiber';
 
 /**
  * `<Environment>` from an equirectangular PNG, drawn behind the scene, looking toward +Z: the green

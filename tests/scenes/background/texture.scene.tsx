@@ -1,7 +1,7 @@
+import { useTexture, useThree } from '@react-fiber/threejs-compat';
+import { SRGBColorSpace } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useLayoutEffect } from 'react';
-import { useTexture, useThree } from 'react-pixi-fiber';
-import { SRGBColorSpace } from 'react-pixi-fiber/three';
 
 /** Puts a texture on the scene's `background`, in sRGB as its colours were authored */
 function Backdrop({ intensity }: { intensity: number }) {

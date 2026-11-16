@@ -1,5 +1,5 @@
+import { Environment } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
-import { Environment } from 'react-pixi-fiber';
 
 /**
  * `<Environment>` from a Radiance `.hdr`, the same sky as the PNG with a sun 24 times brighter, drawn

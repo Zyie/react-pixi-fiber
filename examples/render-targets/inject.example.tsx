@@ -1,8 +1,8 @@
+import { Canvas, createPortal, useThree } from '@react-fiber/threejs-compat';
+import type { ThreeElements } from '@react-fiber/threejs-compat';
+import { PerspectiveCamera, Scene } from '@react-fiber/threejs-compat/three';
 // #region result
 import { useState } from 'react';
-import { Canvas, createPortal, useThree } from 'react-pixi-fiber';
-import type { ThreeElements } from 'react-pixi-fiber';
-import { PerspectiveCamera, Scene } from 'react-pixi-fiber/three';
 // #endregion result
 
 import type { Example } from '../example';

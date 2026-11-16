@@ -1,5 +1,5 @@
+import { useTexture } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
-import { useTexture } from 'react-pixi-fiber';
 
 function Masked({ masked }: { masked: boolean }) {
   const texture = useTexture('/textures/quadrants.png?mask');

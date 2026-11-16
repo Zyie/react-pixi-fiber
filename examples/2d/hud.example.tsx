@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react';
-import { Canvas, useFrame, useThree } from 'react-pixi-fiber';
+import { Canvas, useFrame, useThree } from '@react-fiber/core';
 // #region result
-import type { Mesh } from 'react-pixi-fiber/three';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
+import { useRef, useState } from 'react';
 // #endregion result
 
 import type { Example } from '../example';

@@ -6,9 +6,8 @@ import type {
   Vector4 as PixiVector4,
 } from '@pixi/3d';
 
-import type { Color as ThreeColor, ColorRepresentation } from '../math/Color';
-import type { Euler as ThreeEuler } from '../math/Euler';
 import type { MathRepresentation, MathType } from './elements';
+import type { Registered, RegisteredInstance } from './register';
 
 /**
  * The parameters of a function, mutable or read-only, as a math prop takes its `set` arguments
@@ -41,7 +40,7 @@ export type Vector2 = MathType<PixiVector2>;
  * for all three
  * @example
  * ```tsx
- * import type { Vector3 } from 'react-pixi-fiber';
+ * import type { Vector3 } from '@react-fiber/core';
  *
  * function Box({ position = [0, 1, 0] }: { position?: Vector3 }) {
  *   return <mesh position={position} />;
@@ -65,7 +64,7 @@ export type Vector4 = MathType<PixiVector4>;
  * @category math
  * @standard
  */
-export type Euler = MathType<ThreeEuler>;
+export type Euler = MathType<RegisteredInstance<'Euler'>>;
 
 /**
  * What a `quaternion` prop takes: a quaternion or `[x, y, z, w]`
@@ -94,4 +93,6 @@ export type Matrix4 = MathType<PixiMatrix4>;
  * @category math
  * @standard
  */
-export type Color = ColorRepresentation | ConstructorParameters<typeof ThreeColor>;
+export type Color =
+  | Registered<'ColorRepresentation'>
+  | (Registered<'Color'> extends abstract new (...args: infer A) => unknown ? A : never);

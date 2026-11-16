@@ -1,3 +1,11 @@
+import {
+  applyProps,
+  createPortal,
+  getThree as coreGetThree,
+  useFrame as coreUseFrame,
+  useThree,
+} from '@react-fiber/core';
+import type { Euler, RootState } from '@react-fiber/core';
 /*!
  * Adapted from react-three-fiber's packages/fiber/src/core/components/Environment/Environment.tsx
  * MIT License, Copyright (c) 2019-2025 Poimandres
@@ -7,19 +15,12 @@ import * as React from 'react';
 import type { PixiCatalog } from '../../catalog/catalog';
 import type { Scene } from '../../catalog/scene/Scene';
 import type { Color as ThreeColor, ColorRepresentation } from '../../math/Color';
-import { useFrame as coreUseFrame } from '../../r3f/src/core/hooks/useFrame';
-import { useThree as coreUseThree } from '../../r3f/src/core/hooks/useStore';
-import { createPortal } from '../../r3f/src/core/portal';
-import { getThree as coreGetThree } from '../../r3f/src/core/three';
-import { applyProps } from '../../r3f/src/core/utils';
-import type { Euler } from '../../types/math';
-import type { RootState } from '../../types/state';
 import type { CubeCamera } from '../CubeCamera';
 import type { EnvironmentTexture } from '../environmentTexture';
 import { useEnvironment } from '../hooks/useEnvironment';
-import type { EnvironmentLoaderProps, PresetsType } from '../hooks/useEnvironment';
+import type { EnvironmentLoaderProps } from '../hooks/useEnvironment';
+import type { WebGLCubeRenderTarget } from '../WebGLCubeRenderTarget';
 
-const useThree = coreUseThree as unknown as <T>(selector: (state: RootState) => T) => T;
 const useFrame = coreUseFrame as unknown as (callback: () => void) => void;
 const getThree = coreGetThree as unknown as () => PixiCatalog;
 
@@ -213,7 +214,8 @@ export function EnvironmentPortal({
   const camera = React.useRef<CubeCamera>(null!);
   const [virtualScene] = React.useState(() => new (getThree().Scene)());
   const fbo = React.useMemo(
-    () => new support.CubeRenderTarget(resolution, { type: getThree().HalfFloatType }),
+    () =>
+      new (support.CubeRenderTarget as typeof WebGLCubeRenderTarget)(resolution, { type: getThree().HalfFloatType }),
     [resolution, support],
   );
 
@@ -341,5 +343,3 @@ export function Environment(props: EnvironmentProps): React.JSX.Element {
     <EnvironmentCube {...props} />
   );
 }
-
-export type { PresetsType };

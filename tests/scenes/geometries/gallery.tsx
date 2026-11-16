@@ -1,5 +1,5 @@
+import { Vector2 } from '@react-fiber/threejs-compat/three';
 import type { ReactNode } from 'react';
-import { Vector2 } from 'react-pixi-fiber/three';
 
 const LATHE_PROFILE = [
   new Vector2(0.05, -0.7),

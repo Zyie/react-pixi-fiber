@@ -9,9 +9,9 @@ A class that extends one of pixi's containers takes props, `args`, children, ref
 <!-- snippet: examples/2d/extend.example.tsx#result -->
 
 ```tsx
+import { Canvas, extend } from '@react-fiber/core';
+import type { ThreeElement } from '@react-fiber/core';
 import { Container, Graphics, Text } from 'pixi.js';
-import { Canvas, extend } from 'react-pixi-fiber';
-import type { ThreeElement } from 'react-pixi-fiber';
 
 /** A rounded button with a label, built from pixi.js's own classes */
 class Button extends Container {
@@ -40,7 +40,7 @@ class Button extends Container {
 
 extend({ Button2D: Button });
 
-declare module 'react-pixi-fiber' {
+declare module '@react-fiber/core' {
   interface ThreeElements {
     button2D: ThreeElement<typeof Button>;
   }
@@ -71,7 +71,7 @@ export function App() {
 `extend` registers the element at runtime; TypeScript learns about it from `ThreeElements`. Add a line per class, with `ThreeElement` for its props:
 
 ```tsx
-declare module 'react-pixi-fiber' {
+declare module '@react-fiber/core' {
   interface ThreeElements {
     button2D: ThreeElement<typeof Button>;
   }
@@ -116,7 +116,7 @@ class WaveFilter extends Filter {
 
 extend({ WaveFilter2D: WaveFilter });
 
-declare module 'react-pixi-fiber' {
+declare module '@react-fiber/core' {
   interface ThreeElements {
     waveFilter2D: ThreeElement<typeof WaveFilter>;
   }

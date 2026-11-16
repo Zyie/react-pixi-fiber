@@ -1,8 +1,8 @@
+import { Canvas, useFrame } from '@react-fiber/threejs-compat';
+import { BoxGeometry, BufferGeometry, Vector3 } from '@react-fiber/threejs-compat/three';
+import type { Points } from '@react-fiber/threejs-compat/three';
 // #region result
 import { useMemo, useRef } from 'react';
-import { Canvas, useFrame } from 'react-pixi-fiber';
-import { BoxGeometry, BufferGeometry, Vector3 } from 'react-pixi-fiber/three';
-import type { Points } from 'react-pixi-fiber/three';
 // #endregion result
 
 import type { Example } from '../example';

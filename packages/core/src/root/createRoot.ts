@@ -1,8 +1,8 @@
+import { createRoot as createCoreRoot } from '@react-fiber/r3f/src/core/root';
 import type { ReactNode } from 'react';
 
 import type { ReconcilerRoot as CoreRoot, RenderProps as CoreRenderProps } from '#types';
 
-import { createRoot as createCoreRoot } from '../r3f/src/core/root';
 import { pixiProvider } from '../support/provider';
 import type { ReconcilerRoot, RenderProps } from '../types/canvas';
 import type { RootStore } from '../types/state';
@@ -27,7 +27,7 @@ function toCoreProps<TCanvas extends HTMLCanvasElement | OffscreenCanvas>(
  * same canvas returns a handle to the same root.
  * @example
  * ```tsx
- * import { createRoot, events } from 'react-pixi-fiber';
+ * import { createRoot, events } from '@react-fiber/threejs-compat';
  *
  * const root = createRoot(document.querySelector('canvas')!);
  * await root.configure({ events, camera: { position: [0, 0, 5] } });

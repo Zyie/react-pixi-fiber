@@ -1,7 +1,7 @@
+import { Matrix4 } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { ElementRef } from 'react';
-import { Matrix4 } from 'react-pixi-fiber/three';
 
 /** Instances spread along x from `from`, and a lamp that is green while `onFramed` says the mesh is in view */
 function Spread({ from, lamp }: { from: number; lamp: number }) {

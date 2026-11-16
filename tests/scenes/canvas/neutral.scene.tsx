@@ -1,5 +1,5 @@
+import { NeutralToneMapping } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
-import { NeutralToneMapping } from 'react-pixi-fiber/three';
 
 import { ToneScene } from './tone-scene';
 

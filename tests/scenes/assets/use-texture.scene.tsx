@@ -1,5 +1,5 @@
+import { useTexture } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
-import { useTexture } from 'react-pixi-fiber';
 
 /** A plane with the quadrant texture: red top left, green top right, blue bottom left, yellow bottom right */
 function Quadrants() {

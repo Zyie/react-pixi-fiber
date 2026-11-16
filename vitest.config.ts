@@ -77,6 +77,11 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: /^@test-utils$/, replacement: path.resolve(import.meta.dirname, 'tests/harness/test-utils.tsx') },
+      // Unit tests reach threejs-compat's internals, which no entry exports.
+      {
+        find: /^~threejs-compat\//,
+        replacement: `${path.resolve(import.meta.dirname, 'packages/threejs-compat/src')}/`,
+      },
       ...sharedAliases,
     ],
   },

@@ -1,6 +1,6 @@
 // #region canvas
-import { Canvas } from 'react-pixi-fiber';
-import { AgXToneMapping } from 'react-pixi-fiber/three';
+import { Canvas } from '@react-fiber/threejs-compat';
+import { AgXToneMapping } from '@react-fiber/threejs-compat/three';
 // #endregion canvas
 
 import type { Example } from '../example';

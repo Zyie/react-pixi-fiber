@@ -5,14 +5,9 @@ import type { RefObject } from 'react';
 import type { StoreApi } from 'zustand';
 import type { UseBoundStoreWithEqualityFn } from 'zustand/traditional';
 
-import type { Scene } from '../catalog/scene/Scene';
-import type { Raycaster } from '../compat/Raycaster';
-import type { Frustum } from '../math/Frustum';
-import type { Vector2 as ThreeVector2 } from '../math/Vector2';
-import type { Vector3 as ThreeVector3 } from '../math/Vector3';
-import type { PixiRenderer } from '../renderer/PixiRenderer';
 import type { PixiSupport } from '../support/pixiSupport';
 import type { Camera, DomEvent, EventManager, PointerCaptureTarget, ThreeEvent } from './events';
+import type { RegisteredInstance } from './register';
 
 /**
  * A size and offset in CSS pixels
@@ -136,7 +131,7 @@ export interface InternalState {
   /** Frames left to render on demand */
   frames: number;
   /** The renderer; use `state.renderer` */
-  actualRenderer: PixiRenderer;
+  actualRenderer: RegisteredInstance<'Renderer'>;
   /** The renderer support this root loaded */
   support: PixiSupport;
   /** The global scheduler */
@@ -165,7 +160,7 @@ export interface XRManager {
  * Everything a root knows, from `useThree()` and in `useFrame` callbacks, typed against pixi-3d
  * @example
  * ```tsx
- * import { useThree } from 'react-pixi-fiber';
+ * import { useThree } from '@react-fiber/core';
  *
  * const { camera, scene, size, viewport } = useThree();
  * ```
@@ -183,21 +178,21 @@ export interface RootState {
    * The renderer, by r3f's older name
    * @deprecated Use `renderer`.
    */
-  gl: PixiRenderer;
+  gl: RegisteredInstance<'Renderer'>;
   /** The renderer */
-  renderer: PixiRenderer;
+  renderer: RegisteredInstance<'Renderer'>;
   /** Unused: three's WebGPU inspector */
   inspector: unknown;
   /** The default camera */
   camera: Camera;
   /** The camera's frustum, updated every frame while `autoUpdateFrustum` is on */
-  frustum: Frustum;
+  frustum: RegisteredInstance<'Frustum'>;
   /** Update `frustum` every frame @default true */
   autoUpdateFrustum: boolean;
   /** The scene, or a portal's container inside a portal */
-  scene: Scene;
+  scene: RegisteredInstance<'Scene'>;
   /** The root's scene, even inside a portal */
-  rootScene: Scene;
+  rootScene: RegisteredInstance<'Scene'>;
   /**
    * The screen layer: the pixi.js container the 2D elements placed directly in the canvas are children
    * of, drawn over the 3D in CSS pixels from the canvas's top-left corner. Its 3D view sits at a zIndex
@@ -205,7 +200,7 @@ export interface RootState {
    */
   screen: Container;
   /** The raycaster pointer events use */
-  raycaster: Raycaster;
+  raycaster: RegisteredInstance<'Raycaster'>;
   /** The event layer */
   events: EventManager<HTMLElement>;
   /** XR wiring; inert on pixi-3d */
@@ -214,12 +209,12 @@ export interface RootState {
   /** Camera controls an app registers as the default, which events and helpers read */
   controls: object | null;
   /** Normalised pointer coordinates, -1 to 1 */
-  pointer: ThreeVector2;
+  pointer: RegisteredInstance<'Vector2'>;
   /**
    * Normalised pointer coordinates, by r3f's older name
    * @deprecated Use `pointer`.
    */
-  mouse: ThreeVector2;
+  mouse: RegisteredInstance<'Vector2'>;
   /** Colour space for 8-bit colour textures */
   textureColorSpace: string;
   /** When the root renders */
@@ -233,7 +228,7 @@ export interface RootState {
     /** The viewport at a distance from a camera */
     getCurrentViewport: (
       camera?: Camera,
-      target?: ThreeVector3 | [x: number, y: number, z: number],
+      target?: RegisteredInstance<'Vector3'> | [x: number, y: number, z: number],
       size?: Size,
     ) => Omit<Viewport, 'dpr' | 'initialDpr'>;
   };

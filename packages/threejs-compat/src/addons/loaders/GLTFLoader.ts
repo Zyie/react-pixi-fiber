@@ -164,8 +164,8 @@ type NodeMap = Map<number, Container3D>;
  * file whole. `gltf.parser.source.destroy()` frees everything the file made, for good.
  * @example
  * ```tsx
- * import { useGraph, useLoader } from 'react-pixi-fiber';
- * import { GLTFLoader } from 'react-pixi-fiber/addons';
+ * import { useGraph, useLoader } from '@react-fiber/threejs-compat';
+ * import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
  *
  * function Robot() {
  *   const { nodes, materials } = useLoader(GLTFLoader, '/robot.glb');

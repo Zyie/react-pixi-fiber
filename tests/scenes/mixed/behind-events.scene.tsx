@@ -1,6 +1,6 @@
+import type { ThreeEvent } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import { useState } from 'react';
-import type { ThreeEvent } from 'react-pixi-fiber';
 
 /** A box that turns orange once hovered; with `stop`, it hides what is behind it from the pointer */
 function Box({ x, stop }: { x: number; stop: boolean }) {

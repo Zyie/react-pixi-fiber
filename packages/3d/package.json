@@ -1,0 +1,30 @@
+{
+  "name": "@react-fiber/3d",
+  "version": "0.0.0",
+  "description": "@pixi/3d elements for @react-fiber/core",
+  "license": "MIT",
+  "author": "PixiJS",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@react-fiber/core": "0.0.0"
+  },
+  "peerDependencies": {
+    "@pixi/3d": "^0.1.0",
+    "pixi.js": "^8.23.0",
+    "react": ">=19.0 <19.4",
+    "react-dom": ">=19.0 <19.4"
+  },
+  "peerDependenciesMeta": {
+    "react-dom": {
+      "optional": true
+    }
+  }
+}

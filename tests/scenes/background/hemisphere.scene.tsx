@@ -1,6 +1,6 @@
+import { useThree } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
 import { useLayoutEffect } from 'react';
-import { useThree } from 'react-pixi-fiber';
 
 /** Sets a pixi-3d `Hemisphere` gradient as the scene's background */
 function Sky() {

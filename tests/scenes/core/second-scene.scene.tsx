@@ -1,7 +1,7 @@
+import { createPortal, useFrame } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
 import { useState } from 'react';
 import type { ElementRef } from 'react';
-import { createPortal, useFrame } from 'react-pixi-fiber';
 
 type SceneObject = ElementRef<'scene'>;
 

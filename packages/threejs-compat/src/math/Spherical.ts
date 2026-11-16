@@ -6,7 +6,7 @@ import type { PointData3D } from '@pixi/3d';
  * `theta` about Y from +Z, with the members three adds
  * @example
  * ```ts
- * import { Spherical, Vector3 } from 'react-pixi-fiber/three';
+ * import { Spherical, Vector3 } from '@react-fiber/threejs-compat/three';
  *
  * const orbit = new Spherical().setFromVector3(camera.position);
  * orbit.theta += 0.01;

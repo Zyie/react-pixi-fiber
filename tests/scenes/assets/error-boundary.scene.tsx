@@ -1,8 +1,8 @@
+import { useLoader } from '@react-fiber/threejs-compat';
+import { TextureLoader } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { Component } from 'react';
 import type { ReactNode } from 'react';
-import { useLoader } from 'react-pixi-fiber';
-import { TextureLoader } from 'react-pixi-fiber/three';
 
 /**
  * An error boundary that also listens for the window's error events: r3f reports an error a boundary

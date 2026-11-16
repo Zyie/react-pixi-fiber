@@ -1,7 +1,7 @@
+import { useLoader } from '@react-fiber/threejs-compat';
+import { Loader } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { Suspense } from 'react';
-import { useLoader } from 'react-pixi-fiber';
-import { Loader } from 'react-pixi-fiber/three';
 
 /** A loader whose files never arrive */
 class StalledLoader extends Loader<string> {

@@ -1,5 +1,5 @@
+import { useThree } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
-import { useThree } from 'react-pixi-fiber';
 
 import { Arena } from './arena';
 

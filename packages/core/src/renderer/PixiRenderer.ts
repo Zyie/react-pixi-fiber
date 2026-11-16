@@ -1,22 +1,14 @@
-import { Camera3D, Matrix4, Quaternion, Vector3, View3D } from '@pixi/3d';
-import type { Container3D, ShadowFilter } from '@pixi/3d';
+import { Camera3D, Matrix4, Quaternion, Vector3, Vector4, View3D } from '@pixi/3d';
+import type { Container3D } from '@pixi/3d';
 import { CLEAR, Color, Container, CubeTexture, Texture, autoDetectRenderer } from 'pixi.js';
 import type { ColorSource, Renderer, WebGPURenderer } from 'pixi.js';
 
-import { EnvironmentMaps, isEnvironmentBackground } from '../environment/EnvironmentMaps';
-import type { EnvironmentScene } from '../environment/EnvironmentMaps';
-import { Color as ThreeColor, toDisplayColor } from '../math/Color';
-import { Vector4 } from '../math/Vector4';
-import { hasAnchorsIn, placeAnchors } from '../two-d/Anchor2D';
-import { VIEW_IN_LAYER_Z_INDEX, ensureScreen, layerOf, screenOf } from '../two-d/screen';
-import { releaseBackdrop, updateBackdrop, updateBackdropColor } from './backdrop';
+import { hasAnchorsIn, placeAnchors } from '../bridges/Anchor2D';
+import { VIEW_IN_LAYER_Z_INDEX, ensureScreen, layerOf, screenOf } from '../stage/screen';
+import { releaseBackdrop, updateBackdropColor } from './backdrop';
 import { ProxyCamera } from './ProxyCamera';
 import { ClearRect, CubeFaceWriter, TargetTwins, coversSurface, fromBottomLeft, surfaceOf } from './renderTargets';
 import type { DrawableTarget, PixelRect } from './renderTargets';
-import { applyFog } from './sceneFog';
-import { finishLights, prepareLights } from './sceneLights';
-import { setShadowsEnabled } from './shadowViews';
-import { TARGET_OUTPUT, applyToneMapping } from './toneMapping';
 import { applyViewAlpha, releaseViewAlpha } from './viewAlpha';
 
 /**
@@ -59,13 +51,32 @@ export interface PixiShadowMap {
   needsUpdate: boolean;
 }
 
-/** What the scene settings of a view are kept in: the view, what it is drawn from, and its last background */
-interface ViewSettings {
+/**
+ * What the scene settings of a view are kept in: the view, what it is drawn from, and its last background
+ * @category renderer
+ * @advanced
+ */
+export interface ViewSettings {
+  /** The view */
   readonly view: View3D;
   /** The container the view is drawn from, which a backdrop goes into under the view */
   readonly stage: Container;
+  /** The background last handed to the view */
   background: unknown;
 }
+
+/**
+ * A scene as the renderer reads it: a 3D root, with the background and environment r3f's
+ * `<color attach="background">` and `<Environment>` set on it
+ * @category renderer
+ * @advanced
+ */
+export type RenderedScene = Container3D & {
+  /** What the scene is drawn over */
+  background?: unknown;
+  /** What lights it */
+  environment?: unknown;
+};
 
 /** A view drawn inside the 2D tree, which gets its scene's settings as it draws */
 interface EmbeddedView extends ViewSettings {
@@ -97,36 +108,6 @@ export type PixiRenderTarget = DrawableTarget;
  */
 const PIXI_EVENTS_OFF = { move: false, globalMove: false, click: false, wheel: false };
 
-const SHADOW_FILTERS: readonly ShadowFilter[] = ['hard', 'pcf', 'pcf-high', 'pcf-high'];
-
-/** The linear byte for each display byte pixi-3d stores, which encodes with a 2.2 gamma */
-const DISPLAY_TO_LINEAR = Uint8Array.from({ length: 256 }, (_, i) => Math.round((i / 255) ** 2.2 * 255));
-
-/**
- * Copies rows of pixels, top down in `pixels`, into `buffer` from the bottom row up, as three reads
- * them, decoding the colour to linear, and swapping red and blue when `pixels` is in BGRA order
- */
-function copyRows(
-  pixels: Uint8Array | Uint8ClampedArray,
-  rowBytes: number,
-  top: number,
-  x: number,
-  width: number,
-  height: number,
-  buffer: Uint8Array | Uint8ClampedArray,
-  bgra = false,
-): void {
-  for (let row = 0; row < height; row++) {
-    const from = (top + height - 1 - row) * rowBytes + x * 4;
-    const to = row * width * 4;
-    for (let i = 0; i < width * 4; i++) {
-      const channel = i & 3;
-      const at = bgra && (channel & 1) === 0 ? from + i + 2 - 2 * channel : from + i;
-      buffer[to + i] = channel === 3 ? pixels[at] : DISPLAY_TO_LINEAR[pixels[at]];
-    }
-  }
-}
-
 const sceneWorld = new Matrix4();
 const cameraWorld = new Matrix4();
 const proxyPosition = new Vector3();
@@ -136,35 +117,18 @@ const viewRect: PixelRect = { x: 0, y: 0, width: 0, height: 0 };
 const scissorRect: PixelRect = { x: 0, y: 0, width: 0, height: 0 };
 const clearRGBA: [number, number, number, number] = [0, 0, 0, 0];
 
-type SceneBackground = ThreeColor | ColorSource | Texture | View3D['background'] | null | undefined;
-
-/** Whether a scene's background is a colour, which three clears the canvas to, untouched by tone mapping */
-const isColorBackground = (background: SceneBackground): background is ThreeColor | ColorSource =>
-  background instanceof ThreeColor ||
+/** Whether a scene's background is a pixi `ColorSource`, which the canvas clears to */
+const isColorSource = (background: unknown): background is ColorSource =>
   background instanceof Color ||
   typeof background === 'string' ||
   typeof background === 'number' ||
   Array.isArray(background) ||
   ArrayBuffer.isView(background);
 
-/** Whether a scene's environment or background is a texture, which `EnvironmentMaps` turns into what pixi-3d draws */
-const isEnvironmentTexture = (value: unknown): value is Texture | CubeTexture =>
-  value instanceof Texture || value instanceof CubeTexture;
-
 /** A scene's view once it draws 3D */
 type SceneView3D = SceneView & { view: View3D };
 
 const hasView = (entry: SceneView): entry is SceneView3D => entry.view !== null;
-
-/**
- * Whether a scene with 2D content has 3D to draw too: a node other than a camera, a texture background
- * or an environment. A scene with only 2D draws without a 3D view.
- */
-const drawsIn3D = (scene: EnvironmentScene): boolean => {
-  for (const child of scene.children) if (!(child instanceof Camera3D)) return true;
-  const background = (scene as EnvironmentScene & { background?: SceneBackground }).background;
-  return (background !== null && background !== undefined && !isColorBackground(background)) || !!scene.environment;
-};
 
 /** Whether a 2D object is a container or inside it */
 const isUnder = (object: Container, ancestor: Container): boolean => {
@@ -195,7 +159,7 @@ function destroyPixi(pixi: Renderer): void {
 }
 
 /**
- * three's renderer surface over a pixi.js renderer and pixi-3d views
+ * The renderer r3f drives, over a pixi.js renderer and pixi-3d views
  *
  * r3f's core drives a renderer through `init`, `setSize`, `setPixelRatio`, `render(scene, camera)`
  * and `dispose`. This facade answers them with a pixi.js renderer on the canvas and one `View3D`
@@ -212,15 +176,12 @@ function destroyPixi(pixi: Renderer): void {
  * cameras and no texture background or environment, gets no view until it has 3D. pixi's own
  * `EventSystem` is off; r3f's event layer handles 2D and 3D.
  *
- * three's renderer settings are forwarded to each view as it draws: `toneMapping`,
- * `toneMappingExposure` and `outputColorSpace` become three's own tone curve, exposure and output
- * transform at the end of every material, and `shadowMap.type` the view's shadow filter.
- * `shadowMap.enabled` gates which lights cast shadows. The scene's lights, `fog`, `environment` and a
- * texture `background` are read as three reads them. A scene whose `background` is a colour, a three
- * `Color` or a pixi `ColorSource`, clears the canvas to it before it draws, as three's does, untouched
- * by tone mapping; a 2D texture is stretched over the viewport, and a cube or equirectangular texture
- * is drawn around the camera with three's rotation, intensity and blur. Any other background, such as
- * pixi-3d's `Hemisphere`, becomes its view's.
+ * A scene whose `background` is a colour clears the canvas to it before it draws, as three's does;
+ * any other background that isn't a texture, such as pixi-3d's `Hemisphere`, becomes its view's. A 3D
+ * package's renderer extends this one to read more of a scene: `@react-fiber/threejs-compat`'s draws
+ * with three's tone mapping, output, shadows, lights, fog, environment and texture backgrounds
+ * (`ThreeRenderer`), from the settings r3f's core writes here (`toneMapping`, `outputColorSpace`,
+ * `shadowMap`), which this class keeps and leaves to it.
  * The canvas is transparent unless `alpha` is `false`, as in three.
  *
  * `setRenderTarget(target)` points the next renders at a {@link RenderTarget} (or a face of a
@@ -232,7 +193,7 @@ function destroyPixi(pixi: Renderer): void {
  * differs from the viewport's.
  * @example
  * ```tsx
- * import { Canvas, useThree } from 'react-pixi-fiber';
+ * import { Canvas, useThree } from '@react-fiber/threejs-compat';
  *
  * <Canvas renderer={{ preference: 'webgpu', shadows: true }}>
  *   <Scene />
@@ -258,13 +219,13 @@ export class PixiRenderer {
   public preference: 'webgl' | 'webgpu';
   /** Clear the canvas before each `render`, as three's `autoClear` @default true */
   public autoClear = true;
-  /** three's tone mapping constant; r3f sets `ACESFilmicToneMapping` @default NoToneMapping */
+  /** three's tone mapping constant, which r3f's core sets (`ACESFilmicToneMapping`) and a 3D package's renderer draws with @default NoToneMapping */
   public toneMapping = 0;
-  /** Brightness before tone mapping, pixi-3d's `exposure` @default 1 */
+  /** Brightness before tone mapping, which r3f's core sets and a 3D package's renderer draws with @default 1 */
   public toneMappingExposure = 1;
-  /** three's output colour space: `'srgb'` encodes what the materials draw with the sRGB curve, `'srgb-linear'` leaves it linear @default 'srgb' */
+  /** three's output colour space, which r3f's core sets and a 3D package's renderer draws with @default 'srgb' */
   public outputColorSpace = 'srgb';
-  /** three's shadow map settings */
+  /** three's shadow map settings, which r3f's core writes from the `shadows` setting and a 3D package's renderer draws with */
   public readonly shadowMap: PixiShadowMap = { enabled: false, type: 1, autoUpdate: true, needsUpdate: false };
   /**
    * Frames a scene can go undrawn before its view is freed. A frame ends when a scene is drawn a
@@ -290,9 +251,10 @@ export class PixiRenderer {
   private _width = 300;
   private _height = 150;
   private _pixelRatio = 1;
-  private _frame = 0;
-  private _renderTarget: DrawableTarget | null = null;
-  private _environments: EnvironmentMaps | null = null;
+  /** The target renders go to, or `null` for the canvas */
+  protected _renderTarget: DrawableTarget | null = null;
+  /** The frame being drawn, which counts up each time a scene is drawn a second time */
+  protected _frame = 0;
   private _cubeFaces: CubeFaceWriter | null = null;
   private _twins: TargetTwins | null = null;
   private _activeCubeFace = 0;
@@ -394,11 +356,11 @@ export class PixiRenderer {
 
   /**
    * Sets what the canvas and targets clear to
-   * @param color - The clear colour: a three `Color`, read in the working colour space, or any pixi `ColorSource`
+   * @param color - The clear colour, any pixi `ColorSource`
    * @param alpha - Its opacity, 0 to 1
    */
-  public setClearColor(color: ColorSource | ThreeColor, alpha = 1): void {
-    this._clearColor.setValue(color instanceof ThreeColor ? toDisplayColor(color) : color);
+  public setClearColor(color: ColorSource, alpha = 1): void {
+    this._clearColor.setValue(color);
     this._clearAlpha = alpha;
     this._backgroundKey = null;
     if (this.pixi) {
@@ -458,7 +420,7 @@ export class PixiRenderer {
     entry.drawnAt = this._frame;
     let screen = screenOf(scene);
     if (!screen && hasAnchorsIn(scene)) screen = ensureScreen(scene);
-    if (!entry.view && (!screen || drawsIn3D(scene as EnvironmentScene))) this._createView(entry, scene, camera);
+    if (!entry.view && (!screen || this._drawsIn3D(scene))) this._createView(entry, scene, camera);
     if (screen) this._placeScreen(entry, screen);
     if (!hasView(entry)) {
       this._drawScreenOnly(entry, scene);
@@ -478,10 +440,12 @@ export class PixiRenderer {
     }
     if (screen) placeAnchors(scene, camera, view, layerOf(screen)!);
 
-    const background = (scene as Container3D & { background?: SceneBackground }).background;
-    const clearToBackground = target ? isColorBackground(background) : this._applyBackground(pixi, background);
-    this._applySettings(entry, scene as EnvironmentScene, background);
-    this._applySceneSettings(entry, scene as EnvironmentScene);
+    const { background } = scene as RenderedScene;
+    const clearToBackground = target
+      ? this._backgroundColor(background) !== null
+      : this._applyBackground(pixi, background);
+    this._applySettings(entry, scene, background);
+    this._applySceneSettings(entry, scene);
     try {
       this._draw(
         entry.stage,
@@ -490,7 +454,7 @@ export class PixiRenderer {
         clearToBackground ? background : null,
       );
     } finally {
-      finishLights(view);
+      this._finishView(view);
     }
   }
 
@@ -530,7 +494,7 @@ export class PixiRenderer {
    */
   public setViewport(x: number | Vector4, y = 0, width = 0, height = 0): void {
     if (typeof x === 'number') this._viewport.set(x, y, width, height);
-    else this._viewport.copy(x);
+    else this._viewport.copyFrom(x);
   }
 
   /**
@@ -539,7 +503,7 @@ export class PixiRenderer {
    * @returns `target`
    */
   public getViewport<T extends Vector4>(target: T): T {
-    return target.copy(this._viewport);
+    return target.copyFrom(this._viewport);
   }
 
   /**
@@ -548,8 +512,8 @@ export class PixiRenderer {
    * @returns `target`
    */
   public getCurrentViewport<T extends Vector4>(target: T): T {
-    if (this._renderTarget) return target.copy(this._renderTarget.viewport);
-    return target.copy(this._viewport).multiplyScalar(this._pixelRatio);
+    if (this._renderTarget) return target.copyFrom(this._renderTarget.viewport);
+    return target.copyFrom(this._viewport).multiplyScalar(this._pixelRatio);
   }
 
   /**
@@ -561,7 +525,7 @@ export class PixiRenderer {
    */
   public setScissor(x: number | Vector4, y = 0, width = 0, height = 0): void {
     if (typeof x === 'number') this._scissor.set(x, y, width, height);
-    else this._scissor.copy(x);
+    else this._scissor.copyFrom(x);
   }
 
   /**
@@ -570,7 +534,7 @@ export class PixiRenderer {
    * @returns `target`
    */
   public getScissor<T extends Vector4>(target: T): T {
-    return target.copy(this._scissor);
+    return target.copyFrom(this._scissor);
   }
 
   /**
@@ -619,80 +583,6 @@ export class PixiRenderer {
   }
 
   /**
-   * Reads a rect of a target's pixels into `buffer`, three's `readRenderTargetPixels`
-   *
-   * As in three, rows go from the bottom of the rect up, and the values are linear: pixi-3d stores
-   * the picture encoded for display, and this decodes it. Only 8-bit 2D targets can be read. On
-   * WebGPU, as with three's WebGPU renderer, read with
-   * {@link PixiRenderer#readRenderTargetPixelsAsync | readRenderTargetPixelsAsync}; this leaves
-   * `buffer` alone there.
-   * @param target - The target to read
-   * @param x - Left edge in the target's pixels
-   * @param y - Bottom edge in the target's pixels, from its bottom
-   * @param width - Width in pixels
-   * @param height - Height in pixels
-   * @param buffer - Receives 4 bytes per pixel, RGBA
-   */
-  public readRenderTargetPixels(
-    target: PixiRenderTarget,
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    buffer: Uint8Array | Uint8ClampedArray,
-  ): void {
-    const pixi = this.pixi;
-    if (!pixi || pixi.name === 'webgpu' || target.disposed || target.texture instanceof CubeTexture) return;
-    const { pixels, width: rowWidth } = pixi.extract.pixels(target.texture);
-    copyRows(pixels, rowWidth * 4, target.height - y - height, x, width, height, buffer);
-  }
-
-  /**
-   * Reads a rect of a target's pixels, three's `readRenderTargetPixelsAsync`; on WebGPU it copies the
-   * texture into a buffer the GPU maps back
-   * @param target - The target to read
-   * @param x - Left edge in the target's pixels
-   * @param y - Bottom edge in the target's pixels, from its bottom
-   * @param width - Width in pixels
-   * @param height - Height in pixels
-   * @returns The pixels, 4 linear bytes each, rows from the bottom up
-   */
-  public async readRenderTargetPixelsAsync(
-    target: PixiRenderTarget,
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-  ): Promise<Uint8Array> {
-    const buffer = new Uint8Array(width * height * 4);
-    const pixi = this.pixi;
-    if (!pixi || target.disposed || target.texture instanceof CubeTexture) return buffer;
-    if (pixi.name !== 'webgpu') {
-      this.readRenderTargetPixels(target, x, y, width, height, buffer);
-      return buffer;
-    }
-    const gpu = pixi as WebGPURenderer;
-    const { device } = gpu.gpu;
-    const rowBytes = Math.ceil((width * 4) / 256) * 256;
-    const readback = device.createBuffer({
-      size: rowBytes * height,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-    });
-    const encoder = device.createCommandEncoder();
-    encoder.copyTextureToBuffer(
-      { texture: gpu.texture.getGpuSource(target.texture.source), origin: { x, y: target.height - y - height } },
-      { buffer: readback, bytesPerRow: rowBytes },
-      { width, height },
-    );
-    device.queue.submit([encoder.finish()]);
-    await readback.mapAsync(GPUMapMode.READ);
-    const bgra = target.texture.source.format === 'bgra8unorm';
-    copyRows(new Uint8Array(readback.getMappedRange()), rowBytes, 0, 0, width, height, buffer, bgra);
-    readback.destroy();
-    return buffer;
-  }
-
-  /**
    * Stops drawing a scene and frees its view, leaving the scene's children in place
    * @param scene - A scene this renderer draws
    */
@@ -705,8 +595,7 @@ export class PixiRenderer {
     entry.proxy?.destroy();
     releaseBackdrop(entry.stage);
     if (entry.view) {
-      this._environments?.releaseView(entry.view);
-      releaseViewAlpha(entry.view);
+      this._releaseSettings(entry.view);
       const children = scene.children.slice();
       entry.view.destroy();
       if (!scene.destroyed) for (const child of children) if (!child.destroyed) scene.addChild(child);
@@ -739,16 +628,14 @@ export class PixiRenderer {
     if (index === -1) return;
     const [entry] = this._embedded.splice(index, 1);
     releaseBackdrop(entry.stage);
-    this._environments?.releaseView(view);
-    releaseViewAlpha(view);
+    this._releaseSettings(view);
   }
 
   /** Frees every view and the pixi.js renderer; scenes keep their children */
   public dispose(): void {
     while (this._embedded.length > 0) this.releaseEmbeddedView(this._embedded[0].view);
     for (const scene of this._views.keys()) this.releaseView(scene);
-    this._environments?.dispose();
-    this._environments = null;
+    this._disposeSettings();
     this._cubeFaces?.destroy();
     this._cubeFaces = null;
     this._twins?.destroy();
@@ -821,12 +708,11 @@ export class PixiRenderer {
   private _prepareEmbeddedView(entry: EmbeddedView): void {
     const { view, scene, stage } = entry;
     if (view.destroyed) return;
-    const background = (scene as Container3D & { background?: SceneBackground }).background;
-    this._applySettings(entry, scene as EnvironmentScene, background);
-    this._applySceneSettings(entry, scene as EnvironmentScene);
-    if (isColorBackground(background) && background !== null && background !== undefined) {
-      updateBackdropColor(stage, view, background instanceof ThreeColor ? toDisplayColor(background) : background);
-    }
+    const { background } = scene as RenderedScene;
+    this._applySettings(entry, scene, background);
+    this._applySceneSettings(entry, scene);
+    const color = this._backgroundColor(background);
+    if (color !== null) updateBackdropColor(stage, view, color);
     const screen = screenOf(scene);
     if (screen) placeAnchors(scene, view.camera, view, layerOf(screen)!);
     this._drawnEmbedded.push(view);
@@ -835,7 +721,7 @@ export class PixiRenderer {
   /** Puts back the lights of the embedded views the last draw prepared */
   private _finishEmbedded(): void {
     const drawn = this._drawnEmbedded;
-    for (let i = 0; i < drawn.length; i++) if (!drawn[i].destroyed) finishLights(drawn[i]);
+    for (let i = 0; i < drawn.length; i++) if (!drawn[i].destroyed) this._finishView(drawn[i]);
     drawn.length = 0;
   }
 
@@ -845,9 +731,9 @@ export class PixiRenderer {
    * @param scene - The scene
    */
   private _drawScreenOnly(entry: SceneView, scene: Container3D): void {
-    const background = (scene as Container3D & { background?: SceneBackground }).background;
+    const { background } = scene as RenderedScene;
     const clearToBackground = this._renderTarget
-      ? isColorBackground(background)
+      ? this._backgroundColor(background) !== null
       : this._applyBackground(this.pixi!, background);
     this._draw(
       entry.stage,
@@ -892,7 +778,7 @@ export class PixiRenderer {
    * @param clear - What to clear
    * @param background - A colour background to clear to in place of the clear colour
    */
-  private _draw(stage: Container, clearRect: ClearRect, clear: boolean | CLEAR, background: SceneBackground): void {
+  private _draw(stage: Container, clearRect: ClearRect, clear: boolean | CLEAR, background: unknown): void {
     const pixi = this.pixi!;
     const target = this._renderTarget;
     const surfaceWidth = target ? target.width : this._width;
@@ -936,15 +822,10 @@ export class PixiRenderer {
   }
 
   /** Writes the colour a clear goes to, a colour background or the clear colour, into `clearRGBA` */
-  private _clearColorOf(background: SceneBackground): void {
-    if (background instanceof ThreeColor) {
-      const [r, g, b] = toDisplayColor(background);
-      clearRGBA[0] = r;
-      clearRGBA[1] = g;
-      clearRGBA[2] = b;
-      clearRGBA[3] = 1;
-    } else if (background !== null && background !== undefined && isColorBackground(background)) {
-      Color.shared.setValue(background).toArray(clearRGBA);
+  private _clearColorOf(background: unknown): void {
+    const color = this._backgroundColor(background);
+    if (color !== null) {
+      Color.shared.setValue(color).toArray(clearRGBA);
       clearRGBA[3] = 1;
     } else {
       this._clearColor.toArray(clearRGBA);
@@ -958,24 +839,24 @@ export class PixiRenderer {
    * clear colour there
    * @returns Whether the scene has a colour background
    */
-  private _applyBackground(pixi: Renderer, background: SceneBackground): boolean {
-    if (background instanceof ThreeColor) {
-      const rgb = toDisplayColor(background);
+  private _applyBackground(pixi: Renderer, background: unknown): boolean {
+    const color = this._backgroundColor(background);
+    if (Array.isArray(color) && color !== background) {
       const last = this._backgroundRGB;
-      if (this._backgroundKey !== background || last[0] !== rgb[0] || last[1] !== rgb[1] || last[2] !== rgb[2]) {
+      if (this._backgroundKey !== background || last[0] !== color[0] || last[1] !== color[1] || last[2] !== color[2]) {
         this._backgroundKey = background;
-        last[0] = rgb[0];
-        last[1] = rgb[1];
-        last[2] = rgb[2];
-        pixi.background.color = rgb;
+        last[0] = color[0];
+        last[1] = color[1];
+        last[2] = color[2];
+        pixi.background.color = color;
         pixi.background.alpha = 1;
       }
       return true;
     }
-    if (isColorBackground(background)) {
+    if (color !== null) {
       if (this._backgroundKey !== background) {
         this._backgroundKey = background;
-        pixi.background.color = background;
+        pixi.background.color = color;
         pixi.background.alpha = 1;
       }
       return true;
@@ -989,59 +870,71 @@ export class PixiRenderer {
   }
 
   /**
-   * What three reads off the scene itself: its lights, its fog, and a 2D texture background, which is
-   * stretched over the view
+   * The colour a scene's background clears to, or `null` when it isn't a colour. A subclass reads more
+   * kinds of colour, such as three's `Color`.
+   * @param background - The scene's background
    */
-  private _applySceneSettings(entry: ViewSettings, scene: EnvironmentScene): void {
-    const { view } = entry;
-    prepareLights(view, scene);
-    applyFog(view, scene);
-    const background = isEnvironmentBackground(scene.background) ? null : scene.background;
-    updateBackdrop(entry.stage, view, background, scene.backgroundIntensity ?? 1);
+  protected _backgroundColor(background: unknown): ColorSource | null {
+    return background !== null && background !== undefined && isColorSource(background) ? background : null;
   }
 
   /**
-   * Copies three's renderer settings onto a scene's view before it draws. Into a target, tone mapping
-   * is off and exposure 1, as three draws into a target in linear light, and the colour is stored with
-   * the 2.2 gamma pixi-3d decodes a colour map with. A cube or equirectangular environment or background
-   * goes through `EnvironmentMaps`.
-   * @param entry - The scene's view
+   * Whether a scene with 2D content has 3D to draw too: a node other than a camera, a background that
+   * isn't a colour, or an environment. A scene with only 2D draws without a 3D view.
    * @param scene - The scene
+   */
+  protected _drawsIn3D(scene: RenderedScene): boolean {
+    for (const child of scene.children) if (!(child instanceof Camera3D)) return true;
+    const { background } = scene;
+    return (
+      (background !== null && background !== undefined && this._backgroundColor(background) === null) ||
+      !!scene.environment
+    );
+  }
+
+  /**
+   * Gives a view what it draws with before it draws: its alpha, and its scene's background when that is
+   * neither a colour nor a texture, such as pixi-3d's `Hemisphere`. A subclass adds its renderer
+   * settings, and calls this.
+   * @param entry - The view and its stage
+   * @param _scene - The scene it draws
    * @param background - The scene's background
    */
-  private _applySettings(entry: ViewSettings, scene: EnvironmentScene, background: SceneBackground): void {
+  protected _applySettings(entry: ViewSettings, _scene: RenderedScene, background: unknown): void {
     const { view } = entry;
     applyViewAlpha(view);
-    const toTarget = this._renderTarget !== null;
-    if (toTarget) applyToneMapping(view, 0, 1, TARGET_OUTPUT);
-    else applyToneMapping(view, this.toneMapping, this.toneMappingExposure, this.outputColorSpace);
-    const shadowFilter = SHADOW_FILTERS[this.shadowMap.type] ?? 'pcf';
-    if (view.shadowFilter !== shadowFilter) view.shadowFilter = shadowFilter;
-    setShadowsEnabled(view, this.shadowMap.enabled);
-
-    if (background !== undefined) {
-      const viewBackground =
-        isColorBackground(background) || background instanceof Texture || background instanceof CubeTexture
-          ? null
-          : background;
-      if (viewBackground !== entry.background) {
-        entry.background = viewBackground;
-        view.background = viewBackground;
-      }
-    }
-
-    if (this._environments || isEnvironmentTexture(scene.environment) || isEnvironmentBackground(background)) {
-      this._environments ??= new EnvironmentMaps();
-      this._environments.apply(
-        this.pixi!,
-        view,
-        entry.stage,
-        scene,
-        toTarget ? 0 : this.toneMapping,
-        this.toneMappingExposure,
-        toTarget,
-        this._frame,
-      );
+    if (background === undefined) return;
+    const viewBackground =
+      this._backgroundColor(background) !== null || background instanceof Texture || background instanceof CubeTexture
+        ? null
+        : background;
+    if (viewBackground !== entry.background) {
+      entry.background = viewBackground;
+      view.background = viewBackground as View3D['background'];
     }
   }
+
+  /**
+   * What a subclass reads off the scene itself before its view draws, such as its lights and fog
+   * @param _entry - The view and its stage
+   * @param _scene - The scene
+   */
+  protected _applySceneSettings(_entry: ViewSettings, _scene: RenderedScene): void {}
+
+  /**
+   * Puts back what {@link PixiRenderer#_applySceneSettings | _applySceneSettings} changed, once a view has drawn
+   * @param _view - The view
+   */
+  protected _finishView(_view: View3D): void {}
+
+  /**
+   * Frees what the settings made for a view that is being released
+   * @param view - The view
+   */
+  protected _releaseSettings(view: View3D): void {
+    releaseViewAlpha(view);
+  }
+
+  /** Frees what the settings made for every view, before the pixi.js renderer goes */
+  protected _disposeSettings(): void {}
 }

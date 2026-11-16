@@ -1,8 +1,8 @@
+import { createRoot } from '@react-fiber/threejs-compat';
+import type { ReconcilerRoot } from '@react-fiber/threejs-compat';
 import { FederatedEvent } from 'pixi.js';
 import { act } from 'react';
 import type { ElementRef, RefObject } from 'react';
-import { createRoot } from 'react-pixi-fiber';
-import type { ReconcilerRoot } from 'react-pixi-fiber';
 import { afterEach, beforeAll, expect, it } from 'vitest';
 
 let root: ReconcilerRoot<HTMLCanvasElement> | undefined;

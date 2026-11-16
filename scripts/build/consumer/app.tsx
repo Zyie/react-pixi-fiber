@@ -1,9 +1,20 @@
+import { useAsset } from '@react-fiber/2d';
+import { View3D } from '@react-fiber/core';
+import {
+  Canvas,
+  Environment,
+  useFrame,
+  useLoader,
+  useRenderTarget,
+  useTexture,
+  useThree,
+} from '@react-fiber/threejs-compat';
+import { GLTFLoader, OrbitControls } from '@react-fiber/threejs-compat/addons';
+import * as THREE from '@react-fiber/threejs-compat/three';
+import type { Texture } from 'pixi.js';
 import { Suspense, useRef } from 'react';
 import type { ElementRef } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Canvas, Environment, useFrame, useLoader, useRenderTarget, useTexture, useThree } from 'react-pixi-fiber';
-import { GLTFLoader, OrbitControls } from 'react-pixi-fiber/addons';
-import * as THREE from 'react-pixi-fiber/three';
 
 function Model() {
   const gltf = useLoader(GLTFLoader, '/model.glb');
@@ -27,6 +38,21 @@ function Box() {
       <boxGeometry args={[1, 1, 1]} />
       <meshStandardMaterial map={map} color="orange" emissive="#202020" normalScale={[1, 1]} />
     </mesh>
+  );
+}
+
+function Badge() {
+  const texture = useAsset<Texture>('/badge.png');
+  return (
+    <container2D x={16} y={16}>
+      <sprite2D texture={texture} tint={new THREE.Color('orange')} />
+      <blurFilter2D attach="filters-0" strength={2} />
+      <View3D width={64} height={64}>
+        <mesh>
+          <boxGeometry />
+        </mesh>
+      </View3D>
+    </container2D>
   );
 }
 
@@ -57,6 +83,7 @@ createRoot(document.getElementById('root')!).render(
       <Environment files="/sky.hdr" />
       <Model />
       <Box />
+      <Badge />
     </Suspense>
     <instancedMesh args={[null, null, 10]}>
       <sphereGeometry />

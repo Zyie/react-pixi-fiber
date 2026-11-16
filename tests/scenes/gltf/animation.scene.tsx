@@ -1,8 +1,8 @@
+import { useFrame, useLoader } from '@react-fiber/threejs-compat';
+import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
+import { AnimationMixer } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useLayoutEffect, useState } from 'react';
-import { useFrame, useLoader } from 'react-pixi-fiber';
-import { GLTFLoader } from 'react-pixi-fiber/addons';
-import { AnimationMixer } from 'react-pixi-fiber/three';
 
 function Animated() {
   const { scene, animations } = useLoader(GLTFLoader, '/models/animated.glb?animation');

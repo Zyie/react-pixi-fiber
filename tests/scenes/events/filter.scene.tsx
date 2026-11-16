@@ -1,7 +1,7 @@
+import type { ThreeEvent } from '@react-fiber/threejs-compat';
+import { useThree } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
 import { useLayoutEffect, useState } from 'react';
-import type { ThreeEvent } from 'react-pixi-fiber';
-import { useThree } from 'react-pixi-fiber';
 
 /** A plate that turns its colour on when clicked, and stops the click there */
 function Plate({ z, x, color }: { z: number; x: number; color: string }) {

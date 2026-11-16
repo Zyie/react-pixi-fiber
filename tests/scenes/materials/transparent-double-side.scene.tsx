@@ -1,5 +1,5 @@
+import { DoubleSide } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
-import { DoubleSide } from 'react-pixi-fiber/three';
 
 /**
  * r3f's AutoNeedsUpdate shell: a sphere with a quarter cut away, transparent and drawn on both sides,

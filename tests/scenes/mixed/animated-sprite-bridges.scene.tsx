@@ -1,6 +1,7 @@
+import { useAsset } from '@react-fiber/2d';
+import { View3D } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import type { Spritesheet } from 'pixi.js';
-import { useAsset, View3D } from 'react-pixi-fiber';
 
 function Walker({ x = 0, y = 0 }: { x?: number; y?: number }) {
   const sheet = useAsset<Spritesheet>('/sprites/walk.json');

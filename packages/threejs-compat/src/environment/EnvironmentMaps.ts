@@ -1,5 +1,6 @@
 import { isLinearFormat } from '@pixi/3d';
 import type { Camera3D, Container3D, View3D } from '@pixi/3d';
+import { indexUnderView } from '@react-fiber/core/extension';
 import { Container, CubeTexture, Mesh, MeshGeometry, Shader, Texture, TextureSource, UniformGroup } from 'pixi.js';
 import type { CubeTextureSource, Renderer, TEXTURE_FORMATS } from 'pixi.js';
 
@@ -8,7 +9,6 @@ import { CubeTexture as ThreeCubeTexture } from '../catalog/textures/CubeTexture
 import type { EulerOrder } from '../math/Euler';
 import { MathUtils } from '../math/MathUtils';
 import { Matrix4 } from '../math/Matrix4';
-import { indexUnderView } from '../renderer/backdrop';
 import { backdropPrograms, bakePrograms, blurPrograms } from './environmentShaders';
 import type { EnvironmentTexture } from './environmentTexture';
 

@@ -1,6 +1,6 @@
+import { BackSide, BufferAttribute, DoubleSide, FrontSide, SphereGeometry } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useMemo } from 'react';
-import { BackSide, BufferAttribute, DoubleSide, FrontSide, SphereGeometry } from 'react-pixi-fiber/three';
 
 interface ShellProps {
   side: number;

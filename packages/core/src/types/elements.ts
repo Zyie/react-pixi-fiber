@@ -2,13 +2,15 @@ import type { Container3D } from '@pixi/3d';
 import type { Color as PixiColor, ColorSource, Container, Particle } from 'pixi.js';
 import type * as React from 'react';
 
-import type { Color as ThreeColor } from '../math/Color';
-import type { EulerOrder } from '../math/Euler';
-import type { DrawProps2D, EventHandlers2D, Is2D, OverloadArgs, SetterProps2D } from '../two-d/types';
 import type { EventHandlers } from './events';
 import type { Color } from './math';
+import type { Registered, RegisteredInstance } from './register';
 import type { RootStore } from './state';
+import type { DrawProps2D, EventHandlers2D, Is2D, OverloadArgs, SetterProps2D } from './twoD';
 import type { ConstructorRepresentation, IsAllOptional, Mutable, Overwrite } from './utils';
+
+/** A colour object a colour prop holds, as a package registers it */
+type ThreeColor = RegisteredInstance<'Color'>;
 
 /**
  * Anything with a numeric `set`: pixi-3d's vectors, quaternions and matrices
@@ -27,7 +29,7 @@ export interface MathRepresentation {
  */
 export interface EulerRepresentation {
   /** Sets the angles and, optionally, the order */
-  set(x?: number, y?: number, z?: number, order?: EulerOrder): unknown;
+  set(x?: number, y?: number, z?: number, order?: Registered<'EulerOrder'>): unknown;
 }
 
 /**
@@ -87,6 +89,7 @@ export type MathProps<P> = {
  * @advanced
  */
 export type ColorProps<P> = {
+  // oxlint-disable-next-line typescript/no-redundant-type-constituents -- no colour class until a package registers one
   [K in keyof P as P[K] extends ThreeColor | PixiColor ? K : never]: P[K] extends ThreeColor ? Color : ColorSource;
 };
 
@@ -194,12 +197,12 @@ export type ElementProps<T extends ConstructorRepresentation, P = InstanceType<T
  * The JSX props for class `T`
  * @example
  * ```tsx
- * import { extend, type ThreeElement } from 'react-pixi-fiber';
+ * import { extend, type ThreeElement } from '@react-fiber/core';
  *
  * class Spinner extends Mesh3D {}
  * extend({ Spinner });
  *
- * declare module 'react-pixi-fiber' {
+ * declare module '@react-fiber/core' {
  *   interface ThreeElements {
  *     spinner: ThreeElement<typeof Spinner>;
  *   }

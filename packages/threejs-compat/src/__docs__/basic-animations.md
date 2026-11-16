@@ -9,7 +9,7 @@ This tutorial builds a small, continuous animation loop, the building block of m
 <!-- snippet: examples/basic-animations/every-frame.example.tsx#box -->
 
 ```tsx
-import { useFrame } from 'react-pixi-fiber';
+import { useFrame } from '@react-fiber/threejs-compat';
 
 function MyAnimatedBox() {
   useFrame(() => {
@@ -42,8 +42,8 @@ Going through React state for a value that changes every frame re-renders the co
 <!-- snippet: examples/basic-animations/mesh-ref.example.tsx#box -->
 
 ```tsx
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 import { useRef } from 'react';
-import type { Mesh } from 'react-pixi-fiber/three';
 
 function MyAnimatedBox() {
   const myMesh = useRef<Mesh>(null!);
@@ -76,9 +76,9 @@ Put together:
 <!-- snippet: examples/basic-animations/rotating-box.example.tsx#result -->
 
 ```tsx
+import { Canvas, useFrame } from '@react-fiber/threejs-compat';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 import { useRef } from 'react';
-import { Canvas, useFrame } from 'react-pixi-fiber';
-import type { Mesh } from 'react-pixi-fiber/three';
 
 function MyAnimatedBox() {
   const myMesh = useRef<Mesh>(null!);
@@ -111,9 +111,9 @@ export function App() {
 <!-- snippet: examples/basic-animations/swinging-box.example.tsx#result -->
 
 ```tsx
+import { Canvas, useFrame } from '@react-fiber/threejs-compat';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 import { useRef } from 'react';
-import { Canvas, useFrame } from 'react-pixi-fiber';
-import type { Mesh } from 'react-pixi-fiber/three';
 
 function SwingingBox() {
   const myMesh = useRef<Mesh>(null!);
@@ -148,9 +148,9 @@ A mesh's `rotation` is three's `Euler`: angles in radians about x, y and z, turn
 <!-- snippet: examples/basic-animations/rotation-order.example.tsx#result -->
 
 ```tsx
+import { Canvas, useFrame } from '@react-fiber/threejs-compat';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 import { useRef } from 'react';
-import { Canvas, useFrame } from 'react-pixi-fiber';
-import type { Mesh } from 'react-pixi-fiber/three';
 
 function Tumbler({ position, order }: { position: [number, number, number]; order: 'XYZ' | 'YXZ' }) {
   const myMesh = useRef<Mesh>(null!);

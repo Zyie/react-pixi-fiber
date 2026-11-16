@@ -9,8 +9,8 @@ The models on this page are small files in the repo's `tests/assets/models`, ser
 glTF is the format react-three-fiber supports best, and the one react-pixi-fiber loads. Import the hook from `react-pixi-fiber` and the loader from `react-pixi-fiber/addons`, where an r3f app imports it from `three/addons`:
 
 ```tsx
-import { useLoader } from 'react-pixi-fiber';
-import { GLTFLoader } from 'react-pixi-fiber/addons';
+import { useLoader } from '@react-fiber/threejs-compat';
+import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
 ```
 
 A component that loads a model and puts its scene in the tree with `<primitive>`, which adds an object you didn't make with JSX:
@@ -30,9 +30,9 @@ The component suspends until the file has loaded, so it sits under a `<Suspense>
 <!-- snippet: examples/loading-models/gltf-scene.example.tsx#result -->
 
 ```tsx
+import { Canvas, useLoader } from '@react-fiber/threejs-compat';
+import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
 import { Suspense } from 'react';
-import { Canvas, useLoader } from 'react-pixi-fiber';
-import { GLTFLoader } from 'react-pixi-fiber/addons';
 
 function Model() {
   const gltf = useLoader(GLTFLoader, '/models/box.glb');
@@ -62,9 +62,9 @@ export function App() {
 <!-- snippet: examples/loading-models/gltfjsx.example.tsx#result -->
 
 ```tsx
-import { useLoader } from 'react-pixi-fiber';
-import { GLTFLoader } from 'react-pixi-fiber/addons';
-import type { Mesh } from 'react-pixi-fiber/three';
+import { useLoader } from '@react-fiber/threejs-compat';
+import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 
 export function Model(props: { position?: [number, number, number] }) {
   const { nodes, materials } = useLoader(GLTFLoader, '/models/box.glb');
@@ -94,7 +94,7 @@ The file's materials are `MeshStandardMaterial`s, or `MeshBasicMaterial`s for un
 Models compressed with Draco or meshopt load as they are. pixi-3d decodes both itself, so the decoders three's loader needs are optional: a `DRACOLoader` only tells it where the Draco decoder is, and `MeshoptDecoder` is a stand-in.
 
 ```tsx
-import { DRACOLoader, GLTFLoader, MeshoptDecoder } from 'react-pixi-fiber/addons';
+import { DRACOLoader, GLTFLoader, MeshoptDecoder } from '@react-fiber/threejs-compat/addons';
 
 const gltf = useLoader(GLTFLoader, '/model.glb', (loader) => {
   loader.setDRACOLoader(new DRACOLoader().setDecoderPath('/draco/'));
@@ -111,10 +111,10 @@ A model's animations are three `AnimationClip`s, and an `AnimationMixer` plays t
 <!-- snippet: examples/loading-models/animation.example.tsx#result -->
 
 ```tsx
+import { useFrame, useLoader } from '@react-fiber/threejs-compat';
+import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
+import { AnimationMixer } from '@react-fiber/threejs-compat/three';
 import { useEffect, useState } from 'react';
-import { useFrame, useLoader } from 'react-pixi-fiber';
-import { GLTFLoader } from 'react-pixi-fiber/addons';
-import { AnimationMixer } from 'react-pixi-fiber/three';
 
 function Animated() {
   const { scene, animations } = useLoader(GLTFLoader, '/models/animated.glb');
@@ -158,11 +158,11 @@ A skinned model's joints are `Bone` nodes, where three puts them, and its skinne
 <!-- snippet: examples/loading-models/skinned.example.tsx#result -->
 
 ```tsx
+import { useFrame, useLoader } from '@react-fiber/threejs-compat';
+import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
+import { AnimationMixer } from '@react-fiber/threejs-compat/three';
+import type { Group, SkinnedMesh } from '@react-fiber/threejs-compat/three';
 import { useEffect, useRef, useState } from 'react';
-import { useFrame, useLoader } from 'react-pixi-fiber';
-import { GLTFLoader } from 'react-pixi-fiber/addons';
-import { AnimationMixer } from 'react-pixi-fiber/three';
-import type { Group, SkinnedMesh } from 'react-pixi-fiber/three';
 
 function Column() {
   const group = useRef<Group>(null!);
@@ -206,9 +206,9 @@ While a model loads, its `<Suspense>` shows its `fallback`. A fallback inside a 
 <!-- snippet: examples/loading-models/suspense-material.example.tsx#result -->
 
 ```tsx
+import { Canvas, useLoader } from '@react-fiber/threejs-compat';
+import { Loader } from '@react-fiber/threejs-compat/three';
 import { Suspense, useReducer } from 'react';
-import { Canvas, useLoader } from 'react-pixi-fiber';
-import { Loader } from 'react-pixi-fiber/three';
 
 /** Takes a second to load anything, standing in for a slow file */
 class SlowLoader extends Loader<number> {
@@ -254,7 +254,7 @@ export function App() {
 For a progress bar, three's `LoadingManager` counts the files its loaders load. `DefaultLoadingManager` counts every loader made without one:
 
 ```tsx
-import { DefaultLoadingManager } from 'react-pixi-fiber/three';
+import { DefaultLoadingManager } from '@react-fiber/threejs-compat/three';
 
 DefaultLoadingManager.onProgress = (url, loaded, total) => console.log(`${loaded} of ${total}`);
 ```
@@ -268,11 +268,11 @@ A load that fails throws to the nearest error boundary, as in r3f. r3f's Suspens
 <!-- snippet: examples/loading-models/suspense-and-errors.example.tsx#result -->
 
 ```tsx
+import { Canvas, useLoader } from '@react-fiber/threejs-compat';
+import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
+import { Loader } from '@react-fiber/threejs-compat/three';
 import { Component, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Canvas, useLoader } from 'react-pixi-fiber';
-import { GLTFLoader } from 'react-pixi-fiber/addons';
-import { Loader } from 'react-pixi-fiber/three';
 
 /** Takes a while to load, standing in for a slow asset */
 class SlowLoader extends Loader<string> {

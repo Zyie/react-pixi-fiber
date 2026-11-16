@@ -7,9 +7,9 @@ The hooks that load assets are r3f v10's own, running unchanged: `useLoader`, `u
 `useLoader` loads assets with a loader and suspends while they load, so fallbacks and errors are handled by the `<Suspense>` and the error boundary above it. It takes any loader with three's `load(url, onLoad, onProgress, onError)`: `TextureLoader`, `CubeTextureLoader`, `FileLoader`, `GLTFLoader`, or one of your own that extends `Loader`.
 
 ```tsx
+import { useLoader } from '@react-fiber/threejs-compat';
+import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
 import { Suspense } from 'react';
-import { useLoader } from 'react-pixi-fiber';
-import { GLTFLoader } from 'react-pixi-fiber/addons';
 
 function Model() {
   const gltf = useLoader(GLTFLoader, '/model.glb');
@@ -125,10 +125,10 @@ When an element unmounts, r3f disposes the object it made, and the geometry and 
 <!-- snippet: examples/loading-hooks/auto-dispose.example.tsx#result -->
 
 ```tsx
+import { Canvas, useFrame } from '@react-fiber/threejs-compat';
+import type { ThreeElements } from '@react-fiber/threejs-compat';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 import { useRef, useState } from 'react';
-import { Canvas, useFrame } from 'react-pixi-fiber';
-import type { ThreeElements } from 'react-pixi-fiber';
-import type { Mesh } from 'react-pixi-fiber/three';
 
 type BoxProps = { setActive: (active: boolean) => void; active: boolean };
 

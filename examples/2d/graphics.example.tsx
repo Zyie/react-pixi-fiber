@@ -1,7 +1,7 @@
+import { Canvas } from '@react-fiber/core';
 // #region result
 import { FillGradient, GraphicsContext } from 'pixi.js';
 import type { Graphics } from 'pixi.js';
-import { Canvas } from 'react-pixi-fiber';
 // #endregion result
 
 import type { Example } from '../example';

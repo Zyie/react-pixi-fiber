@@ -1,39 +1,27 @@
 {
+  // Everything at once: the packages, the tests, the examples, the playground and the scripts. Each package's
+  // own tsconfig.json checks it alone, against only the packages it depends on (`npm run test:types` runs both).
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "target": "esnext",
-    // DOM and WebGPU types come from `@types/web`, matching pixi-3d. Adding "DOM" here clashes with it.
-    "lib": ["ESNext"],
-    "moduleDetection": "force",
-    "module": "preserve",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "types": ["node", "@types/web", "vite/client"],
-    "jsx": "react-jsx",
-    "strict": true,
-    "noUnusedLocals": true,
-    "declaration": true,
-    "emitDeclarationOnly": true,
-    "esModuleInterop": true,
-    "isolatedModules": true,
-    // No verbatimModuleSyntax: the vendored r3f source in src/r3f imports types without `import type`.
-    // oxlint's consistent-type-imports holds our own files to type-only imports instead.
-    "skipLibCheck": true,
-    "allowImportingTsExtensions": true,
     "paths": {
-      "~/*": ["./src/*"],
-      // Scenes, examples, the playground and docs import the library by its package name.
-      "react-pixi-fiber": ["./src/index.tsx"],
-      "react-pixi-fiber/three": ["./src/three.ts"],
-      "react-pixi-fiber/addons": ["./src/addons/index.ts"],
-      // r3f's alias for its types folder, used throughout the vendored source.
-      "#types": ["./src/r3f/types/index.ts"],
-      "#types/*": ["./src/r3f/types/*"],
+      "@react-fiber/core": ["./packages/core/src/index.tsx"],
+      "@react-fiber/core/extension": ["./packages/core/src/extension.ts"],
+      "@react-fiber/2d": ["./packages/2d/src/index.ts"],
+      "@react-fiber/3d": ["./packages/3d/src/index.ts"],
+      "@react-fiber/threejs-compat": ["./packages/threejs-compat/src/index.ts"],
+      "@react-fiber/threejs-compat/three": ["./packages/threejs-compat/src/three.ts"],
+      "@react-fiber/threejs-compat/addons": ["./packages/threejs-compat/src/addons/index.ts"],
+      "@react-fiber/r3f/*": ["./packages/r3f/*"],
+      "#types": ["./packages/r3f/types/index.ts"],
+      "#types/*": ["./packages/r3f/types/*"],
+      // Unit tests reach threejs-compat's internals, which no entry exports.
+      "~threejs-compat/*": ["./packages/threejs-compat/src/*"],
       "@test-scene": ["./tests/harness/scene.ts"],
       "@test-utils": ["./tests/harness/test-utils.tsx"]
     }
   },
-  "include": ["src", "tests", "examples", "playground", "scripts", "*.config.ts"],
-  // src/r3f is type-checked through what src imports from it. Its own entries (index, legacy, webgpu)
-  // each declare three's JSX elements, which would clash with ours.
-  "exclude": ["node_modules", "dist", "src/r3f/**"]
+  "include": ["packages/*/src", "tests", "examples", "playground", "scripts", "*.config.ts"],
+  // packages/r3f is type-checked through what core imports from it. Its own entries (index, legacy, webgpu)
+  // each declare three's JSX elements, which would clash with ours. The docs site has its own tsconfig.json.
+  "exclude": ["node_modules", "**/dist", "packages/r3f/**", "packages/docs/**"]
 }

@@ -1,7 +1,7 @@
+import { Canvas } from '@react-fiber/core';
 // #region result
 import { Texture } from 'pixi.js';
 import { useState } from 'react';
-import { Canvas } from 'react-pixi-fiber';
 // #endregion result
 
 import type { Example } from '../example';

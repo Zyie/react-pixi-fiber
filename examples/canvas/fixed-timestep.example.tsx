@@ -1,9 +1,9 @@
+import { useFrame } from '@react-fiber/threejs-compat';
+import { MathUtils } from '@react-fiber/threejs-compat/three';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 // #region simulation
 import { useLayoutEffect, useRef } from 'react';
 import type { RefObject } from 'react';
-import { useFrame } from 'react-pixi-fiber';
-import { MathUtils } from 'react-pixi-fiber/three';
-import type { Mesh } from 'react-pixi-fiber/three';
 // #endregion simulation
 
 import type { Example } from '../example';

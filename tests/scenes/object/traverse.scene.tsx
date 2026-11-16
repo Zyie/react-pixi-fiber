@@ -1,8 +1,8 @@
+import { Mesh } from '@react-fiber/threejs-compat/three';
+import type { MeshStandardMaterial } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useLayoutEffect, useRef } from 'react';
 import type { ElementRef } from 'react';
-import { Mesh } from 'react-pixi-fiber/three';
-import type { MeshStandardMaterial } from 'react-pixi-fiber/three';
 
 type Group = ElementRef<'group'>;
 

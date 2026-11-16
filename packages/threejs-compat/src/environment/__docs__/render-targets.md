@@ -9,10 +9,10 @@ Fill a scene of its own through `createPortal`, draw it into the target in `useF
 <!-- snippet: examples/render-targets/fbo.example.tsx#result -->
 
 ```tsx
+import { Canvas, createPortal, useFrame, useRenderTarget } from '@react-fiber/threejs-compat';
+import { Color, PerspectiveCamera, Scene } from '@react-fiber/threejs-compat/three';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 import { useRef, useState } from 'react';
-import { Canvas, createPortal, useFrame, useRenderTarget } from 'react-pixi-fiber';
-import { Color, PerspectiveCamera, Scene } from 'react-pixi-fiber/three';
-import type { Mesh } from 'react-pixi-fiber/three';
 
 function Monitor() {
   const fbo = useRenderTarget(512, 512);
@@ -298,7 +298,7 @@ function PortalTestScene() {
 A `WebGLCubeRenderTarget` holds six faces, which a `CubeCamera` draws from a point. Its texture can light a scene as its environment, as `<Environment>` does with its children (see [Environment](environment.md)):
 
 ```tsx
-import { WebGLCubeRenderTarget } from 'react-pixi-fiber/three';
+import { WebGLCubeRenderTarget } from '@react-fiber/threejs-compat/three';
 
 const target = useMemo(() => new WebGLCubeRenderTarget(256), []);
 const camera = useRef<CubeCamera>(null!);

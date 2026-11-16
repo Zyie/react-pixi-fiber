@@ -1,7 +1,7 @@
+import { Canvas, extend } from '@react-fiber/core';
+import type { ThreeElement } from '@react-fiber/core';
 // #region result
 import { Container, Graphics, Text } from 'pixi.js';
-import { Canvas, extend } from 'react-pixi-fiber';
-import type { ThreeElement } from 'react-pixi-fiber';
 
 /** A rounded button with a label, built from pixi.js's own classes */
 class Button extends Container {
@@ -30,7 +30,7 @@ class Button extends Container {
 
 extend({ Button2D: Button });
 
-declare module 'react-pixi-fiber' {
+declare module '@react-fiber/core' {
   interface ThreeElements {
     button2D: ThreeElement<typeof Button>;
   }

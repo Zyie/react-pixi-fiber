@@ -1,5 +1,5 @@
+import type { ThreeEvent } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
-import type { ThreeEvent } from 'react-pixi-fiber';
 
 import { EventLog, useEventLog } from './event-log';
 

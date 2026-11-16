@@ -1,7 +1,8 @@
+import { useAsset } from '@react-fiber/2d';
+import { Canvas, useFrame, useTexture } from '@react-fiber/core';
 // #region result
 import type { Spritesheet, TilingSprite } from 'pixi.js';
 import { Suspense, useMemo, useRef } from 'react';
-import { Canvas, useAsset, useFrame, useTexture } from 'react-pixi-fiber';
 // #endregion result
 
 import type { Example } from '../example';

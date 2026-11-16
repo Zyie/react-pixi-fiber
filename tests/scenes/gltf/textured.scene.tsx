@@ -1,6 +1,6 @@
+import { useLoader } from '@react-fiber/threejs-compat';
+import { GLTFLoader } from '@react-fiber/threejs-compat/addons';
 import type { TestScene } from '@test-scene';
-import { useLoader } from 'react-pixi-fiber';
-import { GLTFLoader } from 'react-pixi-fiber/addons';
 
 function Crate() {
   const { scene } = useLoader(GLTFLoader, '/models/textured-box.glb?textured');

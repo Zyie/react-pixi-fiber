@@ -4,7 +4,7 @@ react-pixi-fiber is a React renderer for [pixi.js](https://pixijs.com) 2D and [p
 
 ```diff
 - import { Canvas, useFrame } from '@react-three/fiber';
-+ import { Canvas, useFrame } from 'react-pixi-fiber';
++ import { Canvas, useFrame } from '@react-fiber/threejs-compat';
 ```
 
 ## What does it look like?
@@ -12,9 +12,9 @@ react-pixi-fiber is a React renderer for [pixi.js](https://pixijs.com) 2D and [p
 A component with its own state that reacts to the pointer and takes part in the render loop, written exactly as react-three-fiber's introduction writes it:
 
 ```tsx
+import { Canvas, useFrame } from '@react-fiber/threejs-compat';
 import { useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Canvas, useFrame } from 'react-pixi-fiber';
 
 function Box(props) {
   const ref = useRef(null);

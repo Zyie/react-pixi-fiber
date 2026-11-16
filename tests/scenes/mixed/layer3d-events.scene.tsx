@@ -1,6 +1,6 @@
+import { Layer3D } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import { useState } from 'react';
-import { Layer3D } from 'react-pixi-fiber';
 
 const COLORS = ['#457b9d', 'hotpink', 'yellow'];
 

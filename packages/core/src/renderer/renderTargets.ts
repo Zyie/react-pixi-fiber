@@ -1,9 +1,9 @@
+import type { Vector4 } from '@pixi/3d';
 import { Container, CubeTexture, Graphics, Mesh, MeshGeometry, RenderTexture, Shader, Texture } from 'pixi.js';
 import type { CLEAR, ColorSource, Renderer, TextureSource, WebGPURenderer } from 'pixi.js';
 
-import { isMaterialTexture } from '../catalog/textures/textureTransform';
-import { program } from '../environment/environmentShaders';
-import type { Vector4 } from '../math/Vector4';
+import { isMaterialTexture } from './materialTextures';
+import { program } from './programs';
 
 /** Copies a 2D texture upside down: its last row lands on the first */
 const flippedCopyPrograms = () =>
@@ -28,8 +28,10 @@ fn mainFragment(@location(0) vUV: vec2<f32>) -> @location(0) vec4<f32> {
   }));
 
 /**
- * What the renderer can draw into: a {@link RenderTarget} or a {@link WebGLCubeRenderTarget}
- * @internal
+ * What the renderer can draw into: a render target or a cube render target, such as three's
+ * `WebGLRenderTarget` and `WebGLCubeRenderTarget` from `@react-fiber/threejs-compat`
+ * @category renderer
+ * @advanced
  */
 export interface DrawableTarget {
   readonly isRenderTarget: true;
@@ -43,6 +45,8 @@ export interface DrawableTarget {
   _renderCount: number;
   addEventListener(type: 'dispose', listener: () => void): void;
   removeEventListener(type: 'dispose', listener: () => void): void;
+  setSize(width: number, height: number): void;
+  dispose(): void;
 }
 
 const copyFrom = { texture: null as unknown as GPUTexture, mipLevel: 0 };

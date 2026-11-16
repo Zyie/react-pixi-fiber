@@ -102,7 +102,7 @@ export function setQuaternionFromEuler<T extends Settable4>(
  * only. A node's `quaternion` gets the same members once a root has loaded the support.
  * @example
  * ```ts
- * import { Quaternion, Vector3 } from 'react-pixi-fiber/three';
+ * import { Quaternion, Vector3 } from '@react-fiber/threejs-compat/three';
  *
  * const turn = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI / 2);
  * mesh.quaternion.slerp(turn, 0.1);

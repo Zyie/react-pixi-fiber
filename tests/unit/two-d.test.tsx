@@ -1,10 +1,11 @@
 import { getScheduler } from '@pmndrs/scheduler';
+import { createRoot } from '@react-fiber/threejs-compat';
+import type { ReconcilerRoot, RootState } from '@react-fiber/threejs-compat';
 import { GraphicsContext, Texture } from 'pixi.js';
 import type { BlurFilter, Filter, Graphics, Sprite, Text } from 'pixi.js';
 import { act } from 'react';
 import type { ReactNode, RefObject } from 'react';
-import { createRoot } from 'react-pixi-fiber';
-import type { ReconcilerRoot, RootState } from 'react-pixi-fiber';
+import '@react-fiber/2d';
 import { afterEach, beforeAll, expect, it } from 'vitest';
 
 declare global {

@@ -1,7 +1,7 @@
+import { useFrame } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
 import { useRef } from 'react';
 import type { ElementRef } from 'react';
-import { useFrame } from 'react-pixi-fiber';
 
 /** Turns a box by one radian a second of the scene's clock */
 function Spinner() {

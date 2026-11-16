@@ -1,10 +1,10 @@
-import { extend } from 'react-pixi-fiber';
-import type { ThreeElement } from 'react-pixi-fiber';
-import { MapControls, OrbitControls } from 'react-pixi-fiber/addons';
+import { extend } from '@react-fiber/threejs-compat';
+import type { ThreeElement } from '@react-fiber/threejs-compat';
+import { MapControls, OrbitControls } from '@react-fiber/threejs-compat/addons';
 
 extend({ OrbitControls, MapControls });
 
-declare module 'react-pixi-fiber' {
+declare module '@react-fiber/threejs-compat' {
   interface ThreeElements {
     orbitControls: ThreeElement<typeof OrbitControls>;
     mapControls: ThreeElement<typeof MapControls>;

@@ -133,7 +133,7 @@ const euclideanModulo = (n: number, m: number): number => ((n % m) + m) % m;
  * three's `MathUtils`: scalar helpers for angles, interpolation and random numbers
  * @example
  * ```ts
- * import { MathUtils } from 'react-pixi-fiber/three';
+ * import { MathUtils } from '@react-fiber/threejs-compat/three';
  *
  * mesh.rotation.y = MathUtils.degToRad(45);
  * mesh.position.x = MathUtils.damp(mesh.position.x, target, 4, delta);

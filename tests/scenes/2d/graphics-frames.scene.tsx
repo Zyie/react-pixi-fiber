@@ -1,7 +1,7 @@
+import { useFrame } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
 import { GraphicsContext } from 'pixi.js';
 import { useMemo, useState } from 'react';
-import { useFrame } from 'react-pixi-fiber';
 
 /** A bar that grows 4 pixels a frame from 40: its `draw` callback is new every frame, so it runs again */
 function GrowingBar() {

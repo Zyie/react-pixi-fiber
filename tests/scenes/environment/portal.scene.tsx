@@ -1,5 +1,5 @@
+import { Environment } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
-import { Environment } from 'react-pixi-fiber';
 
 /** Six walls round the origin, facing in: red +X, cyan -X, white ceiling, brown floor, teal +Z, violet -Z */
 const WALLS: { position: [number, number, number]; rotation: [number, number, number]; color: string }[] = [

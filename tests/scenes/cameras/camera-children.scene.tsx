@@ -1,7 +1,7 @@
+import { Portal, useThree } from '@react-fiber/threejs-compat';
 import type { TestScene } from '@test-scene';
 import { useLayoutEffect, useRef } from 'react';
 import type { ElementRef } from 'react';
-import { Portal, useThree } from 'react-pixi-fiber';
 
 import { Grid } from './grid';
 

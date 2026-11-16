@@ -1,7 +1,7 @@
+import { useLoader } from '@react-fiber/threejs-compat';
+import { NearestFilter, RepeatWrapping, TextureLoader } from '@react-fiber/threejs-compat/three';
 // #region result
 import { useMemo } from 'react';
-import { useLoader } from 'react-pixi-fiber';
-import { NearestFilter, RepeatWrapping, TextureLoader } from 'react-pixi-fiber/three';
 // #endregion result
 
 import type { Example } from '../example';

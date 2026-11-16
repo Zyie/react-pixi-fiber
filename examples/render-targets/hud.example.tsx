@@ -1,14 +1,14 @@
+import { Canvas, createPortal, extend, useFrame, useThree } from '@react-fiber/threejs-compat';
+import type { ThreeElement } from '@react-fiber/threejs-compat';
+import { OrbitControls } from '@react-fiber/threejs-compat/addons';
+import { Matrix4, OrthographicCamera, Scene } from '@react-fiber/threejs-compat/three';
+import type { Mesh } from '@react-fiber/threejs-compat/three';
 // #region result
 import { useMemo, useRef, useState } from 'react';
-import { Canvas, createPortal, extend, useFrame, useThree } from 'react-pixi-fiber';
-import type { ThreeElement } from 'react-pixi-fiber';
-import { OrbitControls } from 'react-pixi-fiber/addons';
-import { Matrix4, OrthographicCamera, Scene } from 'react-pixi-fiber/three';
-import type { Mesh } from 'react-pixi-fiber/three';
 
 extend({ OrbitControls });
 
-declare module 'react-pixi-fiber' {
+declare module '@react-fiber/threejs-compat' {
   interface ThreeElements {
     orbitControls: ThreeElement<typeof OrbitControls>;
   }

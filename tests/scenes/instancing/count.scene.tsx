@@ -1,8 +1,8 @@
+import { useFrame } from '@react-fiber/threejs-compat';
+import { BoxGeometry, Color, Matrix4, MeshBasicMaterial, Vector3 } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { ElementRef } from 'react';
-import { useFrame } from 'react-pixi-fiber';
-import { BoxGeometry, Color, Matrix4, MeshBasicMaterial, Vector3 } from 'react-pixi-fiber/three';
 
 const COUNT = 8;
 const GREENS = new Float32Array(Array.from({ length: COUNT }, (_, i) => [0.1, 0.3 + i * 0.09, 0.2]).flat());

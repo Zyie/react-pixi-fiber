@@ -19,9 +19,9 @@ A small scene with it, under a `<Suspense>` while it loads:
 <!-- snippet: examples/loading-textures/texture-loader.example.tsx#result -->
 
 ```tsx
+import { Canvas, useLoader } from '@react-fiber/threejs-compat';
+import { TextureLoader } from '@react-fiber/threejs-compat/three';
 import { Suspense } from 'react';
-import { Canvas, useLoader } from 'react-pixi-fiber';
-import { TextureLoader } from 'react-pixi-fiber/three';
 
 function Scene() {
   const colorMap = useLoader(TextureLoader, '/textures/quadrants.png');
@@ -89,8 +89,8 @@ function Material() {
 <!-- snippet: examples/loading-textures/change-texture.example.tsx#result -->
 
 ```tsx
+import { Canvas, useTexture } from '@react-fiber/threejs-compat';
 import { useState } from 'react';
-import { Canvas, useTexture } from 'react-pixi-fiber';
 
 const textures = ['/textures/quadrants.png', '/textures/checker.png', '/textures/cube/pz.png'];
 
@@ -124,9 +124,9 @@ A texture's fields are three's. `wrapS` and `wrapT` take `RepeatWrapping`, `Clam
 <!-- snippet: examples/loading-textures/texture-settings.example.tsx#result -->
 
 ```tsx
+import { useLoader } from '@react-fiber/threejs-compat';
+import { NearestFilter, RepeatWrapping, TextureLoader } from '@react-fiber/threejs-compat/three';
 import { useMemo } from 'react';
-import { useLoader } from 'react-pixi-fiber';
-import { NearestFilter, RepeatWrapping, TextureLoader } from 'react-pixi-fiber/three';
 
 function Floor() {
   const loaded = useLoader(TextureLoader, '/textures/checker.png');
@@ -188,8 +188,8 @@ By default, `useTexture` puts what it loads in a registry, and `useTextures` rea
 <!-- snippet: examples/loading-textures/registry.example.tsx#result -->
 
 ```tsx
-import { useTexture, useTextures } from 'react-pixi-fiber';
-import { SRGBColorSpace } from 'react-pixi-fiber/three';
+import { useTexture, useTextures } from '@react-fiber/threejs-compat';
+import { SRGBColorSpace } from '@react-fiber/threejs-compat/three';
 
 const urls = { map: '/textures/quadrants.png?registry', checker: '/textures/checker.png?registry' };
 

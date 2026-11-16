@@ -1,31 +1,30 @@
 import { Container3D } from '@pixi/3d';
-import { AnimatedSprite, Container, warn } from 'pixi.js';
+import { Container, warn } from 'pixi.js';
 
+import { Anchor2D, adoptIntoAnchor, releaseAnchor } from '../bridges/Anchor2D';
 import type { Instance } from '../types/elements';
-import { Anchor2D, adoptIntoAnchor, releaseAnchor } from './Anchor2D';
 import { clearCursorsUnder } from './cursor';
-import { driveOnRootClock } from './frame';
 
 /**
  * The zIndex of a scene's 3D view in its screen layer: just under 0, so 2D at the default zIndex of 0
  * draws over the 3D and 2D with a negative zIndex under it
  * @internal
  */
-export const VIEW_Z_INDEX = -Number.EPSILON;
+export const VIEW_Z_INDEX: number = -Number.EPSILON;
 
 /**
  * The warning for a 3D element inside a 2D one, which is left out
  * @internal
  */
-export const THREE_IN_2D =
-  "react-pixi-fiber: a 3D element is inside a 2D element, which can't hold 3D, so it is left out. " +
+export const THREE_IN_2D: string =
+  "react-fiber: a 3D element is inside a 2D element, which can't hold 3D, so it is left out. " +
   'Put 3D elements directly in the <Canvas> or inside other 3D elements, or draw them inside 2D with <View3D>.';
 
 /**
  * The zIndex of a scene's 3D view in its 3D layer: under every anchored 2D object in the layer
  * @internal
  */
-export const VIEW_IN_LAYER_Z_INDEX = -Number.MAX_VALUE;
+export const VIEW_IN_LAYER_Z_INDEX: number = -Number.MAX_VALUE;
 
 const screens = new WeakMap<Container3D, Container>();
 const screenScenes = new WeakMap<Container, Container3D>();
@@ -152,8 +151,7 @@ export function indexByElementOrder<T>(list: readonly T[], child: Linked<T>): nu
 }
 
 /**
- * Adds a 2D child to a 2D container where its element is among its siblings, or moves it there. An
- * animated sprite joins its root's clock.
+ * Adds a 2D child to a 2D container where its element is among its siblings, or moves it there
  * @param parent - The container
  * @param child - The child
  * @internal
@@ -162,7 +160,6 @@ export function addInElementOrder(parent: Container, child: Linked<Container>): 
   const index = indexByElementOrder(parent.children, child);
   if (index === -1) parent.addChild(child);
   else parent.addChildAt(child, index);
-  if (child instanceof AnimatedSprite) driveOnRootClock(child);
 }
 
 /**
@@ -177,7 +174,7 @@ export function addInElementOrder(parent: Container, child: Linked<Container>): 
 export function addToScene(node: Container3D, child: Linked<object>): void {
   if (!(child instanceof Container)) {
     const name = `<${child.__r3f?.type ?? '2D element'}>`;
-    warnOnce(`react-pixi-fiber: ${name} can only be inside a 2D element, so it is left out.`);
+    warnOnce(`react-fiber: ${name} can only be inside a 2D element, so it is left out.`);
     return;
   }
   if (isLayer3D(child)) return;
@@ -193,7 +190,6 @@ export function addToScene(node: Container3D, child: Linked<object>): void {
   }
   if (!takesScreen(node)) {
     adoptIntoAnchor(node, child);
-    if (child instanceof AnimatedSprite) driveOnRootClock(child);
     return;
   }
   addInElementOrder(ensureScreen(node), child);

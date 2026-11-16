@@ -1,7 +1,7 @@
+import type { ThreeEvent } from '@react-fiber/threejs-compat';
+import { Plane, Vector3 } from '@react-fiber/threejs-compat/three';
 import type { TestScene } from '@test-scene';
 import { useRef, useState } from 'react';
-import type { ThreeEvent } from 'react-pixi-fiber';
-import { Plane, Vector3 } from 'react-pixi-fiber/three';
 
 const floor = new Plane(new Vector3(0, 0, 1), 0);
 

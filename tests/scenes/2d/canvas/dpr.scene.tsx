@@ -1,5 +1,5 @@
+import { useThree } from '@react-fiber/core';
 import type { TestScene } from '@test-scene';
-import { useThree } from 'react-pixi-fiber';
 
 /** What `useThree` reports of the canvas: its CSS size and its pixel ratio */
 function Readout() {

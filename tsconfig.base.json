@@ -1,0 +1,40 @@
+{
+  // The compiler options every package and the repo's tooling share. Each package's tsconfig.json extends it
+  // and type-checks its own src; the root tsconfig.json type-checks everything together.
+  "compilerOptions": {
+    "target": "esnext",
+    // DOM and WebGPU types come from `@types/web`, matching pixi-3d. Adding "DOM" here clashes with it.
+    "lib": ["ESNext"],
+    "moduleDetection": "force",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "types": ["node", "@types/web", "vite/client"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    // No verbatimModuleSyntax: the forked r3f source in packages/r3f imports types without `import type`.
+    // oxlint's consistent-type-imports holds our own files to type-only imports instead.
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "paths": {
+      // The packages import each other by name, resolved to their sources; their builds resolve the same.
+      "@react-fiber/core": ["./packages/core/src/index.tsx"],
+      "@react-fiber/core/extension": ["./packages/core/src/extension.ts"],
+      "@react-fiber/2d": ["./packages/2d/src/index.ts"],
+      "@react-fiber/3d": ["./packages/3d/src/index.ts"],
+      "@react-fiber/threejs-compat": ["./packages/threejs-compat/src/index.ts"],
+      "@react-fiber/threejs-compat/three": ["./packages/threejs-compat/src/three.ts"],
+      "@react-fiber/threejs-compat/addons": ["./packages/threejs-compat/src/addons/index.ts"],
+      // core reaches r3f's modules by path; its build bundles them.
+      "@react-fiber/r3f/*": ["./packages/r3f/*"],
+      // r3f's alias for its types folder, used throughout the forked source.
+      "#types": ["./packages/r3f/types/index.ts"],
+      "#types/*": ["./packages/r3f/types/*"]
+    }
+  }
+}

@@ -1,7 +1,7 @@
+import { useAsset } from '@react-fiber/2d';
 import type { TestScene } from '@test-scene';
 import type { AnimatedSprite, Spritesheet } from 'pixi.js';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useAsset } from 'react-pixi-fiber';
 
 function Lamp({ x, on }: { x: number; on: boolean }) {
   return <graphics2D x={x} y={250} draw={(graphics) => graphics.circle(0, 0, 12).fill(on ? 0x3cb44b : 0xe6194b)} />;

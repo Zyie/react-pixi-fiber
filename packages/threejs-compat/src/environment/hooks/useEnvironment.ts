@@ -2,21 +2,14 @@
  * Adapted from react-three-fiber's packages/fiber/src/core/hooks/useEnvironment.tsx
  * MIT License, Copyright (c) 2019-2025 Poimandres
  */
+import { presetsObj, useLoader as coreUseLoader } from '@react-fiber/core';
+import type { PresetsType } from '@react-fiber/core';
+
 import { HDRLoader } from '../../addons/environment/HDRLoader';
 import { CubeReflectionMapping, EquirectangularReflectionMapping } from '../../catalog/constants';
 import { CubeTextureLoader } from '../../loaders/CubeTextureLoader';
 import { TextureLoader } from '../../loaders/TextureLoader';
-import { presetsObj } from '../../r3f/src/core/components/Environment/environment-assets';
-import { useLoader as coreUseLoader } from '../../r3f/src/core/hooks/useLoader';
 import type { EnvironmentTexture } from '../environmentTexture';
-
-/**
- * The environments `useEnvironment` and `<Environment preset>` name: r3f's ten Poly Haven `.hdr`
- * files, fetched from pmndrs' asset host
- * @category hooks
- * @advanced
- */
-export type PresetsType = keyof typeof presetsObj;
 
 /**
  * A loader `useEnvironment` uses, as its `extensions` callback gets it
