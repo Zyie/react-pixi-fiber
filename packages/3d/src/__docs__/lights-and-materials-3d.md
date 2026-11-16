@@ -32,7 +32,7 @@ Four kinds, each a node that lights every lit mesh in the scene, wherever in the
 
 Each has a `color`, any colour pixi takes, and an `intensity`. With no tone curve, which is @pixi/3d's default, a white surface facing a directional light of intensity 1 shows mid grey, and about 3 brings it to white. Point and spot lights dim with distance, so they need more. Give them a `range`, the smallest that looks right: the light fades to nothing there, and the view skips it where it can't reach. Setting `visible={false}` on a light, or on a parent, switches it off.
 
-A root's view draws with @pixi/3d's defaults: no tone curve, no shadows, no fog and no environment. Elements can't set them on the view yet; threejs-compat's renderer does, from three's settings.
+Shadows are @pixi/3d's own and need no setting on the root: a light with `castShadow` casts them, from each mesh with `castShadow` onto each with `receiveShadow`, and a light's `shadow` options in its `args` (`args={[{ castShadow: true, shadow: { bias: 0.002, cascades: 3 } }]}`) tune them. A root's view otherwise draws with @pixi/3d's defaults: no tone curve, no fog and no environment, which elements can't set on the view yet; threejs-compat's renderer does, from three's settings.
 
 ## Materials
 
