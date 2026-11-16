@@ -49,13 +49,22 @@ export function referencePicture(id: string): string {
 }
 
 /**
- * The place of a topic among the topics: those named like a guide in the guides' order, then the rest
+ * The topics that are a package's examples, in the navbar's order; every other topic is an r3f-style
+ * example on threejs-compat
+ */
+export const PACKAGE_TOPICS: readonly string[] = ['core', '2d', '3d'];
+
+/**
+ * The place of a topic among the topics: the packages' first, in the navbar's order, then those named
+ * like a guide in the guides' order, then the rest
  * @param topic - The topic
  */
 export function topicRank(topic: string): number {
+  const own = PACKAGE_TOPICS.indexOf(topic);
+  if (own !== -1) return own;
   const guide = GUIDES.findIndex(({ id }) => id === topic);
 
-  return guide < 0 ? GUIDES.length : guide;
+  return PACKAGE_TOPICS.length + (guide < 0 ? GUIDES.length : guide);
 }
 
 /** Every example, by topic in the order of `topicRank`, then by id; empty when there are none */

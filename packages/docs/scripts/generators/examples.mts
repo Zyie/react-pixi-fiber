@@ -149,7 +149,8 @@ function leadOf(list: readonly Block[], at: number): Nodes[] {
 }
 
 /**
- * Every example with its uses and alt text, from the README and the guides
+ * Every example with its uses and alt text, from the guides. The repository's README quotes examples
+ * too, but it is no page of the site, and its prose introduces the packages, not the example.
  * @param shared - The values of the sync
  */
 function readGuides(shared: Shared): Map<string, Entry> {
@@ -159,7 +160,7 @@ function readGuides(shared: Shared): Map<string, Entry> {
   const doc = shared(parsedDocs);
 
   if (examples.size === 0) return examples;
-  for (const file of docFiles(ROOT)) {
+  for (const file of docFiles(ROOT).filter((each) => each !== 'README.md')) {
     const list = blocks(file, doc(file));
     let section = { text: '', anchor: '' };
 

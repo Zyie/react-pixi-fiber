@@ -78,12 +78,12 @@ const ENTRY_INFO: Readonly<Record<EntryName, { position: number; summary: string
   '3d': {
     position: 6,
     summary:
-      "@pixi/3d's classes as elements under pixi's conventions. A skeleton for now: the hooks of @pixi/3d's objects.",
+      "@pixi/3d's classes as elements under pixi's conventions (`<mesh3D>`, `<sphereGeometry3D>`, `<pointLight3D>`), their element types, and `<OrbitCamera3D>`.",
   },
   extension: {
     position: 7,
     summary:
-      "What packages that build on core plug in with: the registry, through pixi.js's `extensions`, and the stage, hit order and renderer parts a package's objects join.",
+      "What packages that build on core plug in with: the registry, through pixi.js's `extensions`, and the stage and renderer parts a package's objects join.",
   },
 };
 

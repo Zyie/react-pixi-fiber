@@ -107,7 +107,7 @@ export const scene: TestScene = {
 For each renderer of the vitest project, the harness (`tests/harness/scene-runner.tsx`):
 
 1. Puts a 400 by 300 canvas at a device pixel ratio of 1 on the page, over a black background. Both renderers clear to transparent, so the black shows through.
-2. Creates a root with `createRoot` from `@react-fiber/threejs-compat`, `frameloop: 'never'`, r3f's pointer events and the scene's `canvas` props, and renders the scene. It waits for anything the scene suspends on, such as a texture.
+2. Creates a root with `createRoot` from `@react-fiber/core`, on whatever packages the page installed, `frameloop: 'never'`, r3f's pointer events and the scene's `canvas` props, and renders the scene. It waits for anything the scene suspends on, such as a texture.
 3. Holds `performance.now()` still, and advances the root by `frames` frames, each a sixtieth of a second of the scene's clock after the one before. The first frame has a delta of 0. Nothing moves between frames, so the picture doesn't depend on how fast the machine ran.
 4. Runs `act`, if there is one, then advances one more frame.
 5. Captures the canvas and compares it with `tests/snapshots/<key>.<renderer>.png`. On a pixi-3d renderer it then measures the capture against `tests/snapshots/<key>.three.png` (see "Parity with three.js").
