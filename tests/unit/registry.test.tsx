@@ -15,7 +15,7 @@ it("runs a package's install as it registers once a root has loaded the support,
   const root = createRoot(canvas);
   await root.configure({ frameloop: 'never', size: { width: 64, height: 64, top: 0, left: 0 }, dpr: 1 });
 
-  const late = { install: vi.fn() };
+  const late = { install: vi.fn<() => void>() };
   const extension = { type: FiberExtensionType.Support, name: 'late', ref: late };
   extensions.add(extension);
   expect(late.install).toHaveBeenCalledOnce();
@@ -29,7 +29,7 @@ it("runs a package's install as it registers once a root has loaded the support,
 it("names the package to import for an element whose suffix is a package's, rather than three's namespace", async () => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = true;
   // r3f's root also reports what a render throws through reportError, which it reads as the root is made
-  vi.stubGlobal('reportError', vi.fn());
+  vi.stubGlobal('reportError', vi.fn<(error: unknown) => void>());
   const canvas = document.body.appendChild(document.createElement('canvas'));
   const root = createRoot(canvas);
   vi.unstubAllGlobals();

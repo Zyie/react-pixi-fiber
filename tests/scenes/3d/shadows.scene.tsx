@@ -1,7 +1,7 @@
 import type { TestScene } from '@test-scene';
 
 /**
- * @pixi/3d's own shadows, with no renderer setting: a directional light shining down from the front right
+ * The shadows of @pixi/3d itself, with no renderer setting: a directional light shining down from the front right
  * with `castShadow`, an orange cube over a grey floor with `castShadow`, and the floor with
  * `receiveShadow`, so the cube's shadow falls on the floor behind and to the left of it. The blue ball on
  * the left has `castShadow={false}` and casts none.
