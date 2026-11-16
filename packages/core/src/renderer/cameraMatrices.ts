@@ -36,8 +36,7 @@ const matricesOf = (camera: Camera3D): CameraMatrices => {
  * The aspect a camera projects with: three's `aspect` field when r3f keeps one on the camera, else
  * the size of the view drawing it, else square
  * @param camera - The camera to read
- * @category renderer
- * @advanced
+ * @internal
  */
 export function cameraAspect(camera: Camera3D): number {
   const own = (camera as Camera3D & { aspect?: number }).aspect;

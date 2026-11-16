@@ -1,5 +1,7 @@
 // #region result
 import { Canvas, RenderTexture2D, useThree } from '@react-fiber/core';
+import '@react-fiber/2d';
+import '@react-fiber/threejs-compat';
 import type { ThreeEvent2D } from '@react-fiber/core';
 import { useState } from 'react';
 // #endregion result

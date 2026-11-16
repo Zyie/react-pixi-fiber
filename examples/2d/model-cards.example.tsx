@@ -1,5 +1,7 @@
 // #region result
 import { Canvas, View3D, useFrame } from '@react-fiber/core';
+import '@react-fiber/2d';
+import '@react-fiber/threejs-compat';
 import type { Mesh } from '@react-fiber/threejs-compat/three';
 import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';

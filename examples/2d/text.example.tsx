@@ -1,5 +1,7 @@
 // #region result
 import { Canvas, useFrame } from '@react-fiber/core';
+import '@react-fiber/2d';
+import '@react-fiber/threejs-compat';
 import { BitmapFont, TextStyle } from 'pixi.js';
 import type { BitmapText } from 'pixi.js';
 import { useRef } from 'react';

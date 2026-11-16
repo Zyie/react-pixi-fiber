@@ -1,5 +1,7 @@
 // #region result
 import { Canvas } from '@react-fiber/core';
+import '@react-fiber/2d';
+import '@react-fiber/threejs-compat';
 import { Texture } from 'pixi.js';
 import { useState } from 'react';
 // #endregion result

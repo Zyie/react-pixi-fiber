@@ -10,6 +10,8 @@ A class that extends one of pixi's containers takes props, `args`, children, ref
 
 ```tsx
 import { Canvas, extend } from '@react-fiber/core';
+import '@react-fiber/2d';
+import '@react-fiber/threejs-compat';
 import type { ThreeElement } from '@react-fiber/core';
 import { Container, Graphics, Text } from 'pixi.js';
 

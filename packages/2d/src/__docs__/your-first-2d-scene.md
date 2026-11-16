@@ -13,12 +13,16 @@ The `<Canvas>` is the one from [Your first scene](../../../threejs-compat/src/__
 }
 ```
 
+The 2D elements come from `@react-fiber/2d`, which installs them when it is imported, once, anywhere in the app. For now a root also needs `@react-fiber/threejs-compat` installed, which gives it its default scene and camera, so the examples import both.
+
 Then render a Canvas into it, with a white frame, a line of text and a blue square that turns:
 
 <!-- snippet: examples/2d/first-2d-scene.example.tsx#result -->
 
 ```tsx
 import { Canvas, useFrame } from '@react-fiber/core';
+import '@react-fiber/2d';
+import '@react-fiber/threejs-compat';
 import { Texture } from 'pixi.js';
 import type { Sprite } from 'pixi.js';
 import { useRef } from 'react';

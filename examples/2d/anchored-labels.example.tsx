@@ -1,5 +1,7 @@
 // #region result
 import { Canvas, useFrame } from '@react-fiber/core';
+import '@react-fiber/2d';
+import '@react-fiber/threejs-compat';
 import type { ThreeEvent } from '@react-fiber/core';
 import type { Group } from '@react-fiber/threejs-compat/three';
 import { useRef, useState } from 'react';

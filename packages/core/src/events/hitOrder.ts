@@ -1,7 +1,6 @@
 /**
  * Where a hit is drawn on its screen layer, front to back: 2D drawn over the scene's 3D
- * @category renderer
- * @advanced
+ * @internal
  */
 export const OVER_3D = 0;
 /**
@@ -12,8 +11,7 @@ export const OVER_3D = 0;
 export const IN_3D = 1;
 /**
  * Where a hit is drawn on its screen layer, front to back: 2D drawn under the scene's 3D
- * @category renderer
- * @advanced
+ * @internal
  */
 export const UNDER_3D = 2;
 

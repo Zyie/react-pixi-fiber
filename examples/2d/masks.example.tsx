@@ -1,6 +1,7 @@
 // #region result
 import { useAsset } from '@react-fiber/2d';
 import { Canvas, useTexture } from '@react-fiber/core';
+import '@react-fiber/threejs-compat';
 import type { Graphics, Spritesheet } from 'pixi.js';
 import { Suspense, useRef } from 'react';
 import type { RefObject } from 'react';

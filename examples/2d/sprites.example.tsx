@@ -1,6 +1,7 @@
 // #region result
 import { useAsset } from '@react-fiber/2d';
 import { Canvas, useFrame, useTexture } from '@react-fiber/core';
+import '@react-fiber/threejs-compat';
 import type { Spritesheet, TilingSprite } from 'pixi.js';
 import { Suspense, useMemo, useRef } from 'react';
 // #endregion result

@@ -1,5 +1,7 @@
 // #region result
 import { Canvas, useFrame, useTexture } from '@react-fiber/core';
+import '@react-fiber/2d';
+import '@react-fiber/threejs-compat';
 import { Point } from 'pixi.js';
 import type { MeshPlane, MeshRope, RopeGeometry } from 'pixi.js';
 import { Suspense, useMemo, useRef } from 'react';

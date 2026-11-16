@@ -11,13 +11,7 @@ export type { RenderedScene, ViewSettings } from './renderer/PixiRenderer';
 export { indexUnderView, updateBackdrop } from './renderer/backdrop';
 export { program } from './renderer/programs';
 export { markMaterialTexture } from './renderer/materialTextures';
-export {
-  cameraAspect,
-  cameraProjection,
-  cameraProjectionInverse,
-  cameraWorld,
-  cameraWorldInverse,
-} from './renderer/cameraMatrices';
+export { cameraProjection, cameraProjectionInverse, cameraWorld, cameraWorldInverse } from './renderer/cameraMatrices';
 export {
   THREE_IN_2D,
   addInElementOrder,
@@ -31,4 +25,4 @@ export {
 } from './stage/screen';
 export { clearCursorsUnder } from './stage/cursor';
 export { hitTestScreen, noteCast } from './stage/hitTest';
-export { IN_3D, OVER_3D, UNDER_3D, drawOrder, layerOrderOf, setHitOrder, type DrawOrder } from './events/hitOrder';
+export { IN_3D, drawOrder, layerOrderOf, setHitOrder, type DrawOrder } from './events/hitOrder';
